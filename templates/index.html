@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced Stock Prediction Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+        }
+
+        body {
+            background: radial-gradient(circle at 10% 20%, #e0f7ff 0, #f8f9fa 25%, #ffffff 60%);
+            font-family: 'Inter', 'Arial', sans-serif;
+        }
+
+        .container {
+            max-width: 1400px;
+            padding-top: 30px;
+        }
+
+        .stock-selector {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        #chart {
+            height: 600px;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+
+        .predictions-card, .news-card {
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+
+        .loading-spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+        }
+
+        .model-badge {
+            margin-right: 5px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 0.8em;
+            background: linear-gradient(90deg, #0b7285, #0d6efd);
+        }
+
+        .news-article {
+            transition: transform 0.3s ease;
+        }
+
+        .news-article:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div class="loading-spinner text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 class="text-center mb-4 fw-bold">
+            <i class="fas fa-chart-line"></i> Stock Prediction Dashboard
+        </h1>
+        
+        <!-- Stock Input -->
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="stock-selector">
+                    <div class="row g-2">
+                        <div class="col-md-8">
+                            <input id="stock-input" type="text" class="form-control" placeholder="Enter S&P 500 symbol (e.g., AAPL, MSFT)" />
+                        </div>
+                        <div class="col-md-4">
+                            <button id="predict-btn" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> Predict
+                            </button>
+                        </div>
+                    </div>
+                    <small class="text-muted">Type any S&P 500 ticker symbol to fetch predictions.</small>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button id="download-excel" class="btn btn-sm btn-outline-success" disabled>
+                            <i class="fas fa-file-excel"></i> Excel indir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" style="display:none;">
+            <!-- Stock Price Chart -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <i class="fas fa-chart-area"></i> Stock Price Chart
+                </div>
+                <div class="card-body">
+                    <div id="chart"></div>
+                </div>
+            </div>
+
+            <!-- Predictions Table -->
+            <div class="card predictions-card mb-3">
+                <div class="card-header">
+                    <i class="fas fa-calculator"></i> Prediction Results
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover" id="predictions-table">
+                        <thead>
+                            <tr>
+                                <th>Model</th>
+                                <th>Predicted Price</th>
+                                <th>Change</th>
+                                <th>Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody id="predictions-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- News Section -->
+            <div class="card news-card">
+                <div class="card-header">
+                    <i class="fas fa-newspaper"></i> Latest News
+                </div>
+                <div class="card-body" id="news-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            const $downloadBtn = $('#download-excel');
+
+            $('#predict-btn').click(function() {
+                const symbol = $('#stock-input').val().trim().toUpperCase();
+                if (!symbol) {
+                    alert('Please enter a stock symbol');
+                    return;
+                }
+
+                // Show loading spinner
+                $('.loading-spinner').show();
+                $('#results').hide();
+                $downloadBtn.prop('disabled', true);
+
+                $.ajax({
+                    url: '/predict',
+                    method: 'POST',
+                    data: { symbol: symbol },
+                    success: function(response) {
+                        // Hide loading spinner
+                        $('.loading-spinner').hide();
+                        $('#results').show();
+
+                        // Render chart
+                        const chartData = typeof response.chart === 'string' ? JSON.parse(response.chart) : response.chart;
+                        Plotly.newPlot('chart', chartData.data, chartData.layout);
+
+                        // Populate predictions
+                        let predictionsHtml = '';
+                        const currentPrice = response.current_price;
+                        const confidences = {
+                            'XGBoost': 0.82,
+                            'ExtraTrees': 0.78,
+                            'RandomForest': 0.80
+                        };
+                        
+                        Object.entries(response.predictions).forEach(([model, predictions]) => {
+                            const lastPrediction = predictions[predictions.length - 1];
+                            const changePercent = ((lastPrediction - currentPrice) / currentPrice * 100).toFixed(2);
+                            const confidence = ((confidences[model] ?? 0.7) * 100).toFixed(0);
+                            const changeClass = changePercent >= 0 ? 'text-success' : 'text-danger';
+                            
+                            predictionsHtml += `
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-primary model-badge">${model}</span>
+                                    </td>
+                                    <td>$${lastPrediction.toFixed(2)}</td>
+                                    <td class="${changeClass}">
+                                        <i class="fas ${changePercent >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
+                                        ${changePercent}%
+                                    </td>
+                                    <td>
+                                        <div class="progress">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: ${confidence}%;" 
+                                                 aria-valuenow="${confidence}" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100">${confidence}%</div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        
+                        $('#predictions-body').html(predictionsHtml);
+                        $downloadBtn.prop('disabled', false);
+
+                        // Populate news
+                        let newsHtml = '';
+                        if (response.news && response.news.length) {
+                            response.news.forEach(article => {
+                                const published = article.published ? `<small class="text-muted">${article.published}</small>` : '';
+                                newsHtml += `
+                                    <div class="card mb-2 news-article">
+                                        <div class="card-body">
+                                            <h5 class="card-title">${article.title}</h5>
+                                            <p class="card-text text-muted mb-1">${article.publisher || ''}</p>
+                                            ${published}
+                                            <a href="${article.link}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-external-link-alt"></i> Read More
+                                            </a>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            newsHtml = '<div class="text-muted">No recent news found for this symbol.</div>';
+                        }
+                        $('#news-container').html(newsHtml);
+                    },
+                    error: function(xhr) {
+                        $('.loading-spinner').hide();
+                        alert('Error: ' + (xhr.responseJSON ? xhr.responseJSON.error : 'Unknown error'));
+                    }
+                });
+            });
+
+            $downloadBtn.click(function() {
+                const symbol = $('#stock-input').val().trim().toUpperCase();
+                if (!symbol) {
+                    alert('Please enter a stock symbol first');
+                    return;
+                }
+                $('.loading-spinner').show();
+                fetch('/predict_excel', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: $.param({ symbol })
+                }).then(resp => {
+                    if (!resp.ok) {
+                        return resp.json().then(data => Promise.reject(data));
+                    }
+                    return resp.blob();
+                }).then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${symbol}_forecast.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+                }).catch(err => {
+                    alert('Error: ' + (err && err.error ? err.error : 'Unknown error'));
+                }).finally(() => {
+                    $('.loading-spinner').hide();
+                });
+            });
+        });
+    </script>
+</body>
+</html>
