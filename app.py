@@ -24,7 +24,6 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s: %(message)s'
 )
 logger = logging.getLogger(__name__)
-tf.get_logger().setLevel('INFO')
 
 app = Flask(__name__)
 SENTIMENT_ANALYZER = SentimentIntensityAnalyzer()
@@ -49,8 +48,10 @@ def validate_stock_data(df):
     if df is None or df.empty:
         raise ValueError("No stock data available")
     
-    # Ensure data is for the last year
-    df = df.last('365D')
+    if not isinstance(df.index, pd.DatetimeIndex):
+        df.index = pd.to_datetime(df.index)
+    cutoff = df.index.max() - pd.Timedelta(days=365)
+    df = df.loc[df.index >= cutoff].copy()
     
     if len(df) < 250:  # Minimum trading days in a year
         raise ValueError(f"Insufficient data points. Required: 250, Available: {len(df)}")
@@ -61,7 +62,7 @@ def validate_stock_data(df):
     # Fill any remaining NaN values
     columns_to_fill = ['Open', 'High', 'Low', 'Close', 'Volume']
     for col in columns_to_fill:
-        df[col].fillna(method='ffill', inplace=True)
+        df[col] = df[col].ffill()
     
     return df
 
@@ -75,7 +76,20 @@ def prepare_time_series_data(data, time_steps=30):
         X.append(scaled_data[i:i+time_steps])
         y.append(scaled_data[i+time_steps])
     
-    return np.array(X), np.array(y), scaler
+    return np.array(X), np.array(y), scaler, scaled_data
+
+
+def _forecast_tree_recursive(model, last_window_scaled, steps):
+    """Recursive multi-step forecast for tree-based models using scaled window."""
+    window = last_window_scaled.copy().ravel()
+    preds = []
+    for _ in range(steps):
+        next_scaled = model.predict(window.reshape(1, -1))
+        val = float(next_scaled.ravel()[0])
+        val = max(0.0, min(1.0, val))
+        preds.append(val)
+        window = np.hstack([window[1:], [val]])
+    return np.array(preds).reshape(-1, 1)
 
 def create_lstm_model(input_shape):
     """Create LSTM model with functional API"""
@@ -94,20 +108,17 @@ def create_lstm_model(input_shape):
 def train_prediction_models(data, dates):
     """Train multiple prediction models using last year's data"""
     time_steps = 30
-    X, y, scaler = prepare_time_series_data(data, time_steps)
-    
-    # Split data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
-    X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
-    X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
-    
+    X, y, scaler, scaled_data = prepare_time_series_data(data, time_steps)
+
+    flat_X = X.reshape(X.shape[0], -1)
+    last_window_scaled = scaled_data[-time_steps:].copy()
     predictions = {}
     
     # XGBoost Model
     xgb_model = xgb.XGBRegressor()
-    xgb_model.fit(X_train.reshape(X_train.shape[0], -1), y_train)
-    xgb_pred = xgb_model.predict(X_test[-30:].reshape(30, -1))
-    predictions['XGBoost'] = scaler.inverse_transform(xgb_pred.reshape(-1, 1))
+    xgb_model.fit(flat_X, y)
+    xgb_scaled = _forecast_tree_recursive(xgb_model, last_window_scaled, 30)
+    predictions['XGBoost'] = scaler.inverse_transform(xgb_scaled)
     
     # ExtraTrees Model
     try:
@@ -116,9 +127,9 @@ def train_prediction_models(data, dates):
             random_state=42,
             n_jobs=-1
         )
-        et_model.fit(X_train.reshape(X_train.shape[0], -1), y_train)
-        et_pred = et_model.predict(X_test[-30:].reshape(30, -1))
-        predictions['ExtraTrees'] = scaler.inverse_transform(et_pred.reshape(-1, 1))
+        et_model.fit(flat_X, y)
+        et_scaled = _forecast_tree_recursive(et_model, last_window_scaled, 30)
+        predictions['ExtraTrees'] = scaler.inverse_transform(et_scaled)
     except Exception as e:
         logger.error(f"ExtraTrees model error: {e}")
 
@@ -129,9 +140,9 @@ def train_prediction_models(data, dates):
             random_state=42,
             n_jobs=-1
         )
-        rf_model.fit(X_train.reshape(X_train.shape[0], -1), y_train)
-        rf_pred = rf_model.predict(X_test[-30:].reshape(30, -1))
-        predictions['RandomForest'] = scaler.inverse_transform(rf_pred.reshape(-1, 1))
+        rf_model.fit(flat_X, y)
+        rf_scaled = _forecast_tree_recursive(rf_model, last_window_scaled, 30)
+        predictions['RandomForest'] = scaler.inverse_transform(rf_scaled)
     except Exception as e:
         logger.error(f"RandomForest model error: {e}")
     
