@@ -16,8 +16,8 @@
         }
 
         body {
-            background: radial-gradient(circle at 10% 20%, #e0f7ff 0, #f8f9fa 25%, #ffffff 60%);
-            font-family: 'Inter', 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
         }
 
         .container {
@@ -27,8 +27,8 @@
 
         .stock-selector {
             background-color: white;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             padding: 20px;
             margin-bottom: 20px;
         }
@@ -36,13 +36,13 @@
         #chart {
             height: 600px;
             background-color: white;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .predictions-card, .news-card {
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .loading-spinner {
@@ -56,10 +56,9 @@
 
         .model-badge {
             margin-right: 5px;
-            padding: 3px 10px;
-            border-radius: 999px;
+            padding: 3px 8px;
+            border-radius: 4px;
             font-size: 0.8em;
-            background: linear-gradient(90deg, #0b7285, #0d6efd);
         }
 
         .news-article {
@@ -80,29 +79,28 @@
     </div>
 
     <div class="container">
-        <h1 class="text-center mb-4 fw-bold">
+        <h1 class="text-center mb-4">
             <i class="fas fa-chart-line"></i> Stock Prediction Dashboard
         </h1>
         
-        <!-- Stock Input -->
+        <!-- Stock Selector -->
         <div class="row">
             <div class="col-md-8 offset-md-2">
                 <div class="stock-selector">
-                    <div class="row g-2">
+                    <div class="row">
                         <div class="col-md-8">
-                            <input id="stock-input" type="text" class="form-control" placeholder="Enter S&P 500 symbol (e.g., AAPL, MSFT)" />
+                            <select id="stock-select" class="form-select">
+                                <option value="">Select a Stock</option>
+                                {% for stock in stocks %}
+                                <option value="{{ stock }}">{{ stock }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                         <div class="col-md-4">
                             <button id="predict-btn" class="btn btn-primary w-100">
                                 <i class="fas fa-search"></i> Predict
                             </button>
                         </div>
-                    </div>
-                    <small class="text-muted">Type any S&P 500 ticker symbol to fetch predictions.</small>
-                    <div class="d-flex justify-content-end mt-2">
-                        <button id="download-excel" class="btn btn-sm btn-outline-success" disabled>
-                            <i class="fas fa-file-excel"></i> Excel indir
-                        </button>
                     </div>
                 </div>
             </div>
@@ -152,19 +150,16 @@
 
     <script>
         $(document).ready(function() {
-            const $downloadBtn = $('#download-excel');
-
             $('#predict-btn').click(function() {
-                const symbol = $('#stock-input').val().trim().toUpperCase();
+                const symbol = $('#stock-select').val();
                 if (!symbol) {
-                    alert('Please enter a stock symbol');
+                    alert('Please select a stock');
                     return;
                 }
 
                 // Show loading spinner
                 $('.loading-spinner').show();
                 $('#results').hide();
-                $downloadBtn.prop('disabled', true);
 
                 $.ajax({
                     url: '/predict',
@@ -176,22 +171,23 @@
                         $('#results').show();
 
                         // Render chart
-                        const chartData = typeof response.chart === 'string' ? JSON.parse(response.chart) : response.chart;
+                        const chartData = JSON.parse(response.chart);
                         Plotly.newPlot('chart', chartData.data, chartData.layout);
 
                         // Populate predictions
                         let predictionsHtml = '';
                         const currentPrice = response.current_price;
                         const confidences = {
-                            'XGBoost': 0.82,
-                            'ExtraTrees': 0.78,
-                            'RandomForest': 0.80
+                            'LSTM': 0.75,
+                            'XGBoost': 0.80,
+                            'Prophet': 0.70,
+                            'ARIMA': 0.65
                         };
                         
                         Object.entries(response.predictions).forEach(([model, predictions]) => {
                             const lastPrediction = predictions[predictions.length - 1];
                             const changePercent = ((lastPrediction - currentPrice) / currentPrice * 100).toFixed(2);
-                            const confidence = ((confidences[model] ?? 0.7) * 100).toFixed(0);
+                            const confidence = (confidences[model] * 100).toFixed(0);
                             const changeClass = changePercent >= 0 ? 'text-success' : 'text-danger';
                             
                             predictionsHtml += `
@@ -218,69 +214,28 @@
                         });
                         
                         $('#predictions-body').html(predictionsHtml);
-                        $downloadBtn.prop('disabled', false);
 
                         // Populate news
                         let newsHtml = '';
-                        if (response.news && response.news.length) {
-                            response.news.forEach(article => {
-                                const published = article.published ? `<small class="text-muted">${article.published}</small>` : '';
-                                newsHtml += `
-                                    <div class="card mb-2 news-article">
-                                        <div class="card-body">
-                                            <h5 class="card-title">${article.title}</h5>
-                                            <p class="card-text text-muted mb-1">${article.publisher || ''}</p>
-                                            ${published}
-                                            <a href="${article.link}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-external-link-alt"></i> Read More
-                                            </a>
-                                        </div>
+                        response.news.forEach(article => {
+                            newsHtml += `
+                                <div class="card mb-2 news-article">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${article.title}</h5>
+                                        <p class="card-text text-muted">${article.publisher}</p>
+                                        <a href="${article.link}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-external-link-alt"></i> Read More
+                                        </a>
                                     </div>
-                                `;
-                            });
-                        } else {
-                            newsHtml = '<div class="text-muted">No recent news found for this symbol.</div>';
-                        }
+                                </div>
+                            `;
+                        });
                         $('#news-container').html(newsHtml);
                     },
                     error: function(xhr) {
                         $('.loading-spinner').hide();
                         alert('Error: ' + (xhr.responseJSON ? xhr.responseJSON.error : 'Unknown error'));
                     }
-                });
-            });
-
-            $downloadBtn.click(function() {
-                const symbol = $('#stock-input').val().trim().toUpperCase();
-                if (!symbol) {
-                    alert('Please enter a stock symbol first');
-                    return;
-                }
-                $('.loading-spinner').show();
-                fetch('/predict_excel', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: $.param({ symbol })
-                }).then(resp => {
-                    if (!resp.ok) {
-                        return resp.json().then(data => Promise.reject(data));
-                    }
-                    return resp.blob();
-                }).then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${symbol}_forecast.xlsx`;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    window.URL.revokeObjectURL(url);
-                }).catch(err => {
-                    alert('Error: ' + (err && err.error ? err.error : 'Unknown error'));
-                }).finally(() => {
-                    $('.loading-spinner').hide();
                 });
             });
         });

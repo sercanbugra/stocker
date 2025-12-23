@@ -3,8 +3,8 @@ yfinance
 pandas 
 numpy 
 scikit-learn 
+tensorflow 
 xgboost 
+prophet 
+statsmodels 
 plotly
-openpyxl
-requests
-gunicorn
