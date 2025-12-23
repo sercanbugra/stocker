@@ -93,6 +93,9 @@
                                 <button id="add-watchlist" type="button" class="btn btn-outline-secondary flex-grow-1 flex-md-grow-0">
                                     <i class="fas fa-star"></i> Add to Watchlist
                                 </button>
+                                <button id="download-excel" type="button" class="btn btn-outline-success flex-grow-1 flex-md-grow-0" disabled>
+                                    <i class="fas fa-file-excel"></i> Excel indir
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -174,6 +177,7 @@
         $(document).ready(function() {
             const $watchlistBody = $('#watchlist-body');
             const $watchlistNotice = $('#watchlist-notice');
+            const $downloadBtn = $('#download-excel');
 
             function loadWatchlist() {
                 try {
@@ -237,10 +241,9 @@
                         let predictionsHtml = '';
                         const currentPrice = response.current_price;
                         const confidences = {
-                            'LSTM': 0.75,
-                            'XGBoost': 0.80,
-                            'Prophet': 0.70,
-                            'ARIMA': 0.65
+                            'XGBoost': 0.82,
+                            'ExtraTrees': 0.78,
+                            'RandomForest': 0.8
                         };
                         
                         Object.entries(response.predictions).forEach(([model, predictions]) => {
@@ -273,6 +276,7 @@
                         });
                         
                         $('#predictions-body').html(predictionsHtml);
+                        $downloadBtn.prop('disabled', false);
 
                         const info = response.company_info || {};
                         const aboutHtml = `
@@ -351,6 +355,40 @@
                 const list = loadWatchlist().filter(s => s !== sym);
                 saveWatchlist(list);
                 renderWatchlist();
+            });
+
+            $downloadBtn.click(function() {
+                const symbol = $('#stock-input').val().trim().toUpperCase();
+                if (!symbol) {
+                    alert('Please enter a stock symbol first');
+                    return;
+                }
+                $('.loading-spinner').show();
+                fetch('/predict_excel', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: $.param({ symbol })
+                }).then(resp => {
+                    if (!resp.ok) {
+                        return resp.json().then(data => Promise.reject(data));
+                    }
+                    return resp.blob();
+                }).then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${symbol}_forecast.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+                }).catch(err => {
+                    alert('Error: ' + (err && err.error ? err.error : 'Unknown error'));
+                }).finally(() => {
+                    $('.loading-spinner').hide();
+                });
             });
         });
     </script>

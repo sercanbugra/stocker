@@ -1,27 +1,22 @@
 import os
 import logging
+import json
 import numpy as np
 import pandas as pd
 import yfinance as yf
 import plotly.graph_objs as go
 import xgboost as xgb
-from prophet import Prophet
-from statsmodels.tsa.arima.model import ARIMA
+from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
 import requests
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-
-# TensorFlow and Keras imports
-import tensorflow as tf
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, LSTM, Dense, Dropout, GRU
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from plotly.utils import PlotlyJSONEncoder
+from io import BytesIO
 
 # Scikit-learn imports
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import train_test_split
 
 # Flask imports
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 
 # Configure logging
 logging.basicConfig(
@@ -108,42 +103,37 @@ def train_prediction_models(data, dates):
     
     predictions = {}
     
-    # LSTM Model
-    lstm_model = create_lstm_model((time_steps, 1))
-    lstm_model.fit(X_train, y_train, epochs=50, batch_size=32, verbose=0)
-    lstm_pred = lstm_model.predict(X_test[-30:].reshape(30, time_steps, 1))
-    predictions['LSTM'] = scaler.inverse_transform(lstm_pred)
-    
     # XGBoost Model
     xgb_model = xgb.XGBRegressor()
     xgb_model.fit(X_train.reshape(X_train.shape[0], -1), y_train)
     xgb_pred = xgb_model.predict(X_test[-30:].reshape(30, -1))
     predictions['XGBoost'] = scaler.inverse_transform(xgb_pred.reshape(-1, 1))
     
-    # Prophet Model
+    # ExtraTrees Model
     try:
-        df_prophet = pd.DataFrame({
-            'ds': dates[-len(data):],
-            'y': data
-        })
-        prophet_model = Prophet(daily_seasonality=True)
-        prophet_model.fit(df_prophet)
-        future = prophet_model.make_future_dataframe(periods=30)
-        prophet_forecast = prophet_model.predict(future)
-        predictions['Prophet'] = prophet_forecast['yhat'][-30:].values.reshape(-1, 1)
+        et_model = ExtraTreesRegressor(
+            n_estimators=400,
+            random_state=42,
+            n_jobs=-1
+        )
+        et_model.fit(X_train.reshape(X_train.shape[0], -1), y_train)
+        et_pred = et_model.predict(X_test[-30:].reshape(30, -1))
+        predictions['ExtraTrees'] = scaler.inverse_transform(et_pred.reshape(-1, 1))
     except Exception as e:
-        logger.error(f"Prophet model error: {e}")
-        predictions['Prophet'] = predictions['LSTM']
-    
-    # ARIMA Model
+        logger.error(f"ExtraTrees model error: {e}")
+
+    # RandomForest Model
     try:
-        arima_model = ARIMA(data, order=(5,1,2))
-        arima_results = arima_model.fit()
-        arima_pred = arima_results.forecast(steps=30)
-        predictions['ARIMA'] = arima_pred.reshape(-1, 1)
+        rf_model = RandomForestRegressor(
+            n_estimators=500,
+            random_state=42,
+            n_jobs=-1
+        )
+        rf_model.fit(X_train.reshape(X_train.shape[0], -1), y_train)
+        rf_pred = rf_model.predict(X_test[-30:].reshape(30, -1))
+        predictions['RandomForest'] = scaler.inverse_transform(rf_pred.reshape(-1, 1))
     except Exception as e:
-        logger.error(f"ARIMA model error: {e}")
-        predictions['ARIMA'] = predictions['XGBoost']
+        logger.error(f"RandomForest model error: {e}")
     
     return predictions
 
@@ -222,50 +212,59 @@ def fetch_news(stock_obj, symbol, limit=5):
             break
     return deduped
 
-@app.route('/predict', methods=['POST'])
-def predict():
+def run_prediction(symbol: str):
+    symbol = (symbol or "").strip().upper()
+    if not symbol:
+        return {'error': 'Please provide a symbol'}, 400
     try:
-        symbol = request.form['symbol']
-        
-        # Fetch and validate stock data for the last year
         stock = yf.Ticker(symbol)
         df = stock.history(period='1y')
         df = validate_stock_data(df)
-        
-        # Predict using multiple models
-        predictions = train_prediction_models(
-            df['Close'].values, 
-            df.index
-        )
-        
-        # Create candlestick chart
+
+        predictions = train_prediction_models(df['Close'].values, df.index)
+
+        # Build dates
+        actual_dates = [pd.Timestamp(ts).tz_localize(None).isoformat() for ts in df.index]
+        future_dates = pd.date_range(start=df.index[-1] + pd.Timedelta(days=1), periods=30, freq='B')
+        future_dates_iso = [pd.Timestamp(ts).tz_localize(None).isoformat() for ts in future_dates]
+
+        # Normalize prediction lengths
+        normalized_predictions = {}
+        for model_name, pred in predictions.items():
+            arr = np.asarray(pred).reshape(-1)
+            if len(arr) != len(future_dates):
+                if len(arr) < len(future_dates):
+                    pad = np.full(len(future_dates) - len(arr), arr[-1] if len(arr) else np.nan)
+                    arr = np.hstack([arr, pad])
+                else:
+                    arr = arr[:len(future_dates)]
+            normalized_predictions[model_name] = arr.tolist()
+
+        # Plotly chart serialized safely
         candlestick = go.Candlestick(
-            x=df.index,
-            open=df['Open'],
-            high=df['High'],
-            low=df['Low'],
-            close=df['Close']
+            x=actual_dates,
+            open=df['Open'].astype(float).tolist(),
+            high=df['High'].astype(float).tolist(),
+            low=df['Low'].astype(float).tolist(),
+            close=df['Close'].astype(float).tolist(),
+            name="OHLC"
         )
-        
-        # Add prediction lines
         prediction_traces = [
             go.Scatter(
-                x=pd.date_range(start=df.index[-1], periods=30),
-                y=pred.flatten(),
+                x=future_dates_iso,
+                y=vals,
                 mode='lines',
                 name=f'{model_name} Prediction'
-            )
-            for model_name, pred in predictions.items()
+            ) for model_name, vals in normalized_predictions.items()
         ]
-        
-        # Combine traces
         fig = go.Figure(data=[candlestick] + prediction_traces)
         fig.update_layout(
-            title=f'{symbol} Stock Price Prediction (Last 1 Year)', 
-            xaxis_title='Date', 
+            title=f'{symbol} Stock Price Prediction (Last 1 Year)',
+            xaxis_title='Date',
             yaxis_title='Price'
         )
-        
+        chart_json = json.loads(json.dumps(fig, cls=PlotlyJSONEncoder))
+
         # Fetch news with sentiment
         news = fetch_news(stock, symbol, limit=5)
 
@@ -277,21 +276,80 @@ def predict():
             'industry': info.get('industry'),
             'summary': info.get('longBusinessSummary')
         }
-        
-        return jsonify({
-            'chart': fig.to_json(),
-            'predictions': {k: v.tolist() for k, v in predictions.items()},
-            'current_price': df['Close'][-1],
+
+        response = {
+            'chart': chart_json,
+            'predictions': normalized_predictions,
+            'current_price': float(df['Close'].iloc[-1]),
             'news': news,
-            'company_info': company_info
-        })
-    
+            'company_info': company_info,
+            'actual_dates': actual_dates,
+            'actual_close': df['Close'].astype(float).tolist(),
+            'future_dates': future_dates_iso
+        }
+        return response, 200
     except ValueError as ve:
         logger.error(f"Validation Error: {ve}")
-        return jsonify({'error': str(ve)}), 400
+        return {'error': str(ve)}, 400
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
-        return jsonify({'error': 'An unexpected error occurred'}), 500
+        return {'error': 'An unexpected error occurred'}, 500
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    resp, status = run_prediction(request.form.get('symbol'))
+    if status == 200:
+        return jsonify(resp)
+    return jsonify(resp), status
+
+def _build_excel(symbol: str, payload: dict) -> BytesIO:
+    buffer = BytesIO()
+    future_dates = payload.get('future_dates') or []
+    pred_rows = []
+    for model, values in (payload.get('predictions') or {}).items():
+        for idx, val in enumerate(values):
+            date_val = future_dates[idx] if idx < len(future_dates) else None
+            pred_rows.append({
+                'Model': model,
+                'Date': date_val,
+                'Predicted Price': val
+            })
+    pred_df = pd.DataFrame(pred_rows)
+
+    actual_df = pd.DataFrame({
+        'Date': payload.get('actual_dates') or [],
+        'Close': payload.get('actual_close') or []
+    })
+
+    summary_df = pd.DataFrame([
+        {'Metric': 'Symbol', 'Value': symbol},
+        {'Metric': 'Current Price', 'Value': payload.get('current_price')}
+    ])
+
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        summary_df.to_excel(writer, index=False, sheet_name='Summary')
+        actual_df.to_excel(writer, index=False, sheet_name='Actual_Close')
+        pred_df.to_excel(writer, index=False, sheet_name='Predictions')
+
+    buffer.seek(0)
+    return buffer
+
+@app.route('/predict_excel', methods=['POST'])
+def predict_excel():
+    symbol = (request.form.get('symbol') or '').strip().upper()
+    if not symbol:
+        return jsonify({'error': 'No symbol provided'}), 400
+    resp, status = run_prediction(symbol)
+    if status != 200:
+        return jsonify(resp), status
+    excel_stream = _build_excel(symbol, resp)
+    filename = f"{symbol}_forecast.xlsx"
+    return send_file(
+        excel_stream,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=filename
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)
