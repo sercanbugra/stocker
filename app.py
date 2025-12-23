@@ -7,6 +7,8 @@ import plotly.graph_objs as go
 import xgboost as xgb
 from prophet import Prophet
 from statsmodels.tsa.arima.model import ARIMA
+import requests
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 # TensorFlow and Keras imports
 import tensorflow as tf
@@ -30,6 +32,7 @@ logger = logging.getLogger(__name__)
 tf.get_logger().setLevel('INFO')
 
 app = Flask(__name__)
+SENTIMENT_ANALYZER = SentimentIntensityAnalyzer()
 
 def fetch_sp500_stocks():
     """Fetch S&P 500 stocks with robust error handling"""
@@ -149,6 +152,76 @@ def home():
     stocks = fetch_sp500_stocks()
     return render_template('index.html', stocks=stocks)
 
+def _sentiment_score(*parts: str):
+    text = " ".join([p for p in parts if p]).strip()
+    if not text:
+        return None
+    try:
+        compound = SENTIMENT_ANALYZER.polarity_scores(text).get('compound', 0.0)
+        return int(max(-100, min(100, compound * 100)))
+    except Exception:
+        return None
+
+def fetch_news(stock_obj, symbol, limit=5):
+    items = []
+    try:
+        raw = stock_obj.news or []
+        for n in raw[:limit]:
+            title = n.get('title')
+            link = n.get('link') or n.get('url')
+            publisher = n.get('publisher') or n.get('provider', {}).get('displayName')
+            published = n.get('providerPublishTime')
+            summary = n.get('summary') or n.get('description') or ''
+            sent = _sentiment_score(title, summary)
+            if title and link:
+                items.append({
+                    'title': title,
+                    'link': link,
+                    'publisher': publisher or '',
+                    'published': published,
+                    'sentiment': sent
+                })
+    except Exception as e:
+        logger.warning(f"YF news fetch failed for {symbol}: {e}")
+
+    if len(items) < limit:
+        try:
+            rss_url = f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={symbol}&region=US&lang=en-US"
+            resp = requests.get(rss_url, timeout=5, headers={"User-Agent": "Mozilla/5.0"})
+            if resp.ok and resp.text:
+                import xml.etree.ElementTree as ET
+                root = ET.fromstring(resp.text)
+                for item in root.findall('.//item'):
+                    title = (item.findtext('title') or '').strip()
+                    link = (item.findtext('link') or '').strip()
+                    pubdate = (item.findtext('pubDate') or '').strip()
+                    description = (item.findtext('description') or '').strip()
+                    sent = _sentiment_score(title, description)
+                    if title and link:
+                        items.append({
+                            'title': title,
+                            'link': link,
+                            'publisher': 'Yahoo Finance',
+                            'published': pubdate,
+                            'sentiment': sent
+                        })
+                    if len(items) >= limit:
+                        break
+        except Exception as e:
+            logger.warning(f"RSS news fetch failed for {symbol}: {e}")
+
+    # dedupe by title
+    seen = set()
+    deduped = []
+    for it in items:
+        t = it.get('title')
+        if t and t not in seen:
+            seen.add(t)
+            deduped.append(it)
+        if len(deduped) >= limit:
+            break
+    return deduped
+
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
@@ -193,14 +266,24 @@ def predict():
             yaxis_title='Price'
         )
         
-        # Fetch news
-        news = stock.news[:5] if stock.news else []
+        # Fetch news with sentiment
+        news = fetch_news(stock, symbol, limit=5)
+
+        # Fetch company info
+        info = stock.info if hasattr(stock, "info") else {}
+        company_info = {
+            'name': info.get('shortName') or info.get('longName') or symbol,
+            'sector': info.get('sector'),
+            'industry': info.get('industry'),
+            'summary': info.get('longBusinessSummary')
+        }
         
         return jsonify({
             'chart': fig.to_json(),
             'predictions': {k: v.tolist() for k, v in predictions.items()},
             'current_price': df['Close'][-1],
-            'news': news
+            'news': news,
+            'company_info': company_info
         })
     
     except ValueError as ve:

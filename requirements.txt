@@ -8,3 +8,6 @@ xgboost
 prophet 
 statsmodels 
 plotly
+requests
+gunicorn
+vaderSentiment
