@@ -29,19 +29,38 @@ app = Flask(__name__)
 SENTIMENT_ANALYZER = SentimentIntensityAnalyzer()
 
 def fetch_sp500_stocks():
-    """Fetch S&P 500 stocks with robust error handling"""
+    """Fetch S&P 500 stocks with robust error handling and local fallback."""
+    # 1) Local list
     try:
-        table = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
-        df = table[0]
-        stocks = df['Symbol'].tolist()[:500]
-        logger.info(f"Successfully fetched {len(stocks)} stocks")
+        data_dir = os.path.join(os.path.dirname(__file__), 'data')
+        local_list = os.path.join(data_dir, 'sp500_symbols.txt')
+        if os.path.exists(local_list):
+            with open(local_list, 'r', encoding='utf-8') as f:
+                symbols = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+            if symbols:
+                logger.info(f"Loaded {len(symbols)} symbols from local list")
+                return symbols
+    except Exception as e:
+        logger.warning(f"Could not read local S&P 500 list: {e}")
+
+    # 2) Wikipedia with custom User-Agent
+    try:
+        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Safari/537.36"}
+        resp = requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies', headers=headers, timeout=10)
+        resp.raise_for_status()
+        tables = pd.read_html(resp.text)
+        df = tables[0]
+        stocks = df['Symbol'].astype(str).str.strip().tolist()[:500]
+        logger.info(f"Successfully fetched {len(stocks)} stocks from Wikipedia")
         return stocks
     except Exception as e:
         logger.error(f"Error fetching stocks: {e}")
-        return [
-            'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA', 
-            'NVDA', 'JPM', 'V', 'JNJ', 'WMT', 'MA', 'UNH', 'DIS', 'BAC'
-        ]
+
+    # 3) Fallback small list
+    return [
+        'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA',
+        'NVDA', 'JPM', 'V', 'JNJ', 'WMT', 'MA', 'UNH', 'DIS', 'BAC'
+    ]
 
 def validate_stock_data(df):
     """Validate and preprocess stock data for the last year"""
