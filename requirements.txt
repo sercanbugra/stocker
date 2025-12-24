@@ -8,3 +8,5 @@ plotly
 requests
 gunicorn
 vaderSentiment
+lxml
+beautifulsoup4
