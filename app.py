@@ -126,7 +126,7 @@ def create_lstm_model(input_shape):
 
 def train_prediction_models(data, dates):
     """Train multiple prediction models using last year's data"""
-    time_steps = 30
+    time_steps = 20
     X, y, scaler, scaled_data = prepare_time_series_data(data, time_steps)
 
     flat_X = X.reshape(X.shape[0], -1)
@@ -134,7 +134,14 @@ def train_prediction_models(data, dates):
     predictions = {}
     
     # XGBoost Model
-    xgb_model = xgb.XGBRegressor()
+    xgb_model = xgb.XGBRegressor(
+        n_estimators=200,
+        max_depth=4,
+        learning_rate=0.05,
+        subsample=0.9,
+        colsample_bytree=0.9,
+        random_state=42
+    )
     xgb_model.fit(flat_X, y)
     xgb_scaled = _forecast_tree_recursive(xgb_model, last_window_scaled, 30)
     predictions['XGBoost'] = scaler.inverse_transform(xgb_scaled)
@@ -142,9 +149,10 @@ def train_prediction_models(data, dates):
     # ExtraTrees Model
     try:
         et_model = ExtraTreesRegressor(
-            n_estimators=400,
+            n_estimators=200,
             random_state=42,
-            n_jobs=-1
+            n_jobs=-1,
+            max_depth=None
         )
         et_model.fit(flat_X, y)
         et_scaled = _forecast_tree_recursive(et_model, last_window_scaled, 30)
@@ -155,7 +163,7 @@ def train_prediction_models(data, dates):
     # RandomForest Model
     try:
         rf_model = RandomForestRegressor(
-            n_estimators=500,
+            n_estimators=200,
             random_state=42,
             n_jobs=-1
         )
