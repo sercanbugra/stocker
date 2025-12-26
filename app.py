@@ -85,29 +85,80 @@ def validate_stock_data(df):
     
     return df
 
-def prepare_time_series_data(data, time_steps=30):
-    """Prepare data for time series models using last year's data"""
-    scaler = MinMaxScaler()
-    scaled_data = scaler.fit_transform(data.reshape(-1, 1))
-    
+def compute_rsi(series: pd.Series, window: int = 14) -> pd.Series:
+    """Compute RSI on a price series."""
+    delta = series.diff()
+    gain = delta.clip(lower=0)
+    loss = -delta.clip(upper=0)
+    avg_gain = gain.rolling(window=window, min_periods=window).mean()
+    avg_loss = loss.rolling(window=window, min_periods=window).mean()
+    rs = avg_gain / avg_loss.replace(0, np.nan)
+    rsi = 100 - (100 / (1 + rs))
+    return rsi.fillna(method='bfill').fillna(50)
+
+
+def build_feature_frame(close_values: np.ndarray) -> pd.DataFrame:
+    """Generate a richer feature set from closing prices only."""
+    series = pd.Series(close_values, dtype=float)
+    returns = series.pct_change().replace([np.inf, -np.inf], 0).fillna(0)
+    log_returns = np.log1p(returns).replace([np.inf, -np.inf], 0).fillna(0)
+    momentum = series.diff().fillna(0)
+    sma_5 = series.rolling(window=5).mean()
+    sma_10 = series.rolling(window=10).mean()
+    sma_20 = series.rolling(window=20).mean()
+    rsi_14 = compute_rsi(series, window=14)
+    volatility_10 = returns.rolling(window=10).std()
+    feature_df = pd.DataFrame({
+        'close': series,
+        'log_return': log_returns,
+        'momentum': momentum,
+        'sma_5': sma_5,
+        'sma_10': sma_10,
+        'sma_20': sma_20,
+        'rsi_14': rsi_14,
+        'volatility_10': volatility_10
+    })
+    return feature_df.ffill().bfill()
+
+
+def prepare_feature_windows(close_values: np.ndarray, time_steps: int = 30):
+    """Prepare windowed feature matrices and scalers for the models."""
+    feature_df = build_feature_frame(close_values)
+    if len(feature_df) <= time_steps:
+        raise ValueError(f"Insufficient data for feature windows. Need > {time_steps} points.")
+
+    feature_scaler = MinMaxScaler()
+    scaled_features = feature_scaler.fit_transform(feature_df)
+
+    close_scaler = MinMaxScaler()
+    scaled_close = close_scaler.fit_transform(feature_df[['close']])
+
     X, y = [], []
-    for i in range(len(scaled_data) - time_steps):
-        X.append(scaled_data[i:i+time_steps])
-        y.append(scaled_data[i+time_steps])
-    
-    return np.array(X), np.array(y), scaler, scaled_data
+    for i in range(time_steps, len(feature_df)):
+        window = scaled_features[i-time_steps:i]
+        X.append(window.flatten())
+        y.append(scaled_close[i][0])
+
+    return np.array(X), np.array(y), feature_scaler, close_scaler
 
 
-def _forecast_tree_recursive(model, last_window_scaled, steps):
-    """Recursive multi-step forecast for tree-based models using scaled window."""
-    window = last_window_scaled.copy().ravel()
+def _forecast_tree_recursive(model, close_history, feature_scaler, close_scaler, time_steps, steps):
+    """Recursive multi-step forecast using engineered features and scaled targets."""
+    history = list(close_history)
+    feature_frame = build_feature_frame(history)
+    window = feature_scaler.transform(feature_frame.iloc[-time_steps:])
     preds = []
+
     for _ in range(steps):
         next_scaled = model.predict(window.reshape(1, -1))
-        val = float(next_scaled.ravel()[0])
-        val = max(0.0, min(1.0, val))
-        preds.append(val)
-        window = np.hstack([window[1:], [val]])
+        val = float(np.clip(next_scaled.ravel()[0], 0.0, 1.0))
+        next_close = close_scaler.inverse_transform([[val]])[0][0]
+        preds.append(next_close)
+
+        history.append(next_close)
+        feature_frame = build_feature_frame(history)
+        window = feature_scaler.transform(feature_frame.iloc[-time_steps:])
+
     return np.array(preds).reshape(-1, 1)
 
 def create_lstm_model(input_shape):
@@ -124,55 +175,63 @@ def create_lstm_model(input_shape):
     model.compile(optimizer='adam', loss='mse')
     return model
 
-def train_prediction_models(data, dates):
-    """Train multiple prediction models using last year's data"""
-    time_steps = 20
-    X, y, scaler, scaled_data = prepare_time_series_data(data, time_steps)
-
+def train_prediction_models(close_values, forecast_horizon=30, time_steps=30):
+    """Train multiple prediction models using engineered price features."""
+    X, y, feature_scaler, close_scaler = prepare_feature_windows(close_values, time_steps)
     flat_X = X.reshape(X.shape[0], -1)
-    last_window_scaled = scaled_data[-time_steps:].copy()
     predictions = {}
-    
-    # XGBoost Model
+
+    # XGBoost Model (more estimators, lower learning rate for stability)
     xgb_model = xgb.XGBRegressor(
-        n_estimators=200,
-        max_depth=4,
-        learning_rate=0.05,
+        n_estimators=320,
+        max_depth=5,
+        learning_rate=0.035,
         subsample=0.9,
         colsample_bytree=0.9,
         random_state=42
     )
     xgb_model.fit(flat_X, y)
-    xgb_scaled = _forecast_tree_recursive(xgb_model, last_window_scaled, 30)
-    predictions['XGBoost'] = scaler.inverse_transform(xgb_scaled)
-    
-    # ExtraTrees Model
+    xgb_forecast = _forecast_tree_recursive(
+        xgb_model, close_values, feature_scaler, close_scaler, time_steps, forecast_horizon
+    )
+    predictions['XGBoost'] = xgb_forecast
+
+    # ExtraTrees Model (controls to reduce overfitting on small windows)
     try:
         et_model = ExtraTreesRegressor(
-            n_estimators=200,
+            n_estimators=260,
             random_state=42,
             n_jobs=-1,
-            max_depth=None
+            max_depth=None,
+            max_features='sqrt',
+            min_samples_leaf=2
         )
         et_model.fit(flat_X, y)
-        et_scaled = _forecast_tree_recursive(et_model, last_window_scaled, 30)
-        predictions['ExtraTrees'] = scaler.inverse_transform(et_scaled)
+        et_forecast = _forecast_tree_recursive(
+            et_model, close_values, feature_scaler, close_scaler, time_steps, forecast_horizon
+        )
+        predictions['ExtraTrees'] = et_forecast
     except Exception as e:
         logger.error(f"ExtraTrees model error: {e}")
 
     # RandomForest Model
     try:
         rf_model = RandomForestRegressor(
-            n_estimators=200,
+            n_estimators=260,
             random_state=42,
-            n_jobs=-1
+            n_jobs=-1,
+            max_depth=None,
+            max_features='sqrt',
+            min_samples_leaf=2
         )
         rf_model.fit(flat_X, y)
-        rf_scaled = _forecast_tree_recursive(rf_model, last_window_scaled, 30)
-        predictions['RandomForest'] = scaler.inverse_transform(rf_scaled)
+        rf_forecast = _forecast_tree_recursive(
+            rf_model, close_values, feature_scaler, close_scaler, time_steps, forecast_horizon
+        )
+        predictions['RandomForest'] = rf_forecast
     except Exception as e:
         logger.error(f"RandomForest model error: {e}")
-    
+
     return predictions
 
 @app.route('/')
@@ -259,11 +318,16 @@ def run_prediction(symbol: str):
         df = stock.history(period='1y')
         df = validate_stock_data(df)
 
-        predictions = train_prediction_models(df['Close'].values, df.index)
+        forecast_horizon = 30
+        predictions = train_prediction_models(
+            df['Close'].values,
+            forecast_horizon=forecast_horizon,
+            time_steps=30
+        )
 
         # Build dates
         actual_dates = [pd.Timestamp(ts).tz_localize(None).isoformat() for ts in df.index]
-        future_dates = pd.date_range(start=df.index[-1] + pd.Timedelta(days=1), periods=30, freq='B')
+        future_dates = pd.date_range(start=df.index[-1] + pd.Timedelta(days=1), periods=forecast_horizon, freq='B')
         future_dates_iso = [pd.Timestamp(ts).tz_localize(None).isoformat() for ts in future_dates]
 
         # Normalize prediction lengths
@@ -278,14 +342,14 @@ def run_prediction(symbol: str):
                     arr = arr[:len(future_dates)]
             normalized_predictions[model_name] = arr.tolist()
 
-        # Plotly chart serialized safely
+        # Plotly chart serialized safely (1y and 3mo)
         candlestick = go.Candlestick(
             x=actual_dates,
             open=df['Open'].astype(float).tolist(),
             high=df['High'].astype(float).tolist(),
             low=df['Low'].astype(float).tolist(),
             close=df['Close'].astype(float).tolist(),
-            name="OHLC"
+            name="OHLC (1Y)"
         )
         prediction_traces = [
             go.Scatter(
@@ -303,6 +367,42 @@ def run_prediction(symbol: str):
         )
         chart_json = json.loads(json.dumps(fig, cls=PlotlyJSONEncoder))
 
+        # Last 3 months chart
+        df_3m = df.last('90D') if hasattr(df, "last") else df.loc[df.index >= (df.index.max() - pd.Timedelta(days=90))]
+        last3_dates = [pd.Timestamp(ts).tz_localize(None).isoformat() for ts in df_3m.index]
+        fig_3m = go.Figure(data=[
+            go.Candlestick(
+                x=last3_dates,
+                open=df_3m['Open'].astype(float).tolist(),
+                high=df_3m['High'].astype(float).tolist(),
+                low=df_3m['Low'].astype(float).tolist(),
+                close=df_3m['Close'].astype(float).tolist(),
+                name="OHLC (3M)"
+            )
+        ])
+        fig_3m.update_layout(
+            title=f'{symbol} Stock Price (Last 3 Months)',
+            xaxis_title='Date',
+            yaxis_title='Price'
+        )
+        chart_3m_json = json.loads(json.dumps(fig_3m, cls=PlotlyJSONEncoder))
+
+        # 3M predictions: train on 3M closes, forecast 5 business days
+        preds_3m = {}
+        try:
+            preds_3m = train_prediction_models(
+                df_3m['Close'].values,
+                forecast_horizon=5,
+                time_steps=20
+            )
+            for k, v in list(preds_3m.items()):
+                arr = np.asarray(v).reshape(-1)
+                preds_3m[k] = arr[:5].tolist()
+        except Exception as e:
+            logger.error(f"3M prediction error for {symbol}: {e}")
+        future_dates_3m = pd.date_range(start=df_3m.index[-1] + pd.Timedelta(days=1), periods=5, freq='B')
+        future_dates_3m_iso = [pd.Timestamp(ts).tz_localize(None).isoformat() for ts in future_dates_3m]
+
         # Fetch news with sentiment
         news = fetch_news(stock, symbol, limit=5)
 
@@ -317,13 +417,16 @@ def run_prediction(symbol: str):
 
         response = {
             'chart': chart_json,
+            'chart_3m': chart_3m_json,
             'predictions': normalized_predictions,
+            'predictions_3m': preds_3m,
             'current_price': float(df['Close'].iloc[-1]),
             'news': news,
             'company_info': company_info,
             'actual_dates': actual_dates,
             'actual_close': df['Close'].astype(float).tolist(),
-            'future_dates': future_dates_iso
+            'future_dates': future_dates_iso,
+            'future_dates_3m': future_dates_3m_iso
         }
         return response, 200
     except ValueError as ve:

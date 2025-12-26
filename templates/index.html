@@ -141,6 +141,14 @@
                             <div id="chart"></div>
                         </div>
                     </div>
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <i class="fas fa-clock"></i> Stock Price Chart (Last 3 Months)
+                        </div>
+                        <div class="card-body">
+                            <div id="chart-3m"></div>
+                        </div>
+                    </div>
                     <div class="card about-card mt-3">
                         <div class="card-header">
                             <i class="fas fa-info-circle"></i> About
@@ -247,6 +255,19 @@
 
                         const chartData = typeof response.chart === 'string' ? JSON.parse(response.chart) : response.chart;
                         Plotly.newPlot('chart', chartData.data, chartData.layout);
+                        const chart3mData = typeof response.chart_3m === 'string' ? JSON.parse(response.chart_3m) : response.chart_3m;
+                        Plotly.newPlot('chart-3m', chart3mData.data, chart3mData.layout);
+                        // Overlay 5-day 3M forecasts if present
+                        if (response.predictions_3m && response.future_dates_3m) {
+                            const forecastTraces = Object.entries(response.predictions_3m).map(([model, preds]) => ({
+                                x: response.future_dates_3m.slice(0, 5),
+                                y: preds.slice(0, 5),
+                                mode: 'lines+markers',
+                                name: `${model} 5d`,
+                                line: {dash: 'dot'}
+                            }));
+                            Plotly.addTraces('chart-3m', forecastTraces);
+                        }
 
                         let predictionsHtml = '';
                         const currentPrice = response.current_price;
@@ -287,6 +308,10 @@
                         
                         $('#predictions-body').html(predictionsHtml);
                         $downloadBtn.prop('disabled', false);
+
+                        // 3M predictions (5-day)
+                        let predictions3mHtml = '';
+                        // no table for 3M forecasts now; plotted on chart
 
                         const info = response.company_info || {};
                         const aboutHtml = `
