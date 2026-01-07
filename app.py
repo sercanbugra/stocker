@@ -1,6 +1,7 @@
 import os
 import logging
 import json
+import time
 import numpy as np
 import pandas as pd
 import yfinance as yf
@@ -8,6 +9,7 @@ import plotly.graph_objs as go
 import xgboost as xgb
 from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
 import requests
+from requests.exceptions import HTTPError
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from plotly.utils import PlotlyJSONEncoder
 from io import BytesIO
@@ -27,6 +29,23 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 SENTIMENT_ANALYZER = SentimentIntensityAnalyzer()
+
+def fetch_with_retry(symbol: str, period: str = '1y', attempts: int = 3, delay: int = 2):
+    """Fetch price history with simple backoff to handle transient rate limits."""
+    last_exc = None
+    for attempt in range(attempts):
+        try:
+            ticker = yf.Ticker(symbol)
+            return ticker.history(period=period)
+        except Exception as exc:
+            last_exc = exc
+            status = getattr(getattr(exc, "response", None), "status_code", None)
+            is_rate_limit = status == 429 or "Too Many Requests" in str(exc)
+            if is_rate_limit and attempt < attempts - 1:
+                time.sleep(delay * (attempt + 1))
+                continue
+            break
+    raise last_exc
 
 def fetch_sp500_stocks():
     """Fetch S&P 500 stocks with robust error handling and local fallback."""
@@ -61,6 +80,100 @@ def fetch_sp500_stocks():
         'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA',
         'NVDA', 'JPM', 'V', 'JNJ', 'WMT', 'MA', 'UNH', 'DIS', 'BAC'
     ]
+
+def load_cached_response(symbol: str):
+    """Load cached API-style response if available."""
+    cache_dir = os.path.join(os.path.dirname(__file__), 'cache')
+    cache_path = os.path.join(cache_dir, f'{symbol}.json')
+    if not os.path.exists(cache_path):
+        return None
+    try:
+        with open(cache_path, 'r', encoding='utf-8') as f:
+            payload = json.load(f)
+        if not isinstance(payload, dict):
+            return None
+        if 'pattern_chart' not in payload and 'chart_3m' in payload:
+            payload['pattern_chart'] = payload['chart_3m']
+        payload['cache_used'] = True
+        return payload
+    except Exception as exc:
+        logger.warning(f"Failed to load cache for {symbol}: {exc}")
+        return None
+
+def _find_local_extrema(values):
+    peaks = []
+    troughs = []
+    for i in range(1, len(values) - 1):
+        if values[i - 1] < values[i] > values[i + 1]:
+            peaks.append(i)
+        if values[i - 1] > values[i] < values[i + 1]:
+            troughs.append(i)
+    return peaks, troughs
+
+def _detect_head_shoulders(values):
+    if len(values) < 7:
+        return None
+    peaks, troughs = _find_local_extrema(values)
+    for i in range(len(peaks) - 3, -1, -1):
+        p1, p2, p3 = peaks[i], peaks[i + 1], peaks[i + 2]
+        if not (p1 < p2 < p3):
+            continue
+        left = values[p1]
+        head = values[p2]
+        right = values[p3]
+        shoulder_diff = abs(left - right) / max(left, right)
+        if shoulder_diff > 0.06:
+            continue
+        if not (head > left * 1.03 and head > right * 1.03):
+            continue
+        t1 = next((t for t in reversed(troughs) if p1 < t < p2), None)
+        t2 = next((t for t in reversed(troughs) if p2 < t < p3), None)
+        if t1 is None or t2 is None:
+            continue
+        if values[t1] >= min(left, head, right) or values[t2] >= min(left, head, right):
+            continue
+        return {
+            'name': 'Head and Shoulders',
+            'start_idx': p1,
+            'end_idx': p3
+        }
+    return None
+
+def _detect_inverse_head_shoulders(values):
+    if len(values) < 7:
+        return None
+    peaks, troughs = _find_local_extrema(values)
+    for i in range(len(troughs) - 3, -1, -1):
+        t1, t2, t3 = troughs[i], troughs[i + 1], troughs[i + 2]
+        if not (t1 < t2 < t3):
+            continue
+        left = values[t1]
+        head = values[t2]
+        right = values[t3]
+        shoulder_diff = abs(left - right) / max(left, right)
+        if shoulder_diff > 0.06:
+            continue
+        if not (head < left * 0.97 and head < right * 0.97):
+            continue
+        p1 = next((p for p in reversed(peaks) if t1 < p < t2), None)
+        p2 = next((p for p in reversed(peaks) if t2 < p < t3), None)
+        if p1 is None or p2 is None:
+            continue
+        if values[p1] <= max(left, head, right) or values[p2] <= max(left, head, right):
+            continue
+        return {
+            'name': 'Inverse Head and Shoulders',
+            'start_idx': t1,
+            'end_idx': t3
+        }
+    return None
+
+def detect_pattern(values):
+    """Detect simple reversal formations in a recent window."""
+    pattern = _detect_head_shoulders(values)
+    if pattern:
+        return pattern
+    return _detect_inverse_head_shoulders(values)
 
 def validate_stock_data(df):
     """Validate and preprocess stock data for the last year"""
@@ -315,7 +428,14 @@ def run_prediction(symbol: str):
         return {'error': 'Please provide a symbol'}, 400
     try:
         stock = yf.Ticker(symbol)
-        df = stock.history(period='1y')
+        try:
+            df = fetch_with_retry(symbol, period='1y', attempts=3, delay=2)
+        except Exception as exc:
+            cached = load_cached_response(symbol)
+            if cached:
+                logger.info(f"Serving cached response for {symbol}")
+                return cached, 200
+            raise exc
         df = validate_stock_data(df)
 
         forecast_horizon = 30
@@ -367,41 +487,70 @@ def run_prediction(symbol: str):
         )
         chart_json = json.loads(json.dumps(fig, cls=PlotlyJSONEncoder))
 
-        # Last 3 months chart
-        df_3m = df.last('90D') if hasattr(df, "last") else df.loc[df.index >= (df.index.max() - pd.Timedelta(days=90))]
-        last3_dates = [pd.Timestamp(ts).tz_localize(None).isoformat() for ts in df_3m.index]
-        fig_3m = go.Figure(data=[
+        # Pattern detection chart (last ~1 month)
+        df_1m = df.tail(22) if len(df) > 22 else df.copy()
+        last1_dates = [pd.Timestamp(ts).tz_localize(None).isoformat() for ts in df_1m.index]
+        fig_pattern = go.Figure(data=[
             go.Candlestick(
-                x=last3_dates,
-                open=df_3m['Open'].astype(float).tolist(),
-                high=df_3m['High'].astype(float).tolist(),
-                low=df_3m['Low'].astype(float).tolist(),
-                close=df_3m['Close'].astype(float).tolist(),
-                name="OHLC (3M)"
+                x=last1_dates,
+                open=df_1m['Open'].astype(float).tolist(),
+                high=df_1m['High'].astype(float).tolist(),
+                low=df_1m['Low'].astype(float).tolist(),
+                close=df_1m['Close'].astype(float).tolist(),
+                name="OHLC (Last 1 Month)"
             )
         ])
-        fig_3m.update_layout(
-            title=f'{symbol} Stock Price (Last 3 Months)',
-            xaxis_title='Date',
-            yaxis_title='Price'
-        )
-        chart_3m_json = json.loads(json.dumps(fig_3m, cls=PlotlyJSONEncoder))
-
-        # 3M predictions: train on 3M closes, forecast 5 business days
-        preds_3m = {}
-        try:
-            preds_3m = train_prediction_models(
-                df_3m['Close'].values,
-                forecast_horizon=5,
-                time_steps=20
+        pattern = detect_pattern(df_1m['Close'].astype(float).values)
+        if pattern:
+            start_idx = pattern['start_idx']
+            end_idx = pattern['end_idx']
+            trend_hint = None
+            if pattern['name'] == 'Head and Shoulders':
+                trend_hint = {'text': 'Bearish', 'color': 'red', 'ay': 40, 'arrowcolor': 'red'}
+            elif pattern['name'] == 'Inverse Head and Shoulders':
+                trend_hint = {'text': 'Bullish', 'color': 'green', 'ay': -40, 'arrowcolor': 'green'}
+            fig_pattern.update_layout(
+                title=f"{symbol} {pattern['name']} Pattern (Last 1 Month)",
+                xaxis_title='Date',
+                yaxis_title='Price'
             )
-            for k, v in list(preds_3m.items()):
-                arr = np.asarray(v).reshape(-1)
-                preds_3m[k] = arr[:5].tolist()
-        except Exception as e:
-            logger.error(f"3M prediction error for {symbol}: {e}")
-        future_dates_3m = pd.date_range(start=df_3m.index[-1] + pd.Timedelta(days=1), periods=5, freq='B')
-        future_dates_3m_iso = [pd.Timestamp(ts).tz_localize(None).isoformat() for ts in future_dates_3m]
+            fig_pattern.add_shape(
+                type="rect",
+                xref="x",
+                yref="paper",
+                x0=last1_dates[start_idx],
+                x1=last1_dates[end_idx],
+                y0=0,
+                y1=1,
+                fillcolor="rgba(255, 193, 7, 0.2)",
+                line_width=0
+            )
+            if trend_hint:
+                y_val = float(df_1m['Close'].iloc[end_idx])
+                fig_pattern.add_annotation(
+                    x=last1_dates[end_idx],
+                    y=y_val,
+                    text=trend_hint['text'],
+                    showarrow=True,
+                    arrowhead=2,
+                    arrowsize=1.2,
+                    arrowwidth=2,
+                    arrowcolor=trend_hint['arrowcolor'],
+                    ax=0,
+                    ay=trend_hint['ay'],
+                    font={'color': trend_hint['color']}
+                )
+        else:
+            fig_pattern.update_layout(
+                title=f'{symbol} No Clear Pattern Detected (Last 1 Month)',
+                xaxis_title='Date',
+                yaxis_title='Price'
+            )
+        pattern_chart_json = json.loads(json.dumps(fig_pattern, cls=PlotlyJSONEncoder))
+
+        # 3M predictions removed in favor of pattern detection chart
+        preds_3m = {}
+        future_dates_3m_iso = []
 
         # Fetch news with sentiment
         news = fetch_news(stock, symbol, limit=5)
@@ -417,7 +566,7 @@ def run_prediction(symbol: str):
 
         response = {
             'chart': chart_json,
-            'chart_3m': chart_3m_json,
+            'pattern_chart': pattern_chart_json,
             'predictions': normalized_predictions,
             'predictions_3m': preds_3m,
             'current_price': float(df['Close'].iloc[-1]),
@@ -429,10 +578,20 @@ def run_prediction(symbol: str):
             'future_dates_3m': future_dates_3m_iso
         }
         return response, 200
+    except HTTPError as he:
+        status = getattr(getattr(he, "response", None), "status_code", None)
+        if status == 429:
+            logger.warning(f"Rate limited when fetching {symbol}: {he}")
+            return {'error': 'Data provider rate limit hit. Please retry in a minute.'}, 503
+        logger.error(f"HTTP error fetching data for {symbol}: {he}")
+        return {'error': 'Unable to fetch data from provider.'}, 502
     except ValueError as ve:
         logger.error(f"Validation Error: {ve}")
         return {'error': str(ve)}, 400
     except Exception as e:
+        if "Too Many Requests" in str(e):
+            logger.warning(f"Rate limited when fetching {symbol}: {e}")
+            return {'error': 'Data provider rate limit hit. Please retry in a minute.'}, 503
         logger.error(f"Unexpected error: {e}")
         return {'error': 'An unexpected error occurred'}, 500
 
