@@ -548,6 +548,51 @@ def run_prediction(symbol: str):
             )
         pattern_chart_json = json.loads(json.dumps(fig_pattern, cls=PlotlyJSONEncoder))
 
+        # RSI chart (last ~1 month)
+        rsi_series = compute_rsi(df_1m['Close'].astype(float), window=14)
+        rsi_values = rsi_series.astype(float).tolist()
+        rsi_dates = last1_dates
+        rsi_fig = go.Figure(data=[
+            go.Scatter(
+                x=rsi_dates,
+                y=rsi_values,
+                mode='lines',
+                name='RSI (14)'
+            )
+        ])
+        rsi_fig.add_hline(y=70, line_dash="dash", line_color="red")
+        rsi_fig.add_hline(y=30, line_dash="dash", line_color="green")
+
+        rsi_signal = None
+        last_rsi = rsi_values[-1] if rsi_values else None
+        if last_rsi is not None:
+            if last_rsi >= 70:
+                rsi_signal = {'text': 'Sell', 'color': 'red', 'ay': 40, 'arrowcolor': 'red'}
+            elif last_rsi <= 30:
+                rsi_signal = {'text': 'Buy', 'color': 'green', 'ay': -40, 'arrowcolor': 'green'}
+
+        rsi_title_suffix = 'Neutral' if rsi_signal is None else rsi_signal['text']
+        rsi_fig.update_layout(
+            title=f'{symbol} RSI (Last 1 Month) - {rsi_title_suffix}',
+            xaxis_title='Date',
+            yaxis_title='RSI'
+        )
+        if rsi_signal and rsi_dates:
+            rsi_fig.add_annotation(
+                x=rsi_dates[-1],
+                y=last_rsi,
+                text=rsi_signal['text'],
+                showarrow=True,
+                arrowhead=2,
+                arrowsize=1.2,
+                arrowwidth=2,
+                arrowcolor=rsi_signal['arrowcolor'],
+                ax=0,
+                ay=rsi_signal['ay'],
+                font={'color': rsi_signal['color']}
+            )
+        rsi_chart_json = json.loads(json.dumps(rsi_fig, cls=PlotlyJSONEncoder))
+
         # 3M predictions removed in favor of pattern detection chart
         preds_3m = {}
         future_dates_3m_iso = []
@@ -567,6 +612,7 @@ def run_prediction(symbol: str):
         response = {
             'chart': chart_json,
             'pattern_chart': pattern_chart_json,
+            'rsi_chart': rsi_chart_json,
             'predictions': normalized_predictions,
             'predictions_3m': preds_3m,
             'current_price': float(df['Close'].iloc[-1]),

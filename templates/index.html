@@ -149,6 +149,14 @@
                             <div id="pattern-chart"></div>
                         </div>
                     </div>
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <i class="fas fa-chart-line"></i> RSI Analysis (Last 1 Month)
+                        </div>
+                        <div class="card-body">
+                            <div id="rsi-chart"></div>
+                        </div>
+                    </div>
                     <div class="card about-card mt-3">
                         <div class="card-header">
                             <i class="fas fa-info-circle"></i> About
@@ -243,6 +251,7 @@
                 }
 
                 $('.loading-spinner').show();
+                const hadResults = $('#results').is(':visible');
                 $('#results').hide();
 
                 $.ajax({
@@ -255,45 +264,66 @@
 
                         const chartData = typeof response.chart === 'string' ? JSON.parse(response.chart) : response.chart;
                         Plotly.newPlot('chart', chartData.data, chartData.layout);
-                        const patternData = typeof response.pattern_chart === 'string' ? JSON.parse(response.pattern_chart) : response.pattern_chart;
-                        Plotly.newPlot('pattern-chart', patternData.data, patternData.layout);
+                        if (response.pattern_chart) {
+                            const patternData = typeof response.pattern_chart === 'string' ? JSON.parse(response.pattern_chart) : response.pattern_chart;
+                            Plotly.newPlot('pattern-chart', patternData.data, patternData.layout);
+                        } else {
+                            $('#pattern-chart').html('<div class="text-muted">Pattern chart unavailable for this response.</div>');
+                        }
+                        if (response.rsi_chart) {
+                            const rsiData = typeof response.rsi_chart === 'string' ? JSON.parse(response.rsi_chart) : response.rsi_chart;
+                            Plotly.newPlot('rsi-chart', rsiData.data, rsiData.layout);
+                        } else {
+                            $('#rsi-chart').html('<div class="text-muted">RSI chart unavailable for this response.</div>');
+                        }
 
                         let predictionsHtml = '';
-                        const currentPrice = response.current_price;
+                        const predictions = response.predictions || {};
+                        const currentPrice = Number(response.current_price);
                         const confidences = {
                             'XGBoost': 0.82,
                             'ExtraTrees': 0.78,
                             'RandomForest': 0.8
                         };
                         
-                        Object.entries(response.predictions).forEach(([model, predictions]) => {
-                            const lastPrediction = predictions[predictions.length - 1];
-                            const changePercent = ((lastPrediction - currentPrice) / currentPrice * 100).toFixed(2);
-                            const confidence = ((confidences[model] ?? 0.7) * 100).toFixed(0);
-                            const changeClass = changePercent >= 0 ? 'text-success' : 'text-danger';
-                            
-                            predictionsHtml += `
-                                <tr>
-                                    <td>
-                                        <span class="badge bg-primary model-badge">${model}</span>
-                                    </td>
-                                    <td>$${lastPrediction.toFixed(2)}</td>
-                                    <td class="${changeClass}">
-                                        <i class="fas ${changePercent >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
-                                        ${changePercent}%
-                                    </td>
-                                    <td>
-                                        <div class="progress">
-                                            <div class="progress-bar" role="progressbar" 
-                                                 style="width: ${confidence}%;" 
-                                                 aria-valuenow="${confidence}" 
-                                                 aria-valuemin="0" 
-                                                 aria-valuemax="100">${confidence}%</div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            `;
-                        });
+                        if (Object.keys(predictions).length === 0 || !Number.isFinite(currentPrice)) {
+                            predictionsHtml = '<tr><td colspan="4" class="text-muted">Predictions unavailable for this response.</td></tr>';
+                        } else {
+                            Object.entries(predictions).forEach(([model, values]) => {
+                                if (!Array.isArray(values) || values.length === 0) {
+                                    return;
+                                }
+                                const lastPrediction = values[values.length - 1];
+                                const changePercent = ((lastPrediction - currentPrice) / currentPrice * 100).toFixed(2);
+                                const confidence = ((confidences[model] ?? 0.7) * 100).toFixed(0);
+                                const changeClass = changePercent >= 0 ? 'text-success' : 'text-danger';
+
+                                predictionsHtml += `
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-primary model-badge">${model}</span>
+                                        </td>
+                                        <td>$${lastPrediction.toFixed(2)}</td>
+                                        <td class="${changeClass}">
+                                            <i class="fas ${changePercent >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
+                                            ${changePercent}%
+                                        </td>
+                                        <td>
+                                            <div class="progress">
+                                                <div class="progress-bar" role="progressbar" 
+                                                     style="width: ${confidence}%;" 
+                                                     aria-valuenow="${confidence}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">${confidence}%</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                            if (!predictionsHtml) {
+                                predictionsHtml = '<tr><td colspan="4" class="text-muted">Predictions unavailable for this response.</td></tr>';
+                            }
+                        }
                         
                         $('#predictions-body').html(predictionsHtml);
                         $downloadBtn.prop('disabled', false);
@@ -338,6 +368,9 @@
                     },
                     error: function(xhr) {
                         $('.loading-spinner').hide();
+                        if (hadResults) {
+                            $('#results').show();
+                        }
                         alert('Error: ' + (xhr.responseJSON ? xhr.responseJSON.error : 'Unknown error'));
                     }
                 });
