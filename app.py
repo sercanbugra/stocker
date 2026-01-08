@@ -168,12 +168,143 @@ def _detect_inverse_head_shoulders(values):
         }
     return None
 
+def _detect_double_top(values):
+    if len(values) < 6:
+        return None
+    peaks, troughs = _find_local_extrema(values)
+    for i in range(len(peaks) - 2, -1, -1):
+        p1, p2 = peaks[i], peaks[i + 1]
+        if p1 >= p2:
+            continue
+        peak_diff = abs(values[p1] - values[p2]) / max(values[p1], values[p2])
+        if peak_diff > 0.04:
+            continue
+        t = next((t for t in troughs if p1 < t < p2), None)
+        if t is None:
+            continue
+        if values[t] >= min(values[p1], values[p2]) * 0.97:
+            continue
+        return {'name': 'Double Top', 'start_idx': p1, 'end_idx': p2}
+    return None
+
+def _detect_double_bottom(values):
+    if len(values) < 6:
+        return None
+    peaks, troughs = _find_local_extrema(values)
+    for i in range(len(troughs) - 2, -1, -1):
+        t1, t2 = troughs[i], troughs[i + 1]
+        if t1 >= t2:
+            continue
+        trough_diff = abs(values[t1] - values[t2]) / max(values[t1], values[t2])
+        if trough_diff > 0.04:
+            continue
+        p = next((p for p in peaks if t1 < p < t2), None)
+        if p is None:
+            continue
+        if values[p] <= max(values[t1], values[t2]) * 1.03:
+            continue
+        return {'name': 'Double Bottom', 'start_idx': t1, 'end_idx': t2}
+    return None
+
+def _detect_rounding_bottom(values):
+    if len(values) < 10:
+        return None
+    mid = len(values) // 2
+    left = np.mean(values[:mid])
+    right = np.mean(values[mid:])
+    low_idx = int(np.argmin(values))
+    if low_idx < len(values) * 0.25 or low_idx > len(values) * 0.75:
+        return None
+    if values[0] > values[low_idx] * 1.05 and values[-1] > values[low_idx] * 1.05:
+        if left > values[low_idx] * 1.02 and right > values[low_idx] * 1.02:
+            return {'name': 'Rounding Bottom', 'start_idx': 0, 'end_idx': len(values) - 1}
+    return None
+
+def _detect_rounding_top(values):
+    if len(values) < 10:
+        return None
+    mid = len(values) // 2
+    left = np.mean(values[:mid])
+    right = np.mean(values[mid:])
+    high_idx = int(np.argmax(values))
+    if high_idx < len(values) * 0.25 or high_idx > len(values) * 0.75:
+        return None
+    if values[0] < values[high_idx] * 0.95 and values[-1] < values[high_idx] * 0.95:
+        if left < values[high_idx] * 0.98 and right < values[high_idx] * 0.98:
+            return {'name': 'Rounding Top', 'start_idx': 0, 'end_idx': len(values) - 1}
+    return None
+
+def _detect_cup_handle(values):
+    if len(values) < 12:
+        return None
+    mid = len(values) // 2
+    low_idx = int(np.argmin(values[:mid]))
+    if low_idx < len(values) * 0.2:
+        return None
+    left_high = np.max(values[:low_idx])
+    right_high = np.max(values[mid:])
+    if left_high <= values[low_idx] * 1.05 or right_high <= values[low_idx] * 1.05:
+        return None
+    handle_start = mid
+    handle_end = len(values) - 1
+    handle_low = np.min(values[handle_start:handle_end + 1])
+    if handle_low < right_high * 0.9:
+        return None
+    return {'name': 'Cup and Handle', 'start_idx': 0, 'end_idx': len(values) - 1}
+
+def _detect_flags_pennants(values):
+    if len(values) < 8:
+        return None
+    n = len(values)
+    pole_end = max(2, n // 4)
+    pole_move = values[pole_end] - values[0]
+    if abs(pole_move) < np.std(values) * 0.5:
+        return None
+    consolidation = values[pole_end:]
+    if np.ptp(consolidation) < abs(pole_move) * 0.5:
+        name = 'Bull Flag' if pole_move > 0 else 'Bear Flag'
+        return {'name': name, 'start_idx': 0, 'end_idx': n - 1}
+    return None
+
+def _detect_triangle(values):
+    if len(values) < 8:
+        return None
+    n = len(values)
+    left = values[: n // 2]
+    right = values[n // 2 :]
+    left_range = np.ptp(left)
+    right_range = np.ptp(right)
+    if right_range < left_range * 0.7:
+        return {'name': 'Triangle', 'start_idx': 0, 'end_idx': n - 1}
+    return None
+
 def detect_pattern(values):
     """Detect simple reversal formations in a recent window."""
     pattern = _detect_head_shoulders(values)
     if pattern:
         return pattern
-    return _detect_inverse_head_shoulders(values)
+    pattern = _detect_inverse_head_shoulders(values)
+    if pattern:
+        return pattern
+    pattern = _detect_double_top(values)
+    if pattern:
+        return pattern
+    pattern = _detect_double_bottom(values)
+    if pattern:
+        return pattern
+    pattern = _detect_rounding_bottom(values)
+    if pattern:
+        return pattern
+    pattern = _detect_rounding_top(values)
+    if pattern:
+        return pattern
+    pattern = _detect_cup_handle(values)
+    if pattern:
+        return pattern
+    pattern = _detect_flags_pennants(values)
+    if pattern:
+        return pattern
+    return _detect_triangle(values)
 
 def validate_stock_data(df):
     """Validate and preprocess stock data for the last year"""
