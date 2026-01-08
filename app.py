@@ -635,11 +635,19 @@ def run_prediction(symbol: str):
         if pattern:
             start_idx = pattern['start_idx']
             end_idx = pattern['end_idx']
-            trend_hint = None
-            if pattern['name'] == 'Head and Shoulders':
-                trend_hint = {'text': 'Bearish', 'color': 'red', 'ay': 40, 'arrowcolor': 'red'}
-            elif pattern['name'] == 'Inverse Head and Shoulders':
-                trend_hint = {'text': 'Bullish', 'color': 'green', 'ay': -40, 'arrowcolor': 'green'}
+            trend_map = {
+                'Head and Shoulders': {'text': 'Bearish', 'color': 'red', 'ay': 40, 'arrowcolor': 'red'},
+                'Inverse Head and Shoulders': {'text': 'Bullish', 'color': 'green', 'ay': -40, 'arrowcolor': 'green'},
+                'Double Top': {'text': 'Bearish', 'color': 'red', 'ay': 40, 'arrowcolor': 'red'},
+                'Double Bottom': {'text': 'Bullish', 'color': 'green', 'ay': -40, 'arrowcolor': 'green'},
+                'Rounding Top': {'text': 'Bearish', 'color': 'red', 'ay': 40, 'arrowcolor': 'red'},
+                'Rounding Bottom': {'text': 'Bullish', 'color': 'green', 'ay': -40, 'arrowcolor': 'green'},
+                'Cup and Handle': {'text': 'Bullish', 'color': 'green', 'ay': -40, 'arrowcolor': 'green'},
+                'Bull Flag': {'text': 'Bullish', 'color': 'green', 'ay': -40, 'arrowcolor': 'green'},
+                'Bear Flag': {'text': 'Bearish', 'color': 'red', 'ay': 40, 'arrowcolor': 'red'},
+                'Triangle': {'text': 'Neutral', 'color': 'gray', 'ay': 0, 'arrowcolor': 'gray'}
+            }
+            trend_hint = trend_map.get(pattern['name'])
             fig_pattern.update_layout(
                 title=f"{symbol} {pattern['name']} Pattern (Last 1 Month)",
                 xaxis_title='Date',
@@ -656,7 +664,7 @@ def run_prediction(symbol: str):
                 fillcolor="rgba(255, 193, 7, 0.2)",
                 line_width=0
             )
-            if trend_hint:
+            if trend_hint and trend_hint['text'] != 'Neutral':
                 y_val = float(df_1m['Close'].iloc[end_idx])
                 fig_pattern.add_annotation(
                     x=last1_dates[end_idx],
