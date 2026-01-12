@@ -204,6 +204,10 @@
             const $watchlistBody = $('#watchlist-body');
             const $watchlistNotice = $('#watchlist-notice');
             const $downloadBtn = $('#download-excel');
+            const emptyChartMsg = '<div class="text-muted">Chart unavailable for this response.</div>';
+            const emptyPredMsg = '<tr><td colspan="4" class="text-muted">Predictions unavailable for this response.</td></tr>';
+            const emptyAboutMsg = '<div class="text-muted">Company info unavailable for this response.</div>';
+            const emptyNewsMsg = '<div class="text-muted">No recent news available.</div>';
 
             function loadWatchlist() {
                 try {
@@ -368,9 +372,12 @@
                     },
                     error: function(xhr) {
                         $('.loading-spinner').hide();
-                        if (hadResults) {
-                            $('#results').show();
-                        }
+                        $('#results').show();
+                        $('#pattern-chart').html(emptyChartMsg);
+                        $('#rsi-chart').html(emptyChartMsg);
+                        $('#predictions-body').html(emptyPredMsg);
+                        $('#about-container').html(emptyAboutMsg);
+                        $('#news-container').html(emptyNewsMsg);
                         alert('Error: ' + (xhr.responseJSON ? xhr.responseJSON.error : 'Unknown error'));
                     }
                 });
