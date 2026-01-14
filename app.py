@@ -92,13 +92,23 @@ def load_cached_response(symbol: str):
             payload = json.load(f)
         if not isinstance(payload, dict):
             return None
-        if 'pattern_chart' not in payload and 'chart_3m' in payload:
-            payload['pattern_chart'] = payload['chart_3m']
+        payload = _upgrade_cached_payload(payload, symbol)
         payload['cache_used'] = True
         return payload
     except Exception as exc:
         logger.warning(f"Failed to load cache for {symbol}: {exc}")
         return None
+
+def save_cached_response(symbol: str, payload: dict):
+    """Persist API-style response to cache for reuse."""
+    cache_dir = os.path.join(os.path.dirname(__file__), 'cache')
+    os.makedirs(cache_dir, exist_ok=True)
+    cache_path = os.path.join(cache_dir, f'{symbol}.json')
+    try:
+        with open(cache_path, 'w', encoding='utf-8') as f:
+            json.dump(payload, f)
+    except Exception as exc:
+        logger.warning(f"Failed to write cache for {symbol}: {exc}")
 
 def _find_local_extrema(values):
     peaks = []
@@ -305,6 +315,193 @@ def detect_pattern(values):
     if pattern:
         return pattern
     return _detect_triangle(values)
+
+def _trend_hint_for_pattern(name):
+    trend_map = {
+        'Head and Shoulders': {'text': 'Bearish', 'color': 'red', 'ay': -40, 'arrowcolor': 'red'},
+        'Inverse Head and Shoulders': {'text': 'Bullish', 'color': 'green', 'ay': 40, 'arrowcolor': 'green'},
+        'Double Top': {'text': 'Bearish', 'color': 'red', 'ay': -40, 'arrowcolor': 'red'},
+        'Double Bottom': {'text': 'Bullish', 'color': 'green', 'ay': 40, 'arrowcolor': 'green'},
+        'Rounding Top': {'text': 'Bearish', 'color': 'red', 'ay': -40, 'arrowcolor': 'red'},
+        'Rounding Bottom': {'text': 'Bullish', 'color': 'green', 'ay': 40, 'arrowcolor': 'green'},
+        'Cup and Handle': {'text': 'Bullish', 'color': 'green', 'ay': 40, 'arrowcolor': 'green'},
+        'Bull Flag': {'text': 'Bullish', 'color': 'green', 'ay': 40, 'arrowcolor': 'green'},
+        'Bear Flag': {'text': 'Bearish', 'color': 'red', 'ay': -40, 'arrowcolor': 'red'},
+        'Triangle': {'text': 'Neutral', 'color': 'gray', 'ay': 0, 'arrowcolor': 'gray'}
+    }
+    return trend_map.get(name)
+
+def _build_pattern_chart_from_series(label, dates, close_values, open_values=None, high_values=None, low_values=None):
+    if not dates or not close_values:
+        return None
+    window = 22
+    dates = dates[-window:] if len(dates) > window else dates
+    close_values = close_values[-window:] if len(close_values) > window else close_values
+    if open_values is not None and high_values is not None and low_values is not None:
+        open_values = open_values[-window:] if len(open_values) > window else open_values
+        high_values = high_values[-window:] if len(high_values) > window else high_values
+        low_values = low_values[-window:] if len(low_values) > window else low_values
+    use_ohlc = (
+        open_values is not None and high_values is not None and low_values is not None
+        and len(open_values) == len(close_values)
+        and len(high_values) == len(close_values)
+        and len(low_values) == len(close_values)
+    )
+    if use_ohlc:
+        fig = go.Figure(data=[
+            go.Candlestick(
+                x=dates,
+                open=open_values,
+                high=high_values,
+                low=low_values,
+                close=close_values,
+                name='OHLC (Last 1 Month)'
+            )
+        ])
+    else:
+        fig = go.Figure(data=[
+            go.Scatter(x=dates, y=close_values, mode='lines', name='Close (Last 1 Month)')
+        ])
+    pattern = detect_pattern(np.asarray(close_values, dtype=float))
+    if pattern:
+        start_idx = pattern['start_idx']
+        end_idx = pattern['end_idx']
+        fig.update_layout(
+        title=f"{label} {pattern['name']} Pattern (Last 1 Month)",
+            xaxis_title='Date',
+            yaxis_title='Price'
+        )
+        fig.add_shape(
+            type="rect",
+            xref="x",
+            yref="paper",
+            x0=dates[start_idx],
+            x1=dates[end_idx],
+            y0=0,
+            y1=1,
+            fillcolor="rgba(255, 193, 7, 0.2)",
+            line_width=0
+        )
+        trend_hint = _trend_hint_for_pattern(pattern['name'])
+        if trend_hint and trend_hint['text'] != 'Neutral':
+            y_val = float(close_values[end_idx])
+            fig.add_annotation(
+                x=dates[end_idx],
+                y=y_val,
+                text=trend_hint['text'],
+                showarrow=True,
+                arrowhead=2,
+                arrowsize=1.2,
+                arrowwidth=2,
+                arrowcolor=trend_hint['arrowcolor'],
+                ax=0,
+                ay=trend_hint['ay'],
+                font={'color': trend_hint['color']}
+            )
+    else:
+        fig.update_layout(
+        title=f'{label} No Clear Pattern Detected (Last 1 Month)',
+        xaxis_title='Date',
+        yaxis_title='Price'
+    )
+    return json.loads(json.dumps(fig, cls=PlotlyJSONEncoder))
+
+def _build_rsi_chart_from_series(label, dates, close_values):
+    if not dates or not close_values:
+        return None
+    window = 22
+    dates = dates[-window:] if len(dates) > window else dates
+    close_values = close_values[-window:] if len(close_values) > window else close_values
+    rsi_series = compute_rsi(pd.Series(close_values, dtype=float), window=14)
+    rsi_values = rsi_series.astype(float).tolist()
+    fig = go.Figure(data=[
+        go.Scatter(x=dates, y=rsi_values, mode='lines', name='RSI (14)')
+    ])
+    fig.add_hline(y=70, line_dash="dash", line_color="red")
+    fig.add_hline(y=30, line_dash="dash", line_color="green")
+    rsi_signal = None
+    last_rsi = rsi_values[-1] if rsi_values else None
+    if last_rsi is not None:
+        if last_rsi >= 70:
+            rsi_signal = {'text': 'Sell', 'color': 'red', 'ay': -40, 'arrowcolor': 'red'}
+        elif last_rsi <= 30:
+            rsi_signal = {'text': 'Buy', 'color': 'green', 'ay': 40, 'arrowcolor': 'green'}
+    rsi_title_suffix = 'Neutral' if rsi_signal is None else rsi_signal['text']
+    fig.update_layout(
+        title=f'{label} RSI (Last 1 Month) - {rsi_title_suffix}',
+        xaxis_title='Date',
+        yaxis_title='RSI'
+    )
+    if rsi_signal and dates:
+        fig.add_annotation(
+            x=dates[-1],
+            y=last_rsi,
+            text=rsi_signal['text'],
+            showarrow=True,
+            arrowhead=2,
+            arrowsize=1.2,
+            arrowwidth=2,
+            arrowcolor=rsi_signal['arrowcolor'],
+            ax=0,
+            ay=rsi_signal['ay'],
+            font={'color': rsi_signal['color']}
+        )
+    return json.loads(json.dumps(fig, cls=PlotlyJSONEncoder))
+
+def _upgrade_cached_payload(payload, symbol):
+    if 'pattern_chart' not in payload and 'chart_3m' in payload:
+        payload['pattern_chart'] = payload['chart_3m']
+    dates = payload.get('actual_dates') or []
+    closes = payload.get('actual_close') or []
+    opens = payload.get('actual_open') or None
+    highs = payload.get('actual_high') or None
+    lows = payload.get('actual_low') or None
+    company_info = payload.get('company_info') or {}
+    if not company_info:
+        company_info = {'name': symbol, 'sector': None, 'industry': None, 'summary': None}
+    payload['company_info'] = company_info
+    label = company_info.get('name') or symbol
+    news = payload.get('news')
+    if isinstance(news, list) and news and isinstance(news[0], dict) and 'content' in news[0]:
+        normalized = []
+        for item in news:
+            content = item.get('content') or {}
+            title = content.get('title')
+            link = None
+            canonical = content.get('canonicalUrl') or {}
+            click = content.get('clickThroughUrl') or {}
+            if isinstance(canonical, dict):
+                link = canonical.get('url')
+            if not link and isinstance(click, dict):
+                link = click.get('url')
+            provider = (content.get('provider') or {}).get('displayName')
+            published = content.get('pubDate') or content.get('displayTime')
+            if title and link:
+                normalized.append({
+                    'title': title,
+                    'link': link,
+                    'publisher': provider or '',
+                    'published': published,
+                    'sentiment': None
+                })
+        payload['news'] = normalized
+    elif not isinstance(news, list):
+        payload['news'] = []
+    if 'pattern_chart_48h' not in payload:
+        payload['pattern_chart_48h'] = None
+    if dates and closes:
+        if 'pattern_chart' not in payload:
+            payload['pattern_chart'] = _build_pattern_chart_from_series(
+                label,
+                dates,
+                closes,
+                open_values=opens,
+                high_values=highs,
+                low_values=lows
+            )
+        if 'rsi_chart' not in payload:
+            payload['rsi_chart'] = _build_rsi_chart_from_series(label, dates, closes)
+    return payload
 
 def validate_stock_data(df):
     """Validate and preprocess stock data for the last year"""
@@ -635,19 +832,7 @@ def run_prediction(symbol: str):
         if pattern:
             start_idx = pattern['start_idx']
             end_idx = pattern['end_idx']
-            trend_map = {
-                'Head and Shoulders': {'text': 'Bearish', 'color': 'red', 'ay': -40, 'arrowcolor': 'red'},
-                'Inverse Head and Shoulders': {'text': 'Bullish', 'color': 'green', 'ay': 40, 'arrowcolor': 'green'},
-                'Double Top': {'text': 'Bearish', 'color': 'red', 'ay': -40, 'arrowcolor': 'red'},
-                'Double Bottom': {'text': 'Bullish', 'color': 'green', 'ay': 40, 'arrowcolor': 'green'},
-                'Rounding Top': {'text': 'Bearish', 'color': 'red', 'ay': -40, 'arrowcolor': 'red'},
-                'Rounding Bottom': {'text': 'Bullish', 'color': 'green', 'ay': 40, 'arrowcolor': 'green'},
-                'Cup and Handle': {'text': 'Bullish', 'color': 'green', 'ay': 40, 'arrowcolor': 'green'},
-                'Bull Flag': {'text': 'Bullish', 'color': 'green', 'ay': 40, 'arrowcolor': 'green'},
-                'Bear Flag': {'text': 'Bearish', 'color': 'red', 'ay': -40, 'arrowcolor': 'red'},
-                'Triangle': {'text': 'Neutral', 'color': 'gray', 'ay': 0, 'arrowcolor': 'gray'}
-            }
-            trend_hint = trend_map.get(pattern['name'])
+            trend_hint = _trend_hint_for_pattern(pattern['name'])
             fig_pattern.update_layout(
                 title=f"{symbol} {pattern['name']} Pattern (Last 1 Month)",
                 xaxis_title='Date',
@@ -686,6 +871,69 @@ def run_prediction(symbol: str):
                 yaxis_title='Price'
             )
         pattern_chart_json = json.loads(json.dumps(fig_pattern, cls=PlotlyJSONEncoder))
+
+        # Pattern detection chart (last 48 hours, hourly)
+        pattern_chart_48h_json = None
+        try:
+            df_1h = stock.history(period='7d', interval='1h')
+            if df_1h is not None and not df_1h.empty:
+                df_48h = df_1h.tail(48)
+                last48_dates = [pd.Timestamp(ts).tz_localize(None).isoformat() for ts in df_48h.index]
+                fig_pattern_48h = go.Figure(data=[
+                    go.Candlestick(
+                        x=last48_dates,
+                        open=df_48h['Open'].astype(float).tolist(),
+                        high=df_48h['High'].astype(float).tolist(),
+                        low=df_48h['Low'].astype(float).tolist(),
+                        close=df_48h['Close'].astype(float).tolist(),
+                        name="OHLC (Last 48 Hours)"
+                    )
+                ])
+                pattern_48h = detect_pattern(df_48h['Close'].astype(float).values)
+                if pattern_48h:
+                    s_idx = pattern_48h['start_idx']
+                    e_idx = pattern_48h['end_idx']
+                    fig_pattern_48h.update_layout(
+                        title=f"{symbol} {pattern_48h['name']} Pattern (Last 48 Hours)",
+                        xaxis_title='Date',
+                        yaxis_title='Price'
+                    )
+                    fig_pattern_48h.add_shape(
+                        type="rect",
+                        xref="x",
+                        yref="paper",
+                        x0=last48_dates[s_idx],
+                        x1=last48_dates[e_idx],
+                        y0=0,
+                        y1=1,
+                        fillcolor="rgba(255, 193, 7, 0.2)",
+                        line_width=0
+                    )
+                    trend_hint_48h = _trend_hint_for_pattern(pattern_48h['name'])
+                    if trend_hint_48h and trend_hint_48h['text'] != 'Neutral':
+                        y_val = float(df_48h['Close'].iloc[e_idx])
+                        fig_pattern_48h.add_annotation(
+                            x=last48_dates[e_idx],
+                            y=y_val,
+                            text=trend_hint_48h['text'],
+                            showarrow=True,
+                            arrowhead=2,
+                            arrowsize=1.2,
+                            arrowwidth=2,
+                            arrowcolor=trend_hint_48h['arrowcolor'],
+                            ax=0,
+                            ay=trend_hint_48h['ay'],
+                            font={'color': trend_hint_48h['color']}
+                        )
+                else:
+                    fig_pattern_48h.update_layout(
+                        title=f'{symbol} No Clear Pattern Detected (Last 48 Hours)',
+                        xaxis_title='Date',
+                        yaxis_title='Price'
+                    )
+                pattern_chart_48h_json = json.loads(json.dumps(fig_pattern_48h, cls=PlotlyJSONEncoder))
+        except Exception as exc:
+            logger.warning(f"48h pattern chart failed for {symbol}: {exc}")
 
         # RSI chart (last ~1 month)
         rsi_series = compute_rsi(df_1m['Close'].astype(float), window=14)
@@ -751,6 +999,7 @@ def run_prediction(symbol: str):
         response = {
             'chart': chart_json,
             'pattern_chart': pattern_chart_json,
+            'pattern_chart_48h': pattern_chart_48h_json,
             'rsi_chart': rsi_chart_json,
             'predictions': normalized_predictions,
             'predictions_3m': preds_3m,
@@ -759,9 +1008,13 @@ def run_prediction(symbol: str):
             'company_info': company_info,
             'actual_dates': actual_dates,
             'actual_close': df['Close'].astype(float).tolist(),
+            'actual_open': df['Open'].astype(float).tolist(),
+            'actual_high': df['High'].astype(float).tolist(),
+            'actual_low': df['Low'].astype(float).tolist(),
             'future_dates': future_dates_iso,
             'future_dates_3m': future_dates_3m_iso
         }
+        save_cached_response(symbol, response)
         return response, 200
     except HTTPError as he:
         status = getattr(getattr(he, "response", None), "status_code", None)

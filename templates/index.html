@@ -149,6 +149,22 @@
                             <div id="pattern-chart"></div>
                         </div>
                     </div>
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <i class="fas fa-wave-square"></i> Pattern Detection (Last 48 Hours)
+                        </div>
+                        <div class="card-body">
+                            <div id="pattern-chart-48h"></div>
+                        </div>
+                    </div>
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <i class="fas fa-chart-line"></i> RSI Analysis (Last 1 Month)
+                        </div>
+                        <div class="card-body">
+                            <div id="rsi-chart"></div>
+                        </div>
+                    </div>
                     <div class="card about-card mt-3">
                         <div class="card-header">
                             <i class="fas fa-info-circle"></i> About
@@ -255,8 +271,24 @@
 
                         const chartData = typeof response.chart === 'string' ? JSON.parse(response.chart) : response.chart;
                         Plotly.newPlot('chart', chartData.data, chartData.layout);
-                        const patternData = typeof response.pattern_chart === 'string' ? JSON.parse(response.pattern_chart) : response.pattern_chart;
-                        Plotly.newPlot('pattern-chart', patternData.data, patternData.layout);
+                        if (response.pattern_chart) {
+                            const patternData = typeof response.pattern_chart === 'string' ? JSON.parse(response.pattern_chart) : response.pattern_chart;
+                            Plotly.newPlot('pattern-chart', patternData.data, patternData.layout);
+                        } else {
+                            $('#pattern-chart').html('<div class="text-muted">Pattern chart unavailable for this response.</div>');
+                        }
+                        if (response.pattern_chart_48h) {
+                            const pattern48Data = typeof response.pattern_chart_48h === 'string' ? JSON.parse(response.pattern_chart_48h) : response.pattern_chart_48h;
+                            Plotly.newPlot('pattern-chart-48h', pattern48Data.data, pattern48Data.layout);
+                        } else {
+                            $('#pattern-chart-48h').html('<div class="text-muted">48h pattern chart unavailable for this response.</div>');
+                        }
+                        if (response.rsi_chart) {
+                            const rsiData = typeof response.rsi_chart === 'string' ? JSON.parse(response.rsi_chart) : response.rsi_chart;
+                            Plotly.newPlot('rsi-chart', rsiData.data, rsiData.layout);
+                        } else {
+                            $('#rsi-chart').html('<div class="text-muted">RSI chart unavailable for this response.</div>');
+                        }
 
                         let predictionsHtml = '';
                         const currentPrice = response.current_price;
