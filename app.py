@@ -636,15 +636,15 @@ def run_prediction(symbol: str):
             start_idx = pattern['start_idx']
             end_idx = pattern['end_idx']
             trend_map = {
-                'Head and Shoulders': {'text': 'Bearish', 'color': 'red', 'ay': 40, 'arrowcolor': 'red'},
-                'Inverse Head and Shoulders': {'text': 'Bullish', 'color': 'green', 'ay': -40, 'arrowcolor': 'green'},
-                'Double Top': {'text': 'Bearish', 'color': 'red', 'ay': 40, 'arrowcolor': 'red'},
-                'Double Bottom': {'text': 'Bullish', 'color': 'green', 'ay': -40, 'arrowcolor': 'green'},
-                'Rounding Top': {'text': 'Bearish', 'color': 'red', 'ay': 40, 'arrowcolor': 'red'},
-                'Rounding Bottom': {'text': 'Bullish', 'color': 'green', 'ay': -40, 'arrowcolor': 'green'},
-                'Cup and Handle': {'text': 'Bullish', 'color': 'green', 'ay': -40, 'arrowcolor': 'green'},
-                'Bull Flag': {'text': 'Bullish', 'color': 'green', 'ay': -40, 'arrowcolor': 'green'},
-                'Bear Flag': {'text': 'Bearish', 'color': 'red', 'ay': 40, 'arrowcolor': 'red'},
+                'Head and Shoulders': {'text': 'Bearish', 'color': 'red', 'ay': -40, 'arrowcolor': 'red'},
+                'Inverse Head and Shoulders': {'text': 'Bullish', 'color': 'green', 'ay': 40, 'arrowcolor': 'green'},
+                'Double Top': {'text': 'Bearish', 'color': 'red', 'ay': -40, 'arrowcolor': 'red'},
+                'Double Bottom': {'text': 'Bullish', 'color': 'green', 'ay': 40, 'arrowcolor': 'green'},
+                'Rounding Top': {'text': 'Bearish', 'color': 'red', 'ay': -40, 'arrowcolor': 'red'},
+                'Rounding Bottom': {'text': 'Bullish', 'color': 'green', 'ay': 40, 'arrowcolor': 'green'},
+                'Cup and Handle': {'text': 'Bullish', 'color': 'green', 'ay': 40, 'arrowcolor': 'green'},
+                'Bull Flag': {'text': 'Bullish', 'color': 'green', 'ay': 40, 'arrowcolor': 'green'},
+                'Bear Flag': {'text': 'Bearish', 'color': 'red', 'ay': -40, 'arrowcolor': 'red'},
                 'Triangle': {'text': 'Neutral', 'color': 'gray', 'ay': 0, 'arrowcolor': 'gray'}
             }
             trend_hint = trend_map.get(pattern['name'])
@@ -837,4 +837,4 @@ def predict_excel():
     )
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True) 
