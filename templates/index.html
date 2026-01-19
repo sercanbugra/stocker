@@ -71,14 +71,14 @@
         #add-watchlist.btn-action-equal {
             min-width: 160px;
         }
-        .logo-under-download {
-            width: 60px;
+        .logo-ticker {
+            width: 70px;
             height: auto;
-            margin-top: 12px;
+            margin-bottom: 6px;
         }
         @media (min-width: 768px) {
             #predict-btn {
-                margin-top: 6px;
+                margin-top: 84px;
             }
         }
         .small-close {
@@ -107,6 +107,7 @@
                 <div class="stock-selector h-100">
                     <div class="row g-2 align-items-center">
                         <div class="col-md-7 col-sm-12">
+                            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo" class="logo-ticker">
                             <input id="stock-input" type="text" class="form-control w-100" placeholder="Enter ticker (e.g., AAPL)" />
                         </div>
                         <div class="col-md-2 col-sm-12 mt-2 mt-md-0">
@@ -119,12 +120,9 @@
                                 <button id="add-watchlist" type="button" class="btn btn-outline-secondary flex-grow-1 flex-md-grow-0 btn-action-equal">
                                     <i class="fas fa-star"></i> Add to Watchlist
                                 </button>
-                                <div class="d-flex flex-column align-items-center flex-grow-1 flex-md-grow-0">
-                                    <button id="download-excel" type="button" class="btn btn-outline-success w-100 btn-action-equal" disabled>
-                                        <i class="fas fa-file-excel"></i> Download Excel
-                                    </button>
-                                    <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo" class="logo-under-download">
-                                </div>
+                                <button id="download-excel" type="button" class="btn btn-outline-success flex-grow-1 flex-md-grow-0 btn-action-equal" disabled>
+                                    <i class="fas fa-file-excel"></i> Download Excel
+                                </button>
                             </div>
                         </div>
                     </div>
