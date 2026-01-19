@@ -66,10 +66,15 @@
             color: #e0a800;
         }
         #download-excel.btn-action-equal {
-            min-width: 170px;
+            min-width: 160px;
         }
         #add-watchlist.btn-action-equal {
-            min-width: 170px;
+            min-width: 160px;
+        }
+        .logo-under-download {
+            width: 60px;
+            height: auto;
+            margin-top: 12px;
         }
         @media (min-width: 768px) {
             #predict-btn {
@@ -114,14 +119,17 @@
                                 <button id="add-watchlist" type="button" class="btn btn-outline-secondary flex-grow-1 flex-md-grow-0 btn-action-equal">
                                     <i class="fas fa-star"></i> Add to Watchlist
                                 </button>
-                                <button id="download-excel" type="button" class="btn btn-outline-success flex-grow-1 flex-md-grow-0 btn-action-equal" disabled>
-                                    <i class="fas fa-file-excel"></i> Download Excel
-                                </button>
+                                <div class="d-flex flex-column align-items-center flex-grow-1 flex-md-grow-0">
+                                    <button id="download-excel" type="button" class="btn btn-outline-success w-100 btn-action-equal" disabled>
+                                        <i class="fas fa-file-excel"></i> Download Excel
+                                    </button>
+                                    <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo" class="logo-under-download">
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <small class="text-muted">Type any ticker to fetch predictions.</small>
-                    <div class="mt-1"><small class="text-muted">All predictions are experimental and not financial advice. Do your own research before investing.</small></div>
+                    
+                    <div class="mt-1"><small class="text-muted">**All predictions are experimental and not financial advice. Do your own research before investing.</small></div>
                 </div>
             </div>
             <div class="col-lg-4 col-md-3 col-12">
