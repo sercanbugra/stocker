@@ -9,8 +9,16 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
+        :root {
+            --parliament-blue: #1b2a57;
+            --parliament-blue-soft: #24346a;
+            --parliament-blue-deep: #15224a;
+            --panel-text: #e7ecff;
+            --panel-muted: rgba(231, 236, 255, 0.7);
+            --panel-border: rgba(255, 255, 255, 0.08);
+        }
         body {
-            background: radial-gradient(circle at 10% 20%, #e0f7ff 0, #f8f9fa 25%, #ffffff 60%);
+            background: radial-gradient(circle at 10% 20%, #2f3b73 0, #1b2a57 45%, #0f1b3d 100%);
             font-family: 'Inter', 'Arial', sans-serif;
         }
         .container {
@@ -18,7 +26,9 @@
             padding-top: 20px;
         }
         .stock-selector {
-            background-color: white;
+            background-color: var(--parliament-blue-soft);
+            color: var(--panel-text);
+            border: 1px solid var(--panel-border);
             border-radius: 16px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.08);
             padding: 16px;
@@ -26,21 +36,128 @@
         }
         #chart {
             height: 560px;
-            background-color: white;
+            background-color: var(--parliament-blue-soft);
+            color: var(--panel-text);
+            border: 1px solid var(--panel-border);
             border-radius: 16px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.08);
         }
         .predictions-card, .news-card, .watchlist-card, .about-card {
+            background-color: var(--parliament-blue-soft);
+            color: var(--panel-text);
+            border: 1px solid var(--panel-border);
             border-radius: 16px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+        .card {
+            background-color: var(--parliament-blue-soft);
+            color: var(--panel-text);
+            border: 1px solid var(--panel-border);
+        }
+        .card-header {
+            background-color: var(--parliament-blue);
+            color: var(--panel-text);
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .stock-selector .text-muted,
+        .card .text-muted {
+            color: var(--panel-muted) !important;
+        }
+        #predictions-table th,
+        #predictions-table td {
+            color: var(--panel-text);
+        }
+        #predictions-table .text-success {
+            color: #6ee7a8 !important;
+        }
+        #predictions-table .text-danger {
+            color: #ff8a8a !important;
         }
         .loading-spinner {
             display: none;
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            inset: 0;
+            background: rgba(8, 12, 20, 0.55);
             z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .loading-spinner.is-visible {
+            display: flex;
+        }
+        .stock-loader {
+            width: 200px;
+            height: 160px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.2);
+            position: relative;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+        }
+        .stock-loader .chart-lines {
+            position: absolute;
+            inset: 16px 20px 20px 20px;
+            border: 1px solid #d9e2ef;
+            border-radius: 8px;
+        }
+        .stock-loader .chart-lines::before,
+        .stock-loader .chart-lines::after {
+            content: "";
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            height: 2px;
+            background: linear-gradient(90deg, #0d6efd, #0b7285);
+            top: 55%;
+            transform: translateY(-50%);
+            animation: linePulse 1.4s ease-in-out infinite;
+        }
+        .stock-loader .chart-lines::after {
+            top: 35%;
+            opacity: 0.5;
+            animation-delay: 0.3s;
+        }
+        .magnifier {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            border: 4px solid #0d6efd;
+            border-radius: 50%;
+            left: 40px;
+            top: 45px;
+            animation: magnifierSweep 1.4s ease-in-out infinite;
+            background: rgba(13,110,253,0.08);
+        }
+        .magnifier::after {
+            content: "";
+            position: absolute;
+            width: 36px;
+            height: 6px;
+            background: #0d6efd;
+            right: -30px;
+            bottom: -6px;
+            transform: rotate(45deg);
+            border-radius: 4px;
+        }
+        .loading-label {
+            position: absolute;
+            bottom: 12px;
+            font-size: 12px;
+            color: #223;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        @keyframes magnifierSweep {
+            0% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(70px) translateY(-8px); }
+            100% { transform: translateX(0) translateY(0); }
+        }
+        @keyframes linePulse {
+            0% { transform: translateY(-50%) scaleX(0.6); opacity: 0.5; }
+            50% { transform: translateY(-50%) scaleX(1.0); opacity: 1; }
+            100% { transform: translateY(-50%) scaleX(0.6); opacity: 0.5; }
         }
         .model-badge {
             margin-right: 5px;
@@ -96,8 +213,10 @@
 <body>
     <!-- Loading Spinner -->
     <div class="loading-spinner text-center">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
+        <div class="stock-loader">
+            <div class="chart-lines"></div>
+            <div class="magnifier"></div>
+            <div class="loading-label">Analyzing market data...</div>
         </div>
     </div>
 
@@ -191,7 +310,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4">
+                <div class="col-lg-4 d-flex flex-column">
                     <div class="card predictions-card mb-3">
                         <div class="card-header">
                             <i class="fas fa-calculator"></i> Prediction Results
@@ -213,7 +332,7 @@
                         </div>
                     </div>
 
-                    <div class="card news-card h-100">
+                    <div class="card news-card flex-grow-1">
                         <div class="card-header">
                             <i class="fas fa-newspaper"></i> Latest News
                         </div>
@@ -268,6 +387,28 @@
 
             renderWatchlist();
 
+            function applyChartTheme(layout) {
+                const base = layout || {};
+                return {
+                    ...base,
+                    paper_bgcolor: '#24346a',
+                    plot_bgcolor: '#1b2a57',
+                    font: { ...(base.font || {}), color: '#e7ecff' },
+                    xaxis: {
+                        ...(base.xaxis || {}),
+                        gridcolor: 'rgba(255,255,255,0.1)',
+                        zerolinecolor: 'rgba(255,255,255,0.2)',
+                        color: '#e7ecff'
+                    },
+                    yaxis: {
+                        ...(base.yaxis || {}),
+                        gridcolor: 'rgba(255,255,255,0.1)',
+                        zerolinecolor: 'rgba(255,255,255,0.2)',
+                        color: '#e7ecff'
+                    }
+                };
+            }
+
             $('#predict-btn').click(function() {
                 const symbol = $('#stock-input').val().trim().toUpperCase();
                 if (!symbol) {
@@ -275,7 +416,7 @@
                     return;
                 }
 
-                $('.loading-spinner').show();
+                $('.loading-spinner').addClass('is-visible');
                 $('#results').hide();
 
                 $.ajax({
@@ -283,26 +424,26 @@
                     method: 'POST',
                     data: { symbol: symbol },
                     success: function(response) {
-                        $('.loading-spinner').hide();
+                        $('.loading-spinner').removeClass('is-visible');
                         $('#results').show();
 
                         const chartData = typeof response.chart === 'string' ? JSON.parse(response.chart) : response.chart;
-                        Plotly.newPlot('chart', chartData.data, chartData.layout);
+                        Plotly.newPlot('chart', chartData.data, applyChartTheme(chartData.layout));
                         if (response.pattern_chart) {
                             const patternData = typeof response.pattern_chart === 'string' ? JSON.parse(response.pattern_chart) : response.pattern_chart;
-                            Plotly.newPlot('pattern-chart', patternData.data, patternData.layout);
+                            Plotly.newPlot('pattern-chart', patternData.data, applyChartTheme(patternData.layout));
                         } else {
                             $('#pattern-chart').html('<div class="text-muted">Pattern chart unavailable for this response.</div>');
                         }
                         if (response.pattern_chart_48h) {
                             const pattern48Data = typeof response.pattern_chart_48h === 'string' ? JSON.parse(response.pattern_chart_48h) : response.pattern_chart_48h;
-                            Plotly.newPlot('pattern-chart-48h', pattern48Data.data, pattern48Data.layout);
+                            Plotly.newPlot('pattern-chart-48h', pattern48Data.data, applyChartTheme(pattern48Data.layout));
                         } else {
                             $('#pattern-chart-48h').html('<div class="text-muted">48h pattern chart unavailable for this response.</div>');
                         }
                         if (response.rsi_chart) {
                             const rsiData = typeof response.rsi_chart === 'string' ? JSON.parse(response.rsi_chart) : response.rsi_chart;
-                            Plotly.newPlot('rsi-chart', rsiData.data, rsiData.layout);
+                            Plotly.newPlot('rsi-chart', rsiData.data, applyChartTheme(rsiData.layout));
                         } else {
                             $('#rsi-chart').html('<div class="text-muted">RSI chart unavailable for this response.</div>');
                         }
@@ -386,7 +527,7 @@
                         $('#news-container').html(newsHtml);
                     },
                     error: function(xhr) {
-                        $('.loading-spinner').hide();
+                        $('.loading-spinner').removeClass('is-visible');
                         alert('Error: ' + (xhr.responseJSON ? xhr.responseJSON.error : 'Unknown error'));
                     }
                 });
@@ -432,7 +573,7 @@
                     alert('Please enter a stock symbol first');
                     return;
                 }
-                $('.loading-spinner').show();
+                $('.loading-spinner').addClass('is-visible');
                 fetch('/predict_excel', {
                     method: 'POST',
                     headers: {
@@ -456,7 +597,7 @@
                 }).catch(err => {
                     alert('Error: ' + (err && err.error ? err.error : 'Unknown error'));
                 }).finally(() => {
-                    $('.loading-spinner').hide();
+                    $('.loading-spinner').removeClass('is-visible');
                 });
             });
         });
