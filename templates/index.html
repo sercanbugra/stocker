@@ -211,20 +211,29 @@
             }
         }
         .small-close {
-            width: 0.35rem;
-            height: 0.35rem;
+            width: 0.45rem;
+            height: 0.45rem;
             padding: 0.04rem;
             background-size: 0.5rem;
             opacity: 0.75;
             border-radius: 50%;
             background-color: #f8f9fa;
             border: 1px solid #ced4da;
-            top: 6px !important;
+            top: 2px !important;
             right: 6px !important;
+        }
+        .corner-logo {
+            position: fixed;
+            top: 62px;
+            right: 36px;
+            width: 164px;
+            height: auto;
+            z-index: 1100;
         }
     </style>
 </head>
 <body>
+    <img src="{{ url_for('static', filename='stocker_logo.png') }}" alt="Stocker logo" class="corner-logo">
     <!-- Loading Spinner -->
     <div class="loading-spinner text-center">
         <div class="stock-loader">
