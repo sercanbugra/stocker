@@ -193,20 +193,34 @@
             height: auto;
             margin-bottom: 6px;
         }
+        .site-footer {
+            border-top: 1px solid var(--panel-border);
+            padding: 16px 0 24px;
+            color: var(--panel-text);
+        }
+        .footer-logo {
+            width: 64px;
+            height: auto;
+        }
+        .footer-text {
+            max-width: 520px;
+        }
         @media (min-width: 768px) {
             #predict-btn {
-                margin-top: 84px;
+                margin-top: 10px;
             }
         }
         .small-close {
-            width: 0.65rem;
-            height: 0.65rem;
-            padding: 0.12rem;
-            background-size: 0.6rem;
+            width: 0.35rem;
+            height: 0.35rem;
+            padding: 0.04rem;
+            background-size: 0.5rem;
             opacity: 0.75;
             border-radius: 50%;
             background-color: #f8f9fa;
             border: 1px solid #ced4da;
+            top: 6px !important;
+            right: 6px !important;
         }
     </style>
 </head>
@@ -226,7 +240,6 @@
                 <div class="stock-selector h-100">
                     <div class="row g-2 align-items-center">
                         <div class="col-md-7 col-sm-12">
-                            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo" class="logo-ticker">
                             <input id="stock-input" type="text" class="form-control w-100" placeholder="Enter ticker (e.g., AAPL)" />
                         </div>
                         <div class="col-md-2 col-sm-12 mt-2 mt-md-0">
@@ -342,6 +355,20 @@
             </div>
         </div>
     </div>
+    <footer class="site-footer mt-4">
+        <div class="container">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Company logo" class="footer-logo">
+                <div class="footer-text">
+                    <strong>Stocker</strong>
+                    <p class="mb-0">
+                        Gultechs build data-driven market tools for faster, clearer decisions.
+                        Secure, research-backed, and designed for everyday investors.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <script>
         $(document).ready(function() {
