@@ -44,7 +44,8 @@ if google_client_id and google_client_secret:
             "openid",
             "https://www.googleapis.com/auth/userinfo.email",
             "https://www.googleapis.com/auth/userinfo.profile"
-        ]
+        ],
+        authorization_url_params={"prompt": "select_account"}
     )
     app.register_blueprint(google_bp, url_prefix="/login")
 else:
