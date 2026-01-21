@@ -3,7 +3,6 @@ import logging
 import json
 import time
 import re
-import urllib.parse
 import numpy as np
 import pandas as pd
 import yfinance as yf
@@ -738,10 +737,7 @@ def logout():
     if google_bp and google_bp.token:
         del google_bp.token
     session.clear()
-    home_url = request.url_root.rstrip("/") + url_for("home")
-    continue_url = "https://appengine.google.com/_ah/logout?continue=" + urllib.parse.quote(home_url, safe="")
-    logout_url = "https://accounts.google.com/Logout?continue=" + urllib.parse.quote(continue_url, safe="")
-    return redirect(logout_url)
+    return redirect(url_for("home"))
 
 @app.route("/api/watchlist", methods=["GET", "POST"])
 def watchlist_api():
