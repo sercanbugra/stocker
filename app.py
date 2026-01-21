@@ -18,7 +18,7 @@ from io import BytesIO
 from sklearn.preprocessing import MinMaxScaler
 
 # Flask imports
-from flask import Flask, render_template, request, jsonify, send_file, session
+from flask import Flask, render_template, request, jsonify, send_file, session, redirect, url_for
 from flask_dance.contrib.google import make_google_blueprint, google
 
 # Configure logging
@@ -49,6 +49,11 @@ if google_client_id and google_client_secret:
     app.register_blueprint(google_bp, url_prefix="/login")
 else:
     logger.warning("Google OAuth not configured. Set GOOGLE_OAUTH_CLIENT_ID/SECRET.")
+
+@app.route("/login/google/force")
+def google_login_force():
+    session.pop("google_oauth_token", None)
+    return redirect(url_for("google.login") + "?prompt=select_account")
 
 def fetch_with_retry(symbol: str, period: str = '1y', attempts: int = 3, delay: int = 2):
     """Fetch price history with simple backoff to handle transient rate limits."""
