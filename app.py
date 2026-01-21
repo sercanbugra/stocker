@@ -739,7 +739,8 @@ def logout():
         del google_bp.token
     session.clear()
     home_url = request.url_root.rstrip("/") + url_for("home")
-    logout_url = "https://accounts.google.com/Logout?continue=" + urllib.parse.quote(home_url, safe="")
+    continue_url = "https://appengine.google.com/_ah/logout?continue=" + urllib.parse.quote(home_url, safe="")
+    logout_url = "https://accounts.google.com/Logout?continue=" + urllib.parse.quote(continue_url, safe="")
     return redirect(logout_url)
 
 @app.route("/api/watchlist", methods=["GET", "POST"])
