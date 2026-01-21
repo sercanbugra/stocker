@@ -183,6 +183,7 @@
             color: #e0a800;
         }
         #auth-trigger.btn-action-equal,
+        .logout-btn.btn-action-equal,
         #add-watchlist.btn-action-equal,
         #download-excel.btn-action-equal {
             min-width: 162px;
@@ -309,7 +310,7 @@
                         <div class="col-md-3 col-sm-12">
                             <div class="d-flex flex-wrap gap-2 justify-content-end mt-2 mt-md-0">
                                 {% if user %}
-                                <a href="/logout" class="btn btn-outline-warning flex-grow-1 flex-md-grow-0 btn-action-equal">
+                                <a href="/logout" class="btn btn-outline-warning flex-grow-1 flex-md-grow-0 btn-action-equal logout-btn">
                                     <i class="fas fa-sign-out-alt"></i> Sign out
                                 </a>
                                 {% else %}
