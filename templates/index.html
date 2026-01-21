@@ -275,7 +275,7 @@
                 <button type="button" class="auth-modal-close" id="auth-close" aria-label="Close">×</button>
             </div>
             <div class="d-grid gap-2">
-                <a class="btn btn-outline-light" href="/login/google/force">Continue with Google</a>
+                <a class="btn btn-outline-light" href="/login/google">Continue with Google</a>
                 <button class="btn btn-outline-light" type="button">Continue with Email</button>
             </div>
             <div class="mt-3 small text-center">
@@ -308,9 +308,15 @@
                         </div>
                         <div class="col-md-3 col-sm-12">
                             <div class="d-flex flex-wrap gap-2 justify-content-end mt-2 mt-md-0">
+                                {% if user %}
+                                <a href="/logout" class="btn btn-outline-warning flex-grow-1 flex-md-grow-0 btn-action-equal">
+                                    <i class="fas fa-sign-out-alt"></i> Sign out
+                                </a>
+                                {% else %}
                                 <button id="auth-trigger" type="button" class="btn btn-outline-light flex-grow-1 flex-md-grow-0 btn-action-equal">
                                     <i class="fas fa-user"></i> Login / Sign Up
                                 </button>
+                                {% endif %}
                                 <button id="add-watchlist" type="button" class="btn btn-outline-secondary flex-grow-1 flex-md-grow-0 btn-action-equal">
                                     <i class="fas fa-star"></i> Add to Watchlist
                                 </button>

@@ -18,7 +18,7 @@ from io import BytesIO
 from sklearn.preprocessing import MinMaxScaler
 
 # Flask imports
-from flask import Flask, render_template, request, jsonify, send_file, session, redirect, url_for
+from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for
 from flask_dance.contrib.google import make_google_blueprint, google
 
 # Configure logging
@@ -32,8 +32,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
 SENTIMENT_ANALYZER = SentimentIntensityAnalyzer()
 
-os.environ.setdefault("OAUTHLIB_RELAX_TOKEN_SCOPE", "1")
-
+google_bp = None
 google_client_id = os.getenv("GOOGLE_OAUTH_CLIENT_ID")
 google_client_secret = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET")
 if google_client_id and google_client_secret:
@@ -49,11 +48,6 @@ if google_client_id and google_client_secret:
     app.register_blueprint(google_bp, url_prefix="/login")
 else:
     logger.warning("Google OAuth not configured. Set GOOGLE_OAUTH_CLIENT_ID/SECRET.")
-
-@app.route("/login/google/force")
-def google_login_force():
-    session.pop("google_oauth_token", None)
-    return redirect(url_for("google.login") + "?prompt=select_account")
 
 def fetch_with_retry(symbol: str, period: str = '1y', attempts: int = 3, delay: int = 2):
     """Fetch price history with simple backoff to handle transient rate limits."""
@@ -708,12 +702,13 @@ def home():
         resp = google.get("/oauth2/v2/userinfo")
         if resp.ok:
             user = resp.json()
-            session['user'] = {
-                'email': user.get('email'),
-                'name': user.get('name'),
-                'picture': user.get('picture')
-            }
     return render_template('index.html', stocks=stocks, user=user)
+
+@app.route("/logout")
+def logout():
+    if google_bp and google_bp.token:
+        del google_bp.token
+    return redirect(url_for("home"))
 
 def _sentiment_score(*parts: str):
     text = " ".join([p for p in parts if p]).strip()
