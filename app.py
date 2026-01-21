@@ -18,7 +18,7 @@ from io import BytesIO
 from sklearn.preprocessing import MinMaxScaler
 
 # Flask imports
-from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for
+from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, session
 from flask_dance.contrib.google import make_google_blueprint, google
 
 # Configure logging
@@ -708,6 +708,7 @@ def home():
 def logout():
     if google_bp and google_bp.token:
         del google_bp.token
+    session.clear()
     return redirect(url_for("home"))
 
 def _sentiment_score(*parts: str):
