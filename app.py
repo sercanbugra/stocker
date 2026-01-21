@@ -658,7 +658,7 @@ def compute_rsi(series: pd.Series, window: int = 14) -> pd.Series:
     avg_loss = loss.rolling(window=window, min_periods=window).mean()
     rs = avg_gain / avg_loss.replace(0, np.nan)
     rsi = 100 - (100 / (1 + rs))
-    return rsi.fillna(method='bfill').fillna(50)
+    return rsi.bfill().fillna(50)
 
 
 def build_feature_frame(close_values: np.ndarray) -> pd.DataFrame:
