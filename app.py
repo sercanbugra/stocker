@@ -32,13 +32,19 @@ app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
 SENTIMENT_ANALYZER = SentimentIntensityAnalyzer()
 
+os.environ.setdefault("OAUTHLIB_RELAX_TOKEN_SCOPE", "1")
+
 google_client_id = os.getenv("GOOGLE_OAUTH_CLIENT_ID")
 google_client_secret = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET")
 if google_client_id and google_client_secret:
     google_bp = make_google_blueprint(
         client_id=google_client_id,
         client_secret=google_client_secret,
-        scope=["openid", "email", "profile"]
+        scope=[
+            "openid",
+            "https://www.googleapis.com/auth/userinfo.email",
+            "https://www.googleapis.com/auth/userinfo.profile"
+        ]
     )
     app.register_blueprint(google_bp, url_prefix="/login")
 else:
