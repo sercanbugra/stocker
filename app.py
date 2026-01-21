@@ -2,6 +2,7 @@ import os
 import logging
 import json
 import time
+import re
 import numpy as np
 import pandas as pd
 import yfinance as yf
@@ -48,6 +49,31 @@ if google_client_id and google_client_secret:
     app.register_blueprint(google_bp, url_prefix="/login")
 else:
     logger.warning("Google OAuth not configured. Set GOOGLE_OAUTH_CLIENT_ID/SECRET.")
+
+WATCHLIST_DIR = os.path.join(os.path.dirname(__file__), "data", "watchlists")
+
+def _sanitize_watchlist_key(value: str) -> str:
+    if not value:
+        return "anonymous"
+    return re.sub(r"[^a-zA-Z0-9_.-]", "_", value)
+
+def _get_watchlist_path(email: str) -> str:
+    os.makedirs(WATCHLIST_DIR, exist_ok=True)
+    return os.path.join(WATCHLIST_DIR, f"{_sanitize_watchlist_key(email)}.json")
+
+def _get_current_user_email():
+    email = session.get("user_email")
+    if email:
+        return email
+    if google_client_id and google_client_secret and google.authorized:
+        resp = google.get("/oauth2/v2/userinfo")
+        if resp.ok:
+            info = resp.json()
+            email = info.get("email")
+            if email:
+                session["user_email"] = email
+                return email
+    return None
 
 def fetch_with_retry(symbol: str, period: str = '1y', attempts: int = 3, delay: int = 2):
     """Fetch price history with simple backoff to handle transient rate limits."""
@@ -702,6 +728,8 @@ def home():
         resp = google.get("/oauth2/v2/userinfo")
         if resp.ok:
             user = resp.json()
+            if user.get("email"):
+                session["user_email"] = user.get("email")
     return render_template('index.html', stocks=stocks, user=user)
 
 @app.route("/logout")
@@ -710,6 +738,35 @@ def logout():
         del google_bp.token
     session.clear()
     return redirect(url_for("home"))
+
+@app.route("/api/watchlist", methods=["GET", "POST"])
+def watchlist_api():
+    email = _get_current_user_email()
+    if not email:
+        return jsonify({"error": "unauthorized"}), 401
+    path = _get_watchlist_path(email)
+    if request.method == "GET":
+        if not os.path.exists(path):
+            return jsonify({"symbols": []})
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                payload = json.load(handle)
+            symbols = payload.get("symbols") if isinstance(payload, dict) else []
+            return jsonify({"symbols": symbols if isinstance(symbols, list) else []})
+        except Exception as exc:
+            logger.warning(f"Failed to read watchlist for {email}: {exc}")
+            return jsonify({"symbols": []})
+    data = request.get_json(silent=True) or {}
+    symbols = data.get("symbols")
+    if not isinstance(symbols, list):
+        return jsonify({"error": "symbols must be a list"}), 400
+    try:
+        with open(path, "w", encoding="utf-8") as handle:
+            json.dump({"symbols": symbols}, handle)
+        return jsonify({"symbols": symbols})
+    except Exception as exc:
+        logger.error(f"Failed to write watchlist for {email}: {exc}")
+        return jsonify({"error": "failed to save watchlist"}), 500
 
 def _sentiment_score(*parts: str):
     text = " ".join([p for p in parts if p]).strip()

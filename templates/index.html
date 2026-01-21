@@ -444,23 +444,44 @@
             const $watchlistNotice = $('#watchlist-notice');
             const $downloadBtn = $('#download-excel');
             const $authModal = $('#auth-modal');
+            const isLoggedIn = {{ 'true' if user else 'false' }};
 
-            function loadWatchlist() {
+            async function loadWatchlist() {
+                if (!isLoggedIn) {
+                    try {
+                        const raw = localStorage.getItem('watchlist') || '[]';
+                        const arr = JSON.parse(raw);
+                        return Array.isArray(arr) ? arr : [];
+                    } catch (e) {
+                        return [];
+                    }
+                }
                 try {
-                    const raw = localStorage.getItem('watchlist') || '[]';
-                    const arr = JSON.parse(raw);
-                    return Array.isArray(arr) ? arr : [];
+                    const resp = await fetch('/api/watchlist');
+                    if (!resp.ok) {
+                        return [];
+                    }
+                    const data = await resp.json();
+                    return Array.isArray(data.symbols) ? data.symbols : [];
                 } catch (e) {
                     return [];
                 }
             }
 
-            function saveWatchlist(list) {
-                localStorage.setItem('watchlist', JSON.stringify(list));
+            async function saveWatchlist(list) {
+                if (!isLoggedIn) {
+                    localStorage.setItem('watchlist', JSON.stringify(list));
+                    return;
+                }
+                await fetch('/api/watchlist', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symbols: list })
+                });
             }
 
-            function renderWatchlist() {
-                const list = loadWatchlist();
+            async function renderWatchlist() {
+                const list = await loadWatchlist();
                 if (!list.length) {
                     $watchlistBody.html('<div class="col-12 text-muted">No symbols yet</div>');
                     $watchlistNotice.text('');
@@ -641,18 +662,18 @@
                 });
             });
 
-            $('#add-watchlist').click(function(e) {
+            $('#add-watchlist').click(async function(e) {
                 e.preventDefault();
                 const symbol = $('#stock-input').val().trim().toUpperCase();
                 if (!symbol) {
                     alert('Please enter a stock symbol first');
                     return;
                 }
-                const list = loadWatchlist();
+                const list = await loadWatchlist();
                 if (!list.includes(symbol)) {
                     list.push(symbol);
-                    saveWatchlist(list);
-                    renderWatchlist();
+                    await saveWatchlist(list);
+                    await renderWatchlist();
                     $watchlistNotice.text(`${symbol} added to watchlist.`);
                 } else {
                     $watchlistNotice.text(`${symbol} is already in watchlist.`);
@@ -666,13 +687,13 @@
                 }
             });
 
-            $watchlistBody.on('click', '.remove-watchlist', function(e) {
+            $watchlistBody.on('click', '.remove-watchlist', async function(e) {
                 e.stopPropagation();
                 const sym = $(this).data('symbol');
                 if (!sym) return;
-                const list = loadWatchlist().filter(s => s !== sym);
-                saveWatchlist(list);
-                renderWatchlist();
+                const list = (await loadWatchlist()).filter(s => s !== sym);
+                await saveWatchlist(list);
+                await renderWatchlist();
             });
 
             $downloadBtn.click(function() {
