@@ -18,7 +18,8 @@ from io import BytesIO
 from sklearn.preprocessing import MinMaxScaler
 
 # Flask imports
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, session
+from flask_dance.contrib.google import make_google_blueprint, google
 
 # Configure logging
 logging.basicConfig(
@@ -28,7 +29,20 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
 SENTIMENT_ANALYZER = SentimentIntensityAnalyzer()
+
+google_client_id = os.getenv("GOOGLE_OAUTH_CLIENT_ID")
+google_client_secret = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET")
+if google_client_id and google_client_secret:
+    google_bp = make_google_blueprint(
+        client_id=google_client_id,
+        client_secret=google_client_secret,
+        scope=["openid", "email", "profile"]
+    )
+    app.register_blueprint(google_bp, url_prefix="/login")
+else:
+    logger.warning("Google OAuth not configured. Set GOOGLE_OAUTH_CLIENT_ID/SECRET.")
 
 def fetch_with_retry(symbol: str, period: str = '1y', attempts: int = 3, delay: int = 2):
     """Fetch price history with simple backoff to handle transient rate limits."""
@@ -678,7 +692,17 @@ def train_prediction_models(close_values, forecast_horizon=30, time_steps=30):
 @app.route('/')
 def home():
     stocks = fetch_sp500_stocks()
-    return render_template('index.html', stocks=stocks)
+    user = None
+    if google_client_id and google_client_secret and google.authorized:
+        resp = google.get("/oauth2/v2/userinfo")
+        if resp.ok:
+            user = resp.json()
+            session['user'] = {
+                'email': user.get('email'),
+                'name': user.get('name'),
+                'picture': user.get('picture')
+            }
+    return render_template('index.html', stocks=stocks, user=user)
 
 def _sentiment_score(*parts: str):
     text = " ".join([p for p in parts if p]).strip()
