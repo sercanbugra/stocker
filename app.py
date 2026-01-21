@@ -10,6 +10,7 @@ import plotly.graph_objs as go
 import xgboost as xgb
 from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
 import requests
+from datetime import datetime
 from requests.exceptions import HTTPError
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from plotly.utils import PlotlyJSONEncoder
@@ -49,6 +50,81 @@ if google_client_id and google_client_secret:
     app.register_blueprint(google_bp, url_prefix="/login")
 else:
     logger.warning("Google OAuth not configured. Set GOOGLE_OAUTH_CLIENT_ID/SECRET.")
+
+def _rating_score(rating: str) -> int:
+    text = (rating or "").lower()
+    if "strong buy" in text:
+        return 90
+    if "buy" in text:
+        return 80
+    if "outperform" in text:
+        return 70
+    if "hold" in text or "neutral" in text or "equal-weight" in text:
+        return 55
+    if "underperform" in text:
+        return 35
+    if "sell" in text:
+        return 20
+    return 50
+
+def fetch_analyst_insights(symbol: str):
+    try:
+        session_req = requests.Session()
+        session_req.get("https://fc.yahoo.com", headers={"User-Agent": "Mozilla/5.0"}, timeout=8)
+        crumb_resp = session_req.get(
+            "https://query2.finance.yahoo.com/v1/test/getcrumb",
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=8
+        )
+        if not crumb_resp.ok or not crumb_resp.text:
+            return {"top_analysts": [], "recommendations": []}
+        crumb = crumb_resp.text.strip()
+        url = (
+            "https://query2.finance.yahoo.com/v10/finance/quoteSummary/"
+            f"{symbol}?modules=upgradeDowngradeHistory,recommendationTrend&crumb={crumb}"
+        )
+        resp = session_req.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=8)
+        if not resp.ok:
+            return {"top_analysts": [], "recommendations": []}
+        payload = resp.json().get("quoteSummary", {})
+        result = (payload.get("result") or [{}])[0]
+
+        history = (result.get("upgradeDowngradeHistory") or {}).get("history") or []
+        top_analysts = []
+        for item in history[:8]:
+            rating = item.get("toGrade") or ""
+            score = _rating_score(rating)
+            epoch = item.get("epochGradeDate")
+            date_str = ""
+            if epoch:
+                date_str = datetime.utcfromtimestamp(epoch).strftime("%Y-%m-%d")
+            top_analysts.append({
+                "analyst": item.get("firm") or "",
+                "overallScore": score,
+                "directionScore": max(10, score - 10),
+                "priceScore": min(100, score + 15),
+                "latestRating": rating,
+                "priceTarget": item.get("currentPriceTarget") or "",
+                "date": date_str
+            })
+
+        rec_trend = (result.get("recommendationTrend") or {}).get("trend") or []
+        recommendations = []
+        for row in rec_trend:
+            recommendations.append({
+                "period": row.get("period"),
+                "strongBuy": row.get("strongBuy", 0),
+                "buy": row.get("buy", 0),
+                "hold": row.get("hold", 0),
+                "sell": row.get("sell", 0),
+                "strongSell": row.get("strongSell", 0),
+                "underperform": row.get("underperform", 0)
+            })
+
+        return {"top_analysts": top_analysts, "recommendations": recommendations}
+    except Exception as exc:
+        logger.warning(f"Analyst insights fetch failed for {symbol}: {exc}")
+        return {"top_analysts": [], "recommendations": []}
 
 WATCHLIST_DIR = os.path.join(os.path.dirname(__file__), "data", "watchlists")
 
@@ -534,6 +610,8 @@ def _upgrade_cached_payload(payload, symbol):
         payload['news'] = []
     if 'pattern_chart_48h' not in payload:
         payload['pattern_chart_48h'] = None
+    if 'analyst_insights' not in payload:
+        payload['analyst_insights'] = {'top_analysts': [], 'recommendations': []}
     if dates and closes:
         if 'pattern_chart' not in payload:
             payload['pattern_chart'] = _build_pattern_chart_from_series(
@@ -1084,11 +1162,13 @@ def run_prediction(symbol: str):
             'summary': info.get('longBusinessSummary')
         }
 
+        analyst_payload = fetch_analyst_insights(symbol)
         response = {
             'chart': chart_json,
             'pattern_chart': pattern_chart_json,
             'pattern_chart_48h': pattern_chart_48h_json,
             'rsi_chart': rsi_chart_json,
+            'analyst_insights': analyst_payload,
             'predictions': normalized_predictions,
             'predictions_3m': preds_3m,
             'current_price': float(df['Close'].iloc[-1]),

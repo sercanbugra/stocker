@@ -266,6 +266,101 @@
         .auth-link:hover {
             text-decoration: underline;
         }
+        .analyst-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.86rem;
+        }
+        .analyst-table th,
+        .analyst-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--panel-border);
+            vertical-align: middle;
+        }
+        .analyst-table th {
+            text-align: left;
+            color: var(--panel-text);
+            font-weight: 600;
+        }
+        .score-bar {
+            position: relative;
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.12);
+            overflow: hidden;
+        }
+        .score-fill {
+            position: absolute;
+            inset: 0 auto 0 0;
+            border-radius: 999px;
+        }
+        .score-fill.green { background: #18b981; }
+        .score-fill.yellow { background: #f1c54b; }
+        .score-fill.red { background: #ff6b6b; }
+        .rating-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .rating-buy { background: #1bbf83; color: #0b1a12; }
+        .rating-outperform { background: #18b981; color: #0b1a12; }
+        .rating-neutral { background: #5b6672; color: #111418; }
+        .rating-sell { background: #ff5c5c; color: #1d0b0b; }
+        .analyst-reco {
+            display: grid;
+            grid-template-columns: 1fr 120px;
+            gap: 12px;
+            align-items: center;
+        }
+        .reco-bars {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .reco-bar {
+            background: rgba(255,255,255,0.08);
+            border-radius: 8px;
+            padding: 8px;
+        }
+        .reco-stack {
+            height: 120px;
+            display: flex;
+            flex-direction: column-reverse;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--panel-border);
+        }
+        .reco-seg { width: 100%; }
+        .reco-strong { background: #1bbf83; }
+        .reco-buy { background: #3ccf7a; }
+        .reco-hold { background: #f1c54b; }
+        .reco-under { background: #f08a4b; }
+        .reco-sell { background: #ff5c5c; }
+        .reco-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            margin-top: 6px;
+        }
+        .reco-legend {
+            display: grid;
+            gap: 6px;
+            font-size: 0.78rem;
+        }
+        .reco-legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .reco-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -381,6 +476,37 @@
                         </div>
                         <div class="card-body">
                             <div id="rsi-chart"></div>
+                        </div>
+                    </div>
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <i class="fas fa-user-tie"></i> Top Analysts
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="analyst-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Analyst</th>
+                                            <th>Overall</th>
+                                            <th>Direction</th>
+                                            <th>Price</th>
+                                            <th>Latest rating</th>
+                                            <th>Price target</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="analyst-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <i class="fas fa-chart-bar"></i> Analyst Recommendations
+                        </div>
+                        <div class="card-body">
+                            <div class="analyst-reco" id="analyst-reco"></div>
                         </div>
                     </div>
                     <div class="card about-card mt-3">
@@ -539,6 +665,86 @@
                 };
             }
 
+            function ratingClass(value) {
+                const text = (value || '').toString().toLowerCase();
+                if (text.includes('buy')) return 'rating-buy';
+                if (text.includes('outperform')) return 'rating-outperform';
+                if (text.includes('sell')) return 'rating-sell';
+                return 'rating-neutral';
+            }
+
+            function renderAnalystTable(items) {
+                const $body = $('#analyst-table-body');
+                if (!items || !items.length) {
+                    $body.html('<tr><td colspan="7" class="text-muted">No analyst insights available.</td></tr>');
+                    return;
+                }
+                const rows = items.map(item => {
+                    const overall = Number(item.overallScore ?? 0);
+                    const direction = Number(item.directionScore ?? 0);
+                    const price = Number(item.priceScore ?? 0);
+                    const rating = item.latestRating || 'N/A';
+                    const cls = ratingClass(rating);
+                    return `
+                        <tr>
+                            <td>${item.analyst || ''}</td>
+                            <td><div class="score-bar"><span class="score-fill green" style="width: ${overall}%;"></span></div></td>
+                            <td><div class="score-bar"><span class="score-fill yellow" style="width: ${direction}%;"></span></div></td>
+                            <td><div class="score-bar"><span class="score-fill green" style="width: ${price}%;"></span></div></td>
+                            <td><span class="rating-pill ${cls}">${rating}</span></td>
+                            <td>${item.priceTarget || ''}</td>
+                            <td>${item.date || ''}</td>
+                        </tr>
+                    `;
+                }).join('');
+                $body.html(rows);
+            }
+
+            function renderAnalystRecommendations(recommendations) {
+                const $wrap = $('#analyst-reco');
+                if (!recommendations || !recommendations.length) {
+                    $wrap.html('<div class="text-muted">No recommendation trends available.</div>');
+                    return;
+                }
+                const val = (row, key) => Number(row[key] ?? 0);
+                const latest = recommendations[0];
+                const prev = recommendations[1];
+                const bars = [latest, prev].filter(Boolean).map(row => {
+                    const total = val(row, 'strongBuy') + val(row, 'buy') + val(row, 'hold') + val(row, 'underperform') + val(row, 'sell') + val(row, 'strongSell');
+                    const safeTotal = total || 1;
+                    const seg = (value) => `${(value / safeTotal) * 100}%`;
+                    return `
+                        <div class="reco-bar">
+                            <div class="reco-stack">
+                                <div class="reco-seg reco-sell" style="height: ${seg(val(row, 'sell') + val(row, 'strongSell'))};"></div>
+                                <div class="reco-seg reco-under" style="height: ${seg(val(row, 'underperform'))};"></div>
+                                <div class="reco-seg reco-hold" style="height: ${seg(val(row, 'hold'))};"></div>
+                                <div class="reco-seg reco-buy" style="height: ${seg(val(row, 'buy'))};"></div>
+                                <div class="reco-seg reco-strong" style="height: ${seg(val(row, 'strongBuy'))};"></div>
+                            </div>
+                            <div class="reco-label"><span>${row.period || ''}</span><span>${total}</span></div>
+                        </div>
+                    `;
+                }).join('');
+                const counts = {
+                    strong: val(latest, 'strongBuy'),
+                    buy: val(latest, 'buy'),
+                    hold: val(latest, 'hold'),
+                    under: val(latest, 'underperform'),
+                    sell: val(latest, 'sell') + val(latest, 'strongSell')
+                };
+                $wrap.html(`
+                    <div class="reco-bars">${bars}</div>
+                    <div class="reco-legend">
+                        <span><i class="reco-dot reco-strong"></i> Strong buy <strong>${counts.strong}</strong></span>
+                        <span><i class="reco-dot reco-buy"></i> Buy <strong>${counts.buy}</strong></span>
+                        <span><i class="reco-dot reco-hold"></i> Hold <strong>${counts.hold}</strong></span>
+                        <span><i class="reco-dot reco-under"></i> Underperform <strong>${counts.under}</strong></span>
+                        <span><i class="reco-dot reco-sell"></i> Sell <strong>${counts.sell}</strong></span>
+                    </div>
+                `);
+            }
+
             $('#predict-btn').click(function() {
                 const symbol = $('#stock-input').val().trim().toUpperCase();
                 if (!symbol) {
@@ -577,6 +783,9 @@
                         } else {
                             $('#rsi-chart').html('<div class="text-muted">RSI chart unavailable for this response.</div>');
                         }
+                        const insights = response.analyst_insights || {};
+                        renderAnalystTable(insights.top_analysts || []);
+                        renderAnalystRecommendations(insights.recommendations || []);
 
                         let predictionsHtml = '';
                         const currentPrice = response.current_price;
