@@ -22,6 +22,7 @@ from sklearn.preprocessing import MinMaxScaler
 # Flask imports
 from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, session
 from flask_dance.contrib.google import make_google_blueprint, google
+from oauthlib.oauth2 import TokenExpiredError
 
 # Configure logging
 logging.basicConfig(
@@ -803,11 +804,16 @@ def home():
     stocks = fetch_sp500_stocks()
     user = None
     if google_client_id and google_client_secret and google.authorized:
-        resp = google.get("/oauth2/v2/userinfo")
-        if resp.ok:
-            user = resp.json()
-            if user.get("email"):
-                session["user_email"] = user.get("email")
+        try:
+            resp = google.get("/oauth2/v2/userinfo")
+            if resp.ok:
+                user = resp.json()
+                if user.get("email"):
+                    session["user_email"] = user.get("email")
+        except TokenExpiredError:
+            if google_bp and google_bp.token:
+                del google_bp.token
+            session.pop("user_email", None)
     return render_template('index.html', stocks=stocks, user=user)
 
 @app.route("/logout")
