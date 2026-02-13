@@ -14,7 +14,7 @@ from datetime import datetime
 from requests.exceptions import HTTPError
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from plotly.utils import PlotlyJSONEncoder
-from io import BytesIO
+from io import BytesIO, StringIO
 
 # Scikit-learn imports
 from sklearn.preprocessing import MinMaxScaler
@@ -168,6 +168,32 @@ def fetch_with_retry(symbol: str, period: str = '1y', attempts: int = 3, delay: 
                 continue
             break
     raise last_exc
+
+def _is_rate_limit_error(exc: Exception) -> bool:
+    status = getattr(getattr(exc, "response", None), "status_code", None)
+    return status == 429 or "Too Many Requests" in str(exc)
+
+def fetch_stooq_history(symbol: str) -> pd.DataFrame:
+    """Fallback data source when Yahoo is rate limited."""
+    stooq_symbol = f"{symbol.lower()}.us"
+    url = f"https://stooq.com/q/d/l/?s={stooq_symbol}&i=d"
+    resp = requests.get(url, timeout=12, headers={"User-Agent": "Mozilla/5.0"})
+    resp.raise_for_status()
+    text = (resp.text or "").strip()
+    if not text or "No data" in text:
+        raise ValueError(f"No Stooq data for {symbol}")
+
+    df = pd.read_csv(StringIO(text))
+    if df.empty or "Date" not in df.columns:
+        raise ValueError(f"Invalid Stooq data for {symbol}")
+
+    # Stooq columns: Date,Open,High,Low,Close,Volume
+    df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+    df = df.dropna(subset=["Date"]).set_index("Date").sort_index()
+    for col in ["Open", "High", "Low", "Close", "Volume"]:
+        if col not in df.columns:
+            df[col] = np.nan if col != "Volume" else 0
+    return df[["Open", "High", "Low", "Close", "Volume"]]
 
 def fetch_sp500_stocks():
     """Fetch S&P 500 stocks with robust error handling and local fallback."""
@@ -928,6 +954,7 @@ def run_prediction(symbol: str):
         return {'error': 'Please provide a symbol'}, 400
     try:
         stock = yf.Ticker(symbol)
+        data_source = "yahoo"
         try:
             df = fetch_with_retry(symbol, period='1y', attempts=3, delay=2)
         except Exception as exc:
@@ -935,7 +962,17 @@ def run_prediction(symbol: str):
             if cached:
                 logger.info(f"Serving cached response for {symbol}")
                 return cached, 200
-            raise exc
+            if _is_rate_limit_error(exc):
+                try:
+                    df = fetch_stooq_history(symbol)
+                    stock = None
+                    data_source = "stooq"
+                    logger.info(f"Using Stooq fallback for {symbol} due to rate limit")
+                except Exception as fallback_exc:
+                    logger.warning(f"Stooq fallback failed for {symbol}: {fallback_exc}")
+                    raise exc
+            else:
+                raise exc
         df = validate_stock_data(df)
 
         forecast_horizon = 30
@@ -1047,7 +1084,10 @@ def run_prediction(symbol: str):
         # Pattern detection chart (last 48 hours, hourly)
         pattern_chart_48h_json = None
         try:
-            df_1h = stock.history(period='7d', interval='1h')
+            if stock is not None:
+                df_1h = stock.history(period='7d', interval='1h')
+            else:
+                df_1h = None
             if df_1h is not None and not df_1h.empty:
                 df_48h = df_1h.tail(48)
                 last48_dates = [pd.Timestamp(ts).tz_localize(None).isoformat() for ts in df_48h.index]
@@ -1168,12 +1208,13 @@ def run_prediction(symbol: str):
             'summary': info.get('longBusinessSummary')
         }
 
-        analyst_payload = fetch_analyst_insights(symbol)
+        analyst_payload = fetch_analyst_insights(symbol) if data_source == "yahoo" else {'top_analysts': [], 'recommendations': []}
         response = {
             'chart': chart_json,
             'pattern_chart': pattern_chart_json,
             'pattern_chart_48h': pattern_chart_48h_json,
             'rsi_chart': rsi_chart_json,
+            'data_source': data_source,
             'analyst_insights': analyst_payload,
             'predictions': normalized_predictions,
             'predictions_3m': preds_3m,
