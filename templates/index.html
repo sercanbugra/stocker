@@ -361,6 +361,31 @@
             border-radius: 50%;
             display: inline-block;
         }
+        .remarkable-card .card-body {
+            padding: 14px 16px;
+        }
+        .remarkables-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--panel-text);
+            letter-spacing: 0.2px;
+        }
+        .remarkables-list {
+            list-style: decimal;
+            padding-left: 18px;
+            margin-bottom: 0;
+        }
+        .remarkables-list li {
+            margin-bottom: 6px;
+            color: var(--panel-text);
+            font-size: 0.88rem;
+        }
+        .remarkables-meta {
+            color: var(--panel-muted);
+            font-size: 0.78rem;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -438,6 +463,62 @@
                         </div>
                         <div class="text-muted small mt-2" id="watchlist-notice"></div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card remarkable-card mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-bolt"></i> Remarkables</span>
+                <small class="text-muted" id="remarkables-updated">
+                    {% if remarkables and remarkables.updated_at %}updated {{ remarkables.updated_at }}{% else %}not ready{% endif %}
+                </small>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="remarkables-title">For Risk Lovers</div>
+                        <ol class="remarkables-list" id="risk-lovers-list">
+                            {% if remarkables and remarkables.for_risk_lovers %}
+                                {% for item in remarkables.for_risk_lovers %}
+                                <li>
+                                    <strong>{{ item.symbol }}</strong>
+                                    <span class="text-muted"> | trend {{ item.trend_percent }}% | prev-day LOW<=0.75x hits {{ item.down_hits or item.loss_hits }} | prev-day HIGH>=1.5x hits {{ item.up_hits or item.gain_hits }}</span>
+                                    {% if item.match_type and item.match_type != 'strict' and item.match_type != 'cache_strict' %}
+                                    <span class="text-warning"> (near match)</span>
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            {% else %}
+                                <li class="text-muted">No candidate yet.</li>
+                            {% endif %}
+                        </ol>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="remarkables-title">No Pain But Gain</div>
+                        <ol class="remarkables-list" id="no-pain-list">
+                            {% if remarkables and remarkables.no_pain_but_gain %}
+                                {% for item in remarkables.no_pain_but_gain %}
+                                <li>
+                                    <strong>{{ item.symbol }}</strong>
+                                    <span class="text-muted"> | trend {{ item.trend_percent }}% | max drop {{ item.max_daily_drop_percent }}%</span>
+                                    {% if item.match_type and item.match_type != 'strict' and item.match_type != 'cache_strict' %}
+                                    <span class="text-warning"> (near match)</span>
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            {% else %}
+                                <li class="text-muted">No candidate yet.</li>
+                            {% endif %}
+                        </ol>
+                    </div>
+                </div>
+                <div class="remarkables-meta" id="remarkables-meta">
+                    {% if remarkables and remarkables.scanned_symbols %}
+                    scanned {{ remarkables.scanned_symbols }} / {{ remarkables.total_symbols }} symbols
+                    {% else %}
+                    scanning status unavailable
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -572,6 +653,46 @@
             const $downloadBtn = $('#download-excel');
             const $authModal = $('#auth-modal');
             const isLoggedIn = {{ 'true' if user else 'false' }};
+            const $riskList = $('#risk-lovers-list');
+            const $noPainList = $('#no-pain-list');
+            const $remarkablesUpdated = $('#remarkables-updated');
+            const $remarkablesMeta = $('#remarkables-meta');
+
+            function renderRemarkableList($target, items, type) {
+                if (!items || !items.length) {
+                    $target.html('<li class="text-muted">No candidate yet.</li>');
+                    return;
+                }
+                const html = items.slice(0, 5).map(item => {
+                    if (type === 'risk') {
+                        const near = item.match_type && item.match_type !== 'strict' && item.match_type !== 'cache_strict' ? ' <span class="text-warning">(near match)</span>' : '';
+                        const downHits = (item.down_hits ?? item.loss_hits ?? 0);
+                        const upHits = (item.up_hits ?? item.gain_hits ?? 0);
+                        return `<li><strong>${item.symbol}</strong> <span class="text-muted">| trend ${item.trend_percent}% | prev-day LOW<=0.75x hits ${downHits} | prev-day HIGH>=1.5x hits ${upHits}</span>${near}</li>`;
+                    }
+                    const near = item.match_type && item.match_type !== 'strict' && item.match_type !== 'cache_strict' ? ' <span class="text-warning">(near match)</span>' : '';
+                    return `<li><strong>${item.symbol}</strong> <span class="text-muted">| trend ${item.trend_percent}% | max drop ${item.max_daily_drop_percent}%</span>${near}</li>`;
+                }).join('');
+                $target.html(html);
+            }
+
+            async function loadRemarkables() {
+                try {
+                    const resp = await fetch('/api/remarkables');
+                    if (!resp.ok) return;
+                    const payload = await resp.json();
+                    renderRemarkableList($riskList, payload.for_risk_lovers || [], 'risk');
+                    renderRemarkableList($noPainList, payload.no_pain_but_gain || [], 'steady');
+                    if (payload.updated_at) {
+                        $remarkablesUpdated.text(`updated ${payload.updated_at}`);
+                    }
+                    if (payload.scanned_symbols !== undefined) {
+                        $remarkablesMeta.text(`scanned ${payload.scanned_symbols} / ${payload.total_symbols} symbols`);
+                    }
+                } catch (e) {
+                    // keep server-rendered fallback content
+                }
+            }
 
             async function loadWatchlist() {
                 if (!isLoggedIn) {
@@ -630,6 +751,7 @@
             }
 
             renderWatchlist();
+            loadRemarkables();
 
             $('#auth-trigger').on('click', function() {
                 $authModal.addClass('is-visible').attr('aria-hidden', 'false');
@@ -794,8 +916,8 @@
                             'ExtraTrees': 0.78,
                             'RandomForest': 0.8
                         };
-                        
-                        Object.entries(response.predictions).forEach(([model, predictions]) => {
+                        const predictionsObj = (response && response.predictions && typeof response.predictions === 'object') ? response.predictions : {};
+                        Object.entries(predictionsObj).forEach(([model, predictions]) => {
                             const lastPrediction = predictions[predictions.length - 1];
                             const changePercent = ((lastPrediction - currentPrice) / currentPrice * 100).toFixed(2);
                             const confidence = ((confidences[model] ?? 0.7) * 100).toFixed(0);
@@ -823,7 +945,9 @@
                                 </tr>
                             `;
                         });
-                        
+                        if (!predictionsHtml) {
+                            predictionsHtml = '<tr><td colspan="4" class="text-muted">Prediction data unavailable for this response.</td></tr>';
+                        }
                         $('#predictions-body').html(predictionsHtml);
                         $downloadBtn.prop('disabled', false);
 

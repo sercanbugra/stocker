@@ -3,6 +3,7 @@ import logging
 import json
 import time
 import re
+import threading
 import numpy as np
 import pandas as pd
 import yfinance as yf
@@ -10,7 +11,7 @@ import plotly.graph_objs as go
 import xgboost as xgb
 from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
 from requests.exceptions import HTTPError
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from plotly.utils import PlotlyJSONEncoder
@@ -128,6 +129,14 @@ def fetch_analyst_insights(symbol: str):
         return {"top_analysts": [], "recommendations": []}
 
 WATCHLIST_DIR = os.path.join(os.path.dirname(__file__), "data", "watchlists")
+REMARKABLES_CACHE_PATH = os.path.join(os.path.dirname(__file__), "cache", "remarkables_nasdaq.json")
+REMARKABLES_CACHE_TTL_SECONDS = 12 * 60 * 60
+REMARKABLES_BATCH_SIZE = 25
+REMARKABLES_RULE_VERSION = "2026-02-13-v6-risk-near-fill-up1.5"
+REMARKABLES_REFRESH_LOCK = threading.Lock()
+REMARKABLES_REFRESH_IN_PROGRESS = False
+REMARKABLES_MEMORY_CACHE = None
+REMARKABLES_MEMORY_DAY = None
 
 def _sanitize_watchlist_key(value: str) -> str:
     if not value:
@@ -228,6 +237,509 @@ def fetch_sp500_stocks():
         'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA',
         'NVDA', 'JPM', 'V', 'JNJ', 'WMT', 'MA', 'UNH', 'DIS', 'BAC'
     ]
+
+def fetch_nasdaq_symbols():
+    """Fetch full Nasdaq listed symbols."""
+    url = "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt"
+    resp = requests.get(url, timeout=12, headers={"User-Agent": "Mozilla/5.0"})
+    resp.raise_for_status()
+    lines = resp.text.splitlines()
+    symbols = []
+    for line in lines[1:]:
+        if not line or line.startswith("File Creation Time"):
+            continue
+        parts = line.split("|")
+        if len(parts) < 2:
+            continue
+        symbol = (parts[0] or "").strip().upper()
+        test_issue = (parts[6] or "").strip().upper() if len(parts) > 6 else "N"
+        if not symbol or test_issue == "Y":
+            continue
+        # Keep common-stock style tickers to avoid warrants/units/rights noise.
+        if not re.fullmatch(r"[A-Z]{1,5}", symbol):
+            continue
+        symbols.append(symbol)
+    return sorted(set(symbols))
+
+def _extract_close_from_batch(df_batch: pd.DataFrame, symbol: str):
+    if df_batch is None or df_batch.empty:
+        return pd.Series(dtype=float)
+    try:
+        if isinstance(df_batch.columns, pd.MultiIndex):
+            # group_by='ticker' => (ticker, field)
+            if symbol in df_batch.columns.get_level_values(0):
+                series = df_batch[symbol].get("Close", pd.Series(dtype=float))
+                return pd.to_numeric(series, errors="coerce").dropna()
+            # Fallback orientation => (field, ticker)
+            if "Close" in df_batch.columns.get_level_values(0) and symbol in df_batch.columns.get_level_values(1):
+                series = df_batch["Close"][symbol]
+                return pd.to_numeric(series, errors="coerce").dropna()
+            return pd.Series(dtype=float)
+        if "Close" in df_batch.columns:
+            return pd.to_numeric(df_batch["Close"], errors="coerce").dropna()
+    except Exception:
+        return pd.Series(dtype=float)
+    return pd.Series(dtype=float)
+
+def _extract_field_from_batch(df_batch: pd.DataFrame, symbol: str, field: str):
+    if df_batch is None or df_batch.empty:
+        return pd.Series(dtype=float)
+    try:
+        if isinstance(df_batch.columns, pd.MultiIndex):
+            # group_by='ticker' => (ticker, field)
+            if symbol in df_batch.columns.get_level_values(0):
+                series = df_batch[symbol].get(field, pd.Series(dtype=float))
+                return pd.to_numeric(series, errors="coerce").dropna()
+            # Fallback orientation => (field, ticker)
+            if field in df_batch.columns.get_level_values(0) and symbol in df_batch.columns.get_level_values(1):
+                series = df_batch[field][symbol]
+                return pd.to_numeric(series, errors="coerce").dropna()
+            return pd.Series(dtype=float)
+        if field in df_batch.columns:
+            return pd.to_numeric(df_batch[field], errors="coerce").dropna()
+    except Exception:
+        return pd.Series(dtype=float)
+    return pd.Series(dtype=float)
+
+def _trend_percent(series: pd.Series) -> float:
+    if series is None or series.empty:
+        return float("-inf")
+    start_val = float(series.iloc[0])
+    end_val = float(series.iloc[-1])
+    if start_val <= 0:
+        return float("-inf")
+    return ((end_val - start_val) / start_val) * 100.0
+
+def _prevday_highlow_hits(close_series: pd.Series, high_series: pd.Series, low_series: pd.Series,
+                          up_mult: float = 1.5, down_mult: float = 0.75):
+    df = pd.concat(
+        [
+            pd.to_numeric(close_series, errors="coerce"),
+            pd.to_numeric(high_series, errors="coerce"),
+            pd.to_numeric(low_series, errors="coerce"),
+        ],
+        axis=1,
+    )
+    df.columns = ["close", "high", "low"]
+    df = df.dropna()
+    if len(df) < 2:
+        return 0, 0
+    prev_close = df["close"].shift(1)
+    up_hits = int((df["high"] >= (prev_close * up_mult)).sum())
+    down_hits = int((df["low"] <= (prev_close * down_mult)).sum())
+    return up_hits, down_hits
+
+def _default_remarkables_payload():
+    return {
+        "updated_at": None,
+        "source": "cache",
+        "rule_version": REMARKABLES_RULE_VERSION,
+        "scanned_symbols": 0,
+        "total_symbols": 0,
+        "for_risk_lovers": [],
+        "no_pain_but_gain": []
+    }
+
+def _load_remarkables_cache():
+    if not os.path.exists(REMARKABLES_CACHE_PATH):
+        return None
+    try:
+        with open(REMARKABLES_CACHE_PATH, "r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+        return payload if isinstance(payload, dict) else None
+    except Exception as exc:
+        logger.warning(f"Failed to read remarkables cache: {exc}")
+        return None
+
+def _save_remarkables_cache(payload: dict):
+    os.makedirs(os.path.dirname(REMARKABLES_CACHE_PATH), exist_ok=True)
+    try:
+        with open(REMARKABLES_CACHE_PATH, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle)
+    except Exception as exc:
+        logger.warning(f"Failed to write remarkables cache: {exc}")
+
+def _remarkables_day_key(dt=None) -> str:
+    val = dt or datetime.now(timezone.utc)
+    return val.astimezone(timezone.utc).date().isoformat()
+
+def _remarkables_payload_day(payload: dict):
+    ts = (payload or {}).get("updated_at")
+    if not ts:
+        return None
+    try:
+        parsed = datetime.fromisoformat(ts)
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return _remarkables_day_key(parsed)
+    except Exception:
+        return None
+
+def _remarkables_cache_is_today(payload: dict) -> bool:
+    if (payload or {}).get("rule_version") != REMARKABLES_RULE_VERSION:
+        return False
+    return _remarkables_payload_day(payload) == _remarkables_day_key()
+
+def _remarkables_cache_is_fresh(payload: dict) -> bool:
+    if (payload or {}).get("rule_version") != REMARKABLES_RULE_VERSION:
+        return False
+    ts = (payload or {}).get("updated_at")
+    if not ts:
+        return False
+    try:
+        parsed = datetime.fromisoformat(ts)
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        age = datetime.now(timezone.utc) - parsed.astimezone(timezone.utc)
+        return age.total_seconds() < REMARKABLES_CACHE_TTL_SECONDS
+    except Exception:
+        return False
+
+def _compute_remarkables():
+    symbols = fetch_nasdaq_symbols()
+    risk_candidates = []
+    risk_near_candidates = []
+    steady_candidates = []
+    scanned = 0
+
+    rate_limit_hits = 0
+    # yfinance can emit noisy per-batch error logs on 429; quiet it during bulk scan.
+    yf_logger = logging.getLogger("yfinance")
+    prev_level = yf_logger.level
+    yf_logger.setLevel(logging.CRITICAL)
+
+    for idx in range(0, len(symbols), REMARKABLES_BATCH_SIZE):
+        batch = symbols[idx: idx + REMARKABLES_BATCH_SIZE]
+        try:
+            data = yf.download(
+                tickers=" ".join(batch),
+                period="6mo",
+                interval="1d",
+                group_by="ticker",
+                auto_adjust=True,
+                progress=False,
+                threads=False
+            )
+        except Exception as exc:
+            if _is_rate_limit_error(exc):
+                rate_limit_hits += 1
+                logger.warning(f"Remarkables rate limited at batch {idx}; hit {rate_limit_hits}")
+                if rate_limit_hits >= 1:
+                    logger.warning("Stopping remarkable scan early due to repeated rate limits.")
+                    break
+                time.sleep(1.5 * rate_limit_hits)
+                continue
+            logger.warning(f"Remarkables batch download failed at {idx}: {exc}")
+            continue
+
+        for sym in batch:
+            close_6m = _extract_close_from_batch(data, sym)
+            high_6m = _extract_field_from_batch(data, sym, "High")
+            low_6m = _extract_field_from_batch(data, sym, "Low")
+            scanned += 1
+            if close_6m.empty or len(close_6m) < 60:
+                continue
+            # Filter out extreme penny/illiquid-like behavior that dominates NASDAQ-wide scans.
+            if float(close_6m.median()) < 1.0:
+                continue
+
+            trend_6m = _trend_percent(close_6m)
+            daily_loss = close_6m.pct_change().dropna()
+            max_daily_drop = abs(float(daily_loss.min() * 100.0)) if not daily_loss.empty and daily_loss.min() < 0 else 0.0
+
+            # No Pain But Gain: +10% in 6M, and no daily drop >9%
+            if trend_6m >= 10.0 and (daily_loss >= -0.09).all():
+                steady_candidates.append({
+                    "symbol": sym,
+                    "trend_percent": round(trend_6m, 2),
+                    "max_daily_drop_percent": round(max_daily_drop, 2),
+                    "score": trend_6m - max_daily_drop,
+                    "match_type": "strict"
+                })
+
+            # For Risk Lovers: evaluate last ~3 months
+            close_3m = close_6m.tail(63)
+            high_3m = high_6m.tail(63)
+            low_3m = low_6m.tail(63)
+            if close_3m.empty or len(close_3m) < 40:
+                continue
+            trend_3m = _trend_percent(close_3m)
+            up_hits, down_hits = _prevday_highlow_hits(close_3m, high_3m, low_3m, up_mult=1.5, down_mult=0.75)
+            # For Risk Lovers:
+            # - trend >= +15% (3M)
+            # - >=2 days where today's LOW <= 75% of previous day's CLOSE
+            # - >=3 days where today's HIGH >= 150% of previous day's CLOSE
+            if trend_3m >= 15.0 and down_hits >= 2 and up_hits >= 3:
+                risk_candidates.append({
+                    "symbol": sym,
+                    "trend_percent": round(trend_3m, 2),
+                    "loss_hits": down_hits,
+                    "gain_hits": up_hits,
+                    "down_hits": down_hits,
+                    "up_hits": up_hits,
+                    "score": (trend_3m + up_hits * 8 + down_hits * 8),
+                    "match_type": "strict"
+                })
+            else:
+                # Keep near matches so list can still be filled when strict results are scarce.
+                trend_gap = max(0.0, 15.0 - trend_3m)
+                down_gap = max(0, 2 - down_hits)
+                up_gap = max(0, 3 - up_hits)
+                miss_points = (trend_gap / 5.0) + (down_gap * 1.0) + (up_gap * 1.0)
+                if trend_3m >= 5.0 or up_hits >= 1 or down_hits >= 1:
+                    risk_near_candidates.append({
+                        "symbol": sym,
+                        "trend_percent": round(trend_3m, 2),
+                        "loss_hits": down_hits,
+                        "gain_hits": up_hits,
+                        "down_hits": down_hits,
+                        "up_hits": up_hits,
+                        "score": (trend_3m + up_hits * 4 + down_hits * 4 - miss_points * 5),
+                        "match_type": "near_match",
+                        "_miss_points": miss_points
+                    })
+
+    yf_logger.setLevel(prev_level)
+
+    risk_sorted = sorted(risk_candidates, key=lambda x: x["score"], reverse=True)
+    steady_sorted = sorted(steady_candidates, key=lambda x: x["score"], reverse=True)
+    risk_near_sorted = sorted(
+        risk_near_candidates,
+        key=lambda x: (x.get("_miss_points", 9999), -x.get("trend_percent", 0.0), -(x.get("up_hits", 0) + x.get("down_hits", 0)))
+    )
+    risk_sorted = risk_sorted[:5]
+    steady_sorted = steady_sorted[:5]
+    if len(risk_sorted) < 5 and risk_near_sorted:
+        used = {x["symbol"] for x in risk_sorted}
+        for item in risk_near_sorted:
+            if item["symbol"] in used:
+                continue
+            # Internal field used only for ranking; do not expose it.
+            item.pop("_miss_points", None)
+            risk_sorted.append(item)
+            used.add(item["symbol"])
+            if len(risk_sorted) >= 5:
+                break
+
+    # Fallback: if live NASDAQ-wide scan produced no candidates due API throttling,
+    # harvest candidates from existing local symbol caches.
+    if len(risk_sorted) < 5 or len(steady_sorted) < 5:
+        local_risk, local_steady, local_risk_near, local_steady_near = _compute_remarkables_from_local_cache()
+        if len(risk_sorted) < 5 and (local_risk or local_risk_near):
+            used = {x["symbol"] for x in risk_sorted}
+            risk_sorted.extend([x for x in local_risk if x["symbol"] not in used])
+            used = {x["symbol"] for x in risk_sorted}
+            if len(risk_sorted) < 5:
+                risk_sorted.extend([x for x in local_risk_near if x["symbol"] not in used])
+            risk_sorted = risk_sorted[:5]
+        if len(steady_sorted) < 5 and (local_steady or local_steady_near):
+            used = {x["symbol"] for x in steady_sorted}
+            steady_sorted.extend([x for x in local_steady if x["symbol"] not in used])
+            used = {x["symbol"] for x in steady_sorted}
+            if len(steady_sorted) < 5:
+                steady_sorted.extend([x for x in local_steady_near if x["symbol"] not in used])
+            steady_sorted = steady_sorted[:5]
+
+    return {
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "source": "live_scan",
+        "rule_version": REMARKABLES_RULE_VERSION,
+        "scanned_symbols": scanned,
+        "total_symbols": len(symbols),
+        "for_risk_lovers": risk_sorted,
+        "no_pain_but_gain": steady_sorted
+    }
+
+def _compute_remarkables_from_local_cache():
+    cache_dir = os.path.join(os.path.dirname(__file__), "cache")
+    if not os.path.isdir(cache_dir):
+        return [], [], [], []
+    risk_strict = []
+    steady_strict = []
+    risk_near = []
+    steady_near = []
+    for fname in os.listdir(cache_dir):
+        if not fname.endswith(".json"):
+            continue
+        if fname == "remarkables_nasdaq.json":
+            continue
+        symbol = os.path.splitext(fname)[0].upper()
+        try:
+            with open(os.path.join(cache_dir, fname), "r", encoding="utf-8") as fh:
+                payload = json.load(fh)
+            closes = payload.get("actual_close") or []
+            highs = payload.get("actual_high") or []
+            lows = payload.get("actual_low") or []
+            s = pd.Series(pd.to_numeric(closes, errors="coerce")).dropna()
+            if len(s) < 60:
+                continue
+            if float(s.median()) < 1.0:
+                continue
+            s6 = s.tail(min(126, len(s)))
+            trend_6m = _trend_percent(s6)
+            daily = s6.pct_change().dropna()
+            max_drop = abs(float(daily.min() * 100.0)) if not daily.empty and daily.min() < 0 else 0.0
+            if trend_6m >= 10.0 and (daily >= -0.09).all():
+                steady_strict.append({
+                    "symbol": symbol,
+                    "trend_percent": round(trend_6m, 2),
+                    "max_daily_drop_percent": round(max_drop, 2),
+                    "score": trend_6m - max_drop,
+                    "match_type": "cache_strict"
+                })
+            elif trend_6m >= 8.0 and (daily >= -0.12).all():
+                steady_near.append({
+                    "symbol": symbol,
+                    "trend_percent": round(trend_6m, 2),
+                    "max_daily_drop_percent": round(max_drop, 2),
+                    "score": trend_6m - max_drop,
+                    "match_type": "cache_near_match"
+                })
+            s3 = s6.tail(min(63, len(s6)))
+            if len(s3) < 40:
+                continue
+            start = float(s3.iloc[0])
+            if start <= 0:
+                continue
+            trend_3m = _trend_percent(s3)
+            hs = pd.Series(pd.to_numeric(highs, errors="coerce")).dropna() if highs else s.copy()
+            ls = pd.Series(pd.to_numeric(lows, errors="coerce")).dropna() if lows else s.copy()
+            hs3 = hs.tail(len(s3))
+            ls3 = ls.tail(len(s3))
+            up_hits, down_hits = _prevday_highlow_hits(s3, hs3, ls3, up_mult=1.5, down_mult=0.75)
+            if trend_3m >= 15.0 and down_hits >= 2 and up_hits >= 3:
+                risk_strict.append({
+                    "symbol": symbol,
+                    "trend_percent": round(trend_3m, 2),
+                    "loss_hits": down_hits,
+                    "gain_hits": up_hits,
+                    "down_hits": down_hits,
+                    "up_hits": up_hits,
+                    "score": (trend_3m + up_hits * 8 + down_hits * 8),
+                    "match_type": "cache_strict"
+                })
+            else:
+                trend_gap = max(0.0, 15.0 - trend_3m)
+                down_gap = max(0, 2 - down_hits)
+                up_gap = max(0, 3 - up_hits)
+                miss_points = (trend_gap / 5.0) + (down_gap * 1.0) + (up_gap * 1.0)
+                if trend_3m >= 5.0 or up_hits >= 1 or down_hits >= 1:
+                    risk_near.append({
+                        "symbol": symbol,
+                        "trend_percent": round(trend_3m, 2),
+                        "loss_hits": down_hits,
+                        "gain_hits": up_hits,
+                        "down_hits": down_hits,
+                        "up_hits": up_hits,
+                        "score": (trend_3m + up_hits * 4 + down_hits * 4 - miss_points * 5),
+                        "match_type": "cache_near_match",
+                        "_miss_points": miss_points
+                    })
+        except Exception:
+            continue
+    risk_strict = sorted(risk_strict, key=lambda x: x["score"], reverse=True)
+    steady_strict = sorted(steady_strict, key=lambda x: x["score"], reverse=True)
+    risk_near = sorted(
+        risk_near,
+        key=lambda x: (x.get("_miss_points", 9999), -x.get("trend_percent", 0.0), -(x.get("up_hits", 0) + x.get("down_hits", 0)))
+    )
+    for item in risk_near:
+        item.pop("_miss_points", None)
+    steady_near = sorted(steady_near, key=lambda x: x["score"], reverse=True)
+    return risk_strict, steady_strict, risk_near, steady_near
+
+def _refresh_remarkables_worker():
+    global REMARKABLES_REFRESH_IN_PROGRESS, REMARKABLES_MEMORY_CACHE, REMARKABLES_MEMORY_DAY
+    try:
+        payload = _compute_remarkables()
+        _save_remarkables_cache(payload)
+        REMARKABLES_MEMORY_CACHE = payload
+        REMARKABLES_MEMORY_DAY = _remarkables_payload_day(payload)
+    except Exception as exc:
+        logger.warning(f"Remarkables background refresh failed: {exc}")
+    finally:
+        with REMARKABLES_REFRESH_LOCK:
+            REMARKABLES_REFRESH_IN_PROGRESS = False
+
+def _start_remarkables_refresh_if_needed():
+    global REMARKABLES_REFRESH_IN_PROGRESS
+    with REMARKABLES_REFRESH_LOCK:
+        if REMARKABLES_REFRESH_IN_PROGRESS:
+            return
+        REMARKABLES_REFRESH_IN_PROGRESS = True
+    t = threading.Thread(target=_refresh_remarkables_worker, daemon=True)
+    t.start()
+
+def get_remarkables(force_refresh: bool = False):
+    global REMARKABLES_MEMORY_CACHE, REMARKABLES_MEMORY_DAY
+    today_key = _remarkables_day_key()
+
+    if not force_refresh and REMARKABLES_MEMORY_CACHE and REMARKABLES_MEMORY_DAY == today_key:
+        payload = dict(REMARKABLES_MEMORY_CACHE)
+        payload["source"] = "memory_cache"
+        return payload
+
+    cached = _load_remarkables_cache()
+    if cached and cached.get("rule_version") != REMARKABLES_RULE_VERSION:
+        cached = None
+    if cached:
+        risk_list = cached.get("for_risk_lovers") or []
+        steady_list = cached.get("no_pain_but_gain") or []
+        if len(risk_list) < 5 or len(steady_list) < 5:
+            local_risk, local_steady, local_risk_near, local_steady_near = _compute_remarkables_from_local_cache()
+            if len(risk_list) < 5 and (local_risk or local_risk_near):
+                used = {x.get("symbol") for x in risk_list}
+                risk_list.extend([x for x in local_risk if x.get("symbol") not in used])
+                used = {x.get("symbol") for x in risk_list}
+                if len(risk_list) < 5:
+                    risk_list.extend([x for x in local_risk_near if x.get("symbol") not in used])
+                cached["for_risk_lovers"] = risk_list[:5]
+            if len(steady_list) < 5 and (local_steady or local_steady_near):
+                used = {x.get("symbol") for x in steady_list}
+                steady_list.extend([x for x in local_steady if x.get("symbol") not in used])
+                used = {x.get("symbol") for x in steady_list}
+                if len(steady_list) < 5:
+                    steady_list.extend([x for x in local_steady_near if x.get("symbol") not in used])
+                cached["no_pain_but_gain"] = steady_list[:5]
+            if (cached.get("for_risk_lovers") or []) or (cached.get("no_pain_but_gain") or []):
+                cached["source"] = "cache_recovered"
+                cached["updated_at"] = datetime.now(timezone.utc).isoformat()
+                _save_remarkables_cache(cached)
+
+    if cached and _remarkables_cache_is_today(cached):
+        REMARKABLES_MEMORY_CACHE = cached
+        REMARKABLES_MEMORY_DAY = today_key
+        payload = dict(cached)
+        payload["source"] = "file_cache_today"
+        return payload
+
+    if force_refresh:
+        try:
+            payload = _compute_remarkables()
+            _save_remarkables_cache(payload)
+            REMARKABLES_MEMORY_CACHE = payload
+            REMARKABLES_MEMORY_DAY = _remarkables_payload_day(payload)
+            return payload
+        except Exception as exc:
+            logger.warning(f"Remarkables forced computation failed: {exc}")
+            if cached:
+                cached["source"] = "stale_cache"
+                return cached
+            return _default_remarkables_payload()
+
+    # Daily refresh mode: trigger background job at most once when day changed.
+    _start_remarkables_refresh_if_needed()
+    if cached:
+        REMARKABLES_MEMORY_CACHE = cached
+        REMARKABLES_MEMORY_DAY = _remarkables_payload_day(cached)
+        cached["source"] = "stale_cache_refreshing_daily"
+        return cached
+    payload = _default_remarkables_payload()
+    local_risk, local_steady, local_risk_near, local_steady_near = _compute_remarkables_from_local_cache()
+    payload["for_risk_lovers"] = (local_risk + local_risk_near)[:5]
+    payload["no_pain_but_gain"] = (local_steady + local_steady_near)[:5]
+    payload["source"] = "warming_up_daily_refresh"
+    return payload
 
 def load_cached_response(symbol: str):
     """Load cached API-style response if available."""
@@ -596,6 +1108,131 @@ def _build_rsi_chart_from_series(label, dates, close_values):
         )
     return json.loads(json.dumps(fig, cls=PlotlyJSONEncoder))
 
+def _build_pattern_chart_48h_from_df(symbol: str, df_48h: pd.DataFrame):
+    if df_48h is None or df_48h.empty:
+        return None
+    dates = [pd.Timestamp(ts).tz_localize(None).isoformat() for ts in df_48h.index]
+    fig = go.Figure(data=[
+        go.Candlestick(
+            x=dates,
+            open=df_48h['Open'].astype(float).tolist(),
+            high=df_48h['High'].astype(float).tolist(),
+            low=df_48h['Low'].astype(float).tolist(),
+            close=df_48h['Close'].astype(float).tolist(),
+            name="OHLC (Last 48 Hours)"
+        )
+    ])
+    pattern = detect_pattern(df_48h['Close'].astype(float).values)
+    if pattern:
+        s_idx = pattern['start_idx']
+        e_idx = pattern['end_idx']
+        fig.update_layout(
+            title=f"{symbol} {pattern['name']} Pattern (Last 48 Hours)",
+            xaxis_title='Date',
+            yaxis_title='Price'
+        )
+        fig.add_shape(
+            type="rect",
+            xref="x",
+            yref="paper",
+            x0=dates[s_idx],
+            x1=dates[e_idx],
+            y0=0,
+            y1=1,
+            fillcolor="rgba(255, 193, 7, 0.2)",
+            line_width=0
+        )
+        trend_hint = _trend_hint_for_pattern(pattern['name'])
+        if trend_hint and trend_hint['text'] != 'Neutral':
+            y_val = float(df_48h['Close'].iloc[e_idx])
+            fig.add_annotation(
+                x=dates[e_idx],
+                y=y_val,
+                text=trend_hint['text'],
+                showarrow=True,
+                arrowhead=2,
+                arrowsize=1.2,
+                arrowwidth=2,
+                arrowcolor=trend_hint['arrowcolor'],
+                ax=0,
+                ay=trend_hint['ay'],
+                font={'color': trend_hint['color']}
+            )
+    else:
+        fig.update_layout(
+            title=f'{symbol} No Clear Pattern Detected (Last 48 Hours)',
+            xaxis_title='Date',
+            yaxis_title='Price'
+        )
+    return json.loads(json.dumps(fig, cls=PlotlyJSONEncoder))
+
+def _build_pattern_chart_48h_fallback_from_series(symbol: str, dates, closes, opens=None, highs=None, lows=None):
+    if not dates or not closes:
+        return None
+    dates = dates[-48:] if len(dates) > 48 else dates
+    closes = closes[-48:] if len(closes) > 48 else closes
+    opens = opens[-48:] if opens and len(opens) > 48 else opens
+    highs = highs[-48:] if highs and len(highs) > 48 else highs
+    lows = lows[-48:] if lows and len(lows) > 48 else lows
+
+    use_ohlc = bool(opens and highs and lows and len(opens) == len(closes) == len(highs) == len(lows))
+    if use_ohlc:
+        fig = go.Figure(data=[
+            go.Candlestick(
+                x=dates,
+                open=opens,
+                high=highs,
+                low=lows,
+                close=closes,
+                name="OHLC (Fallback)"
+            )
+        ])
+    else:
+        fig = go.Figure(data=[go.Scatter(x=dates, y=closes, mode='lines', name='Close (Fallback)')])
+
+    pattern = detect_pattern(np.asarray(closes, dtype=float))
+    if pattern:
+        s_idx = pattern['start_idx']
+        e_idx = pattern['end_idx']
+        fig.update_layout(
+            title=f"{symbol} {pattern['name']} Pattern (Last 48 Hours - Fallback)",
+            xaxis_title='Date',
+            yaxis_title='Price'
+        )
+        fig.add_shape(
+            type="rect",
+            xref="x",
+            yref="paper",
+            x0=dates[s_idx],
+            x1=dates[e_idx],
+            y0=0,
+            y1=1,
+            fillcolor="rgba(255, 193, 7, 0.2)",
+            line_width=0
+        )
+    else:
+        fig.update_layout(
+            title=f'{symbol} No Clear Pattern Detected (Last 48 Hours - Fallback)',
+            xaxis_title='Date',
+            yaxis_title='Price'
+        )
+    return json.loads(json.dumps(fig, cls=PlotlyJSONEncoder))
+
+def _normalize_company_info(symbol: str, info: dict | None):
+    raw = info or {}
+    name = raw.get('name') or raw.get('shortName') or raw.get('longName') or symbol
+    sector = raw.get('sector')
+    industry = raw.get('industry')
+    summary = raw.get('summary') or raw.get('longBusinessSummary')
+    if not summary:
+        summary = f"Detailed company profile is currently unavailable for {symbol}. You can still use charts, predictions, and news."
+    return {
+        'name': name,
+        'sector': sector,
+        'industry': industry,
+        'summary': summary
+    }
+
 def _upgrade_cached_payload(payload, symbol):
     if 'pattern_chart' not in payload and 'chart_3m' in payload:
         payload['pattern_chart'] = payload['chart_3m']
@@ -604,10 +1241,25 @@ def _upgrade_cached_payload(payload, symbol):
     opens = payload.get('actual_open') or None
     highs = payload.get('actual_high') or None
     lows = payload.get('actual_low') or None
+    # Older caches may have OHLC only inside chart trace; extract so 1M pattern can render as candlestick.
+    if (not opens or not highs or not lows) and isinstance(payload.get('chart'), dict):
+        for trace in payload['chart'].get('data', []):
+            if (trace.get('type') or '').lower() == 'candlestick':
+                if not dates:
+                    dates = trace.get('x') or dates
+                    payload['actual_dates'] = dates
+                if not closes:
+                    closes = trace.get('close') or closes
+                    payload['actual_close'] = closes
+                opens = trace.get('open') or opens
+                highs = trace.get('high') or highs
+                lows = trace.get('low') or lows
+                payload['actual_open'] = opens
+                payload['actual_high'] = highs
+                payload['actual_low'] = lows
+                break
     company_info = payload.get('company_info') or {}
-    if not company_info:
-        company_info = {'name': symbol, 'sector': None, 'industry': None, 'summary': None}
-    payload['company_info'] = company_info
+    payload['company_info'] = _normalize_company_info(symbol, company_info)
     label = company_info.get('name') or symbol
     news = payload.get('news')
     if isinstance(news, list) and news and isinstance(news[0], dict) and 'content' in news[0]:
@@ -639,8 +1291,16 @@ def _upgrade_cached_payload(payload, symbol):
         payload['pattern_chart_48h'] = None
     if 'analyst_insights' not in payload:
         payload['analyst_insights'] = {'top_analysts': [], 'recommendations': []}
+    if 'predictions' not in payload or not isinstance(payload.get('predictions'), dict):
+        payload['predictions'] = {}
     if dates and closes:
-        if 'pattern_chart' not in payload:
+        need_pattern_rebuild = 'pattern_chart' not in payload
+        if not need_pattern_rebuild and isinstance(payload.get('pattern_chart'), dict):
+            traces = payload['pattern_chart'].get('data') or []
+            has_candlestick = any((t.get('type') or '').lower() == 'candlestick' for t in traces if isinstance(t, dict))
+            if not has_candlestick and opens and highs and lows:
+                need_pattern_rebuild = True
+        if need_pattern_rebuild:
             payload['pattern_chart'] = _build_pattern_chart_from_series(
                 label,
                 dates,
@@ -651,6 +1311,38 @@ def _upgrade_cached_payload(payload, symbol):
             )
         if 'rsi_chart' not in payload:
             payload['rsi_chart'] = _build_rsi_chart_from_series(label, dates, closes)
+    if payload.get('pattern_chart_48h') is None:
+        try:
+            df_1h = yf.Ticker(symbol).history(period='7d', interval='1h')
+            if df_1h is not None and not df_1h.empty:
+                payload['pattern_chart_48h'] = _build_pattern_chart_48h_from_df(symbol, df_1h.tail(48))
+        except Exception:
+            pass
+    if payload.get('pattern_chart_48h') is None and dates and closes:
+        payload['pattern_chart_48h'] = _build_pattern_chart_48h_fallback_from_series(
+            symbol, dates, closes, opens=opens, highs=highs, lows=lows
+        )
+    insights = payload.get('analyst_insights') or {}
+    if not (insights.get('top_analysts') or insights.get('recommendations')):
+        try:
+            payload['analyst_insights'] = fetch_analyst_insights(symbol)
+        except Exception:
+            pass
+    info = payload.get('company_info') or {}
+    if not info.get('summary') or info.get('name') == symbol:
+        try:
+            yf_info = yf.Ticker(symbol).info
+            if isinstance(yf_info, dict):
+                merged = {
+                    'name': yf_info.get('shortName') or yf_info.get('longName') or info.get('name') or symbol,
+                    'sector': yf_info.get('sector') or info.get('sector'),
+                    'industry': yf_info.get('industry') or info.get('industry'),
+                    'summary': yf_info.get('longBusinessSummary') or info.get('summary')
+                }
+                payload['company_info'] = _normalize_company_info(symbol, merged)
+        except Exception:
+            pass
+    payload['company_info'] = _normalize_company_info(symbol, payload.get('company_info'))
     return payload
 
 def validate_stock_data(df):
@@ -828,6 +1520,7 @@ def train_prediction_models(close_values, forecast_horizon=30, time_steps=30):
 @app.route('/')
 def home():
     stocks = fetch_sp500_stocks()
+    remarkables = get_remarkables(force_refresh=False)
     user = None
     if google_client_id and google_client_secret and google.authorized:
         try:
@@ -840,7 +1533,13 @@ def home():
             if google_bp and google_bp.token:
                 del google_bp.token
             session.pop("user_email", None)
-    return render_template('index.html', stocks=stocks, user=user)
+    return render_template('index.html', stocks=stocks, user=user, remarkables=remarkables)
+
+@app.route('/api/remarkables', methods=['GET'])
+def remarkables_api():
+    refresh = request.args.get('refresh') == '1'
+    payload = get_remarkables(force_refresh=refresh)
+    return jsonify(payload)
 
 @app.route("/logout")
 def logout():
@@ -1146,6 +1845,15 @@ def run_prediction(symbol: str):
                 pattern_chart_48h_json = json.loads(json.dumps(fig_pattern_48h, cls=PlotlyJSONEncoder))
         except Exception as exc:
             logger.warning(f"48h pattern chart failed for {symbol}: {exc}")
+        if pattern_chart_48h_json is None:
+            pattern_chart_48h_json = _build_pattern_chart_48h_fallback_from_series(
+                symbol,
+                actual_dates,
+                df['Close'].astype(float).tolist(),
+                opens=df['Open'].astype(float).tolist(),
+                highs=df['High'].astype(float).tolist(),
+                lows=df['Low'].astype(float).tolist()
+            )
 
         # RSI chart (last ~1 month)
         rsi_series = compute_rsi(df_1m['Close'].astype(float), window=14)
@@ -1201,12 +1909,12 @@ def run_prediction(symbol: str):
 
         # Fetch company info
         info = stock.info if hasattr(stock, "info") else {}
-        company_info = {
+        company_info = _normalize_company_info(symbol, {
             'name': info.get('shortName') or info.get('longName') or symbol,
             'sector': info.get('sector'),
             'industry': info.get('industry'),
             'summary': info.get('longBusinessSummary')
-        }
+        })
 
         analyst_payload = fetch_analyst_insights(symbol) if data_source == "yahoo" else {'top_analysts': [], 'recommendations': []}
         response = {
