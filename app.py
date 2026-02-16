@@ -70,6 +70,70 @@ def _rating_score(rating: str) -> int:
     return 50
 
 def fetch_analyst_insights(symbol: str):
+    empty_payload = {"top_analysts": [], "recommendations": []}
+    def _has_rows(payload):
+        return bool((payload.get("top_analysts") or []) or (payload.get("recommendations") or []))
+
+    def _fallback_from_yfinance(sym: str):
+        out = {"top_analysts": [], "recommendations": []}
+        try:
+            t = yf.Ticker(sym)
+        except Exception:
+            return out
+
+        # Recent upgrades/downgrades table -> Top Analysts rows.
+        try:
+            ud = getattr(t, "upgrades_downgrades", None)
+            if isinstance(ud, pd.DataFrame) and not ud.empty:
+                df = ud.reset_index().copy()
+                # Normalize expected columns from different yfinance versions.
+                col_map = {c.lower(): c for c in df.columns}
+                firm_col = col_map.get("firm")
+                grade_col = col_map.get("tograde") or col_map.get("to grade")
+                date_col = col_map.get("grade date") or col_map.get("date")
+                if firm_col and grade_col:
+                    rows = df.tail(8).iloc[::-1]
+                    top = []
+                    for _, row in rows.iterrows():
+                        rating = str(row.get(grade_col) or "")
+                        score = _rating_score(rating)
+                        date_val = row.get(date_col) if date_col else ""
+                        if hasattr(date_val, "strftime"):
+                            date_val = date_val.strftime("%Y-%m-%d")
+                        top.append({
+                            "analyst": row.get(firm_col) or "",
+                            "overallScore": score,
+                            "directionScore": max(10, score - 10),
+                            "priceScore": min(100, score + 15),
+                            "latestRating": rating,
+                            "priceTarget": "",
+                            "date": str(date_val or "")
+                        })
+                    out["top_analysts"] = top
+        except Exception:
+            pass
+
+        # Recommendation summary/trend.
+        try:
+            rs = getattr(t, "recommendations_summary", None)
+            if isinstance(rs, pd.DataFrame) and not rs.empty:
+                recs = []
+                for period, row in rs.tail(4).iloc[::-1].iterrows():
+                    recs.append({
+                        "period": str(period),
+                        "strongBuy": int(row.get("strongBuy", 0) or 0),
+                        "buy": int(row.get("buy", 0) or 0),
+                        "hold": int(row.get("hold", 0) or 0),
+                        "sell": int(row.get("sell", 0) or 0),
+                        "strongSell": int(row.get("strongSell", 0) or 0),
+                        "underperform": int(row.get("underperform", 0) or 0)
+                    })
+                out["recommendations"] = recs
+        except Exception:
+            pass
+
+        return out
+
     try:
         session_req = requests.Session()
         session_req.get("https://fc.yahoo.com", headers={"User-Agent": "Mozilla/5.0"}, timeout=8)
@@ -79,7 +143,8 @@ def fetch_analyst_insights(symbol: str):
             timeout=8
         )
         if not crumb_resp.ok or not crumb_resp.text:
-            return {"top_analysts": [], "recommendations": []}
+            fallback = _fallback_from_yfinance(symbol)
+            return fallback if _has_rows(fallback) else empty_payload
         crumb = crumb_resp.text.strip()
         url = (
             "https://query2.finance.yahoo.com/v10/finance/quoteSummary/"
@@ -87,7 +152,8 @@ def fetch_analyst_insights(symbol: str):
         )
         resp = session_req.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=8)
         if not resp.ok:
-            return {"top_analysts": [], "recommendations": []}
+            fallback = _fallback_from_yfinance(symbol)
+            return fallback if _has_rows(fallback) else empty_payload
         payload = resp.json().get("quoteSummary", {})
         result = (payload.get("result") or [{}])[0]
 
@@ -123,10 +189,15 @@ def fetch_analyst_insights(symbol: str):
                 "underperform": row.get("underperform", 0)
             })
 
-        return {"top_analysts": top_analysts, "recommendations": recommendations}
+        direct_payload = {"top_analysts": top_analysts, "recommendations": recommendations}
+        if _has_rows(direct_payload):
+            return direct_payload
+        fallback = _fallback_from_yfinance(symbol)
+        return fallback if _has_rows(fallback) else empty_payload
     except Exception as exc:
         logger.warning(f"Analyst insights fetch failed for {symbol}: {exc}")
-        return {"top_analysts": [], "recommendations": []}
+        fallback = _fallback_from_yfinance(symbol)
+        return fallback if _has_rows(fallback) else empty_payload
 
 WATCHLIST_DIR = os.path.join(os.path.dirname(__file__), "data", "watchlists")
 REMARKABLES_CACHE_PATH = os.path.join(os.path.dirname(__file__), "cache", "remarkables_nasdaq.json")
@@ -1916,7 +1987,7 @@ def run_prediction(symbol: str):
             'summary': info.get('longBusinessSummary')
         })
 
-        analyst_payload = fetch_analyst_insights(symbol) if data_source == "yahoo" else {'top_analysts': [], 'recommendations': []}
+        analyst_payload = fetch_analyst_insights(symbol)
         response = {
             'chart': chart_json,
             'pattern_chart': pattern_chart_json,
