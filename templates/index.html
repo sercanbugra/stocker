@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -393,7 +393,7 @@
         <div class="auth-modal-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="mb-0">Welcome</h6>
-                <button type="button" class="auth-modal-close" id="auth-close" aria-label="Close">×</button>
+                <button type="button" class="auth-modal-close" id="auth-close" aria-label="Close">Ã—</button>
             </div>
             <div class="d-grid gap-2">
                 <a class="btn btn-outline-light" href="/login/google?prompt=consent&select_account=1">Continue with Google</a>
@@ -564,6 +564,7 @@
                             <i class="fas fa-user-tie"></i> Top Analysts
                         </div>
                         <div class="card-body">
+                            <div class="text-muted mb-2" id="analyst-top-source">Source: N/A</div>
                             <div class="table-responsive">
                                 <table class="analyst-table">
                                     <thead>
@@ -587,6 +588,7 @@
                             <i class="fas fa-chart-bar"></i> Analyst Recommendations
                         </div>
                         <div class="card-body">
+                            <div class="text-muted mb-2" id="analyst-reco-source">Source: N/A</div>
                             <div class="analyst-reco" id="analyst-reco"></div>
                         </div>
                     </div>
@@ -908,6 +910,8 @@
                         const insights = response.analyst_insights || {};
                         renderAnalystTable(insights.top_analysts || []);
                         renderAnalystRecommendations(insights.recommendations || []);
+                        $('#analyst-top-source').text(`Source: ${insights.top_analysts_source || 'N/A'}`);
+                        $('#analyst-reco-source').text(`Source: ${insights.recommendations_source || 'N/A'}`);
 
                         let predictionsHtml = '';
                         const currentPrice = response.current_price;
@@ -955,6 +959,7 @@
                         const aboutHtml = `
                             <h5 class="mb-1">${info.name || symbol}</h5>
                             <p class="mb-1 text-muted">${info.sector || ''}${info.sector && info.industry ? ' · ' : ''}${info.industry || ''}</p>
+                            <p class="mb-1 text-muted">Source: ${response.company_info_source || 'N/A'}</p>
                             <p class="mb-0">${info.summary || 'No description available.'}</p>
                         `;
                         $('#about-container').html(aboutHtml);

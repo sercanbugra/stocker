@@ -70,12 +70,22 @@ def _rating_score(rating: str) -> int:
     return 50
 
 def fetch_analyst_insights(symbol: str):
-    empty_payload = {"top_analysts": [], "recommendations": []}
+    empty_payload = {
+        "top_analysts": [],
+        "recommendations": [],
+        "top_analysts_source": "Unavailable",
+        "recommendations_source": "Unavailable"
+    }
     def _has_rows(payload):
         return bool((payload.get("top_analysts") or []) or (payload.get("recommendations") or []))
 
     def _fallback_from_yfinance(sym: str):
-        out = {"top_analysts": [], "recommendations": []}
+        out = {
+            "top_analysts": [],
+            "recommendations": [],
+            "top_analysts_source": "Unavailable",
+            "recommendations_source": "Unavailable"
+        }
         try:
             t = yf.Ticker(sym)
         except Exception:
@@ -110,6 +120,7 @@ def fetch_analyst_insights(symbol: str):
                             "date": str(date_val or "")
                         })
                     out["top_analysts"] = top
+                    out["top_analysts_source"] = "Yahoo Finance via yfinance (upgrades_downgrades)"
         except Exception:
             pass
 
@@ -129,6 +140,7 @@ def fetch_analyst_insights(symbol: str):
                         "underperform": int(row.get("underperform", 0) or 0)
                     })
                 out["recommendations"] = recs
+                out["recommendations_source"] = "Yahoo Finance via yfinance (recommendations_summary)"
         except Exception:
             pass
 
@@ -189,7 +201,12 @@ def fetch_analyst_insights(symbol: str):
                 "underperform": row.get("underperform", 0)
             })
 
-        direct_payload = {"top_analysts": top_analysts, "recommendations": recommendations}
+        direct_payload = {
+            "top_analysts": top_analysts,
+            "recommendations": recommendations,
+            "top_analysts_source": "Yahoo Finance QuoteSummary (upgradeDowngradeHistory)",
+            "recommendations_source": "Yahoo Finance QuoteSummary (recommendationTrend)"
+        }
         if _has_rows(direct_payload):
             return direct_payload
         fallback = _fallback_from_yfinance(symbol)
@@ -198,6 +215,61 @@ def fetch_analyst_insights(symbol: str):
         logger.warning(f"Analyst insights fetch failed for {symbol}: {exc}")
         fallback = _fallback_from_yfinance(symbol)
         return fallback if _has_rows(fallback) else empty_payload
+
+def fetch_company_profile(symbol: str, stock_obj=None):
+    # 1) yfinance info (preferred when available)
+    try:
+        if stock_obj is not None and hasattr(stock_obj, "info"):
+            info = stock_obj.info or {}
+            if isinstance(info, dict) and (
+                info.get("longBusinessSummary") or info.get("sector") or info.get("industry")
+                or info.get("shortName") or info.get("longName")
+            ):
+                return _normalize_company_info(symbol, info), "Yahoo Finance via yfinance (info)"
+    except Exception:
+        pass
+    try:
+        info = yf.Ticker(symbol).info or {}
+        if isinstance(info, dict) and (
+            info.get("longBusinessSummary") or info.get("sector") or info.get("industry")
+            or info.get("shortName") or info.get("longName")
+        ):
+            return _normalize_company_info(symbol, info), "Yahoo Finance via yfinance (info)"
+    except Exception:
+        pass
+
+    # 2) QuoteSummary assetProfile fallback
+    try:
+        session_req = requests.Session()
+        session_req.get("https://fc.yahoo.com", headers={"User-Agent": "Mozilla/5.0"}, timeout=8)
+        crumb_resp = session_req.get(
+            "https://query2.finance.yahoo.com/v1/test/getcrumb",
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=8
+        )
+        if crumb_resp.ok and crumb_resp.text:
+            crumb = crumb_resp.text.strip()
+            url = (
+                "https://query2.finance.yahoo.com/v10/finance/quoteSummary/"
+                f"{symbol}?modules=assetProfile,price&crumb={crumb}"
+            )
+            resp = session_req.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=8)
+            if resp.ok:
+                result = (resp.json().get("quoteSummary", {}).get("result") or [{}])[0]
+                profile = result.get("assetProfile") or {}
+                price = result.get("price") or {}
+                merged = {
+                    "name": price.get("shortName") or price.get("longName") or symbol,
+                    "sector": profile.get("sector"),
+                    "industry": profile.get("industry"),
+                    "summary": profile.get("longBusinessSummary")
+                }
+                if merged.get("summary") or merged.get("sector") or merged.get("industry") or merged.get("name") != symbol:
+                    return _normalize_company_info(symbol, merged), "Yahoo Finance QuoteSummary (assetProfile)"
+    except Exception:
+        pass
+
+    return _normalize_company_info(symbol, {}), "Unavailable"
 
 WATCHLIST_DIR = os.path.join(os.path.dirname(__file__), "data", "watchlists")
 REMARKABLES_CACHE_PATH = os.path.join(os.path.dirname(__file__), "cache", "remarkables_nasdaq.json")
@@ -1342,7 +1414,7 @@ def _upgrade_cached_payload(payload, symbol):
                 break
     company_info = payload.get('company_info') or {}
     payload['company_info'] = _normalize_company_info(symbol, company_info)
-    label = company_info.get('name') or symbol
+    label = (payload.get('company_info') or {}).get('name') or symbol
     news = payload.get('news')
     if isinstance(news, list) and news and isinstance(news[0], dict) and 'content' in news[0]:
         normalized = []
@@ -1384,7 +1456,12 @@ def _upgrade_cached_payload(payload, symbol):
     if 'pattern_chart_48h' not in payload:
         payload['pattern_chart_48h'] = None
     if 'analyst_insights' not in payload:
-        payload['analyst_insights'] = {'top_analysts': [], 'recommendations': []}
+        payload['analyst_insights'] = {
+            'top_analysts': [],
+            'recommendations': [],
+            'top_analysts_source': 'Unavailable',
+            'recommendations_source': 'Unavailable'
+        }
     if 'predictions' not in payload or not isinstance(payload.get('predictions'), dict):
         payload['predictions'] = {}
     if dates and closes:
@@ -1422,21 +1499,44 @@ def _upgrade_cached_payload(payload, symbol):
             payload['analyst_insights'] = fetch_analyst_insights(symbol)
         except Exception:
             pass
+    if not payload.get('company_info_source'):
+        payload['company_info_source'] = "Cache"
     info = payload.get('company_info') or {}
-    if not info.get('summary') or info.get('name') == symbol:
-        try:
-            yf_info = yf.Ticker(symbol).info
-            if isinstance(yf_info, dict):
-                merged = {
-                    'name': yf_info.get('shortName') or yf_info.get('longName') or info.get('name') or symbol,
-                    'sector': yf_info.get('sector') or info.get('sector'),
-                    'industry': yf_info.get('industry') or info.get('industry'),
-                    'summary': yf_info.get('longBusinessSummary') or info.get('summary')
-                }
-                payload['company_info'] = _normalize_company_info(symbol, merged)
-        except Exception:
-            pass
+    needs_profile_refresh = (
+        not info.get('summary')
+        or info.get('name') == symbol
+        or "currently unavailable" in str(info.get('summary', '')).lower()
+    )
+    if needs_profile_refresh:
+        fetched_info, fetched_source = fetch_company_profile(symbol, stock_obj=None)
+        if fetched_info:
+            existing = payload.get('company_info') or {}
+            merged = {
+                'name': fetched_info.get('name') or existing.get('name') or symbol,
+                'sector': fetched_info.get('sector') or existing.get('sector'),
+                'industry': fetched_info.get('industry') or existing.get('industry'),
+                'summary': fetched_info.get('summary') or existing.get('summary')
+            }
+            payload['company_info'] = _normalize_company_info(symbol, merged)
+            payload['company_info_source'] = fetched_source
     payload['company_info'] = _normalize_company_info(symbol, payload.get('company_info'))
+    ai = payload.get('analyst_insights') or {}
+    ai.setdefault('top_analysts_source', 'Unavailable')
+    ai.setdefault('recommendations_source', 'Unavailable')
+    # Legacy cache reconciliation: if rows exist but source is missing/unavailable,
+    # mark as cached Yahoo-derived data instead of showing "Unavailable".
+    if (ai.get('top_analysts') or []) and str(ai.get('top_analysts_source', '')).strip().lower() in ("", "unavailable", "n/a"):
+        ai['top_analysts_source'] = "Yahoo Finance (cached legacy)"
+    if (ai.get('recommendations') or []) and str(ai.get('recommendations_source', '')).strip().lower() in ("", "unavailable", "n/a"):
+        ai['recommendations_source'] = "Yahoo Finance (cached legacy)"
+    payload['analyst_insights'] = ai
+    # Same reconciliation for company profile source.
+    info_summary = str((payload.get('company_info') or {}).get('summary') or "")
+    if payload.get('company_info_source') in (None, "", "Unavailable", "Cache"):
+        if info_summary and "currently unavailable" not in info_summary.lower():
+            payload['company_info_source'] = "Yahoo Finance (cached legacy)"
+        elif "currently unavailable" in info_summary.lower():
+            payload['company_info_source'] = "Unavailable"
     return payload
 
 def validate_stock_data(df):
@@ -2002,13 +2102,7 @@ def run_prediction(symbol: str):
         news = fetch_news(stock, symbol, limit=5)
 
         # Fetch company info
-        info = stock.info if hasattr(stock, "info") else {}
-        company_info = _normalize_company_info(symbol, {
-            'name': info.get('shortName') or info.get('longName') or symbol,
-            'sector': info.get('sector'),
-            'industry': info.get('industry'),
-            'summary': info.get('longBusinessSummary')
-        })
+        company_info, company_info_source = fetch_company_profile(symbol, stock_obj=stock)
 
         analyst_payload = fetch_analyst_insights(symbol)
         response = {
@@ -2023,6 +2117,7 @@ def run_prediction(symbol: str):
             'current_price': float(df['Close'].iloc[-1]),
             'news': news,
             'company_info': company_info,
+            'company_info_source': company_info_source,
             'actual_dates': actual_dates,
             'actual_close': df['Close'].astype(float).tolist(),
             'actual_open': df['Open'].astype(float).tolist(),
