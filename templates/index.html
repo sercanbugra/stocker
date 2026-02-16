@@ -477,13 +477,13 @@
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <div class="remarkables-title">For Risk Lovers</div>
+                        <div class="remarkables-title">Risk Lovers</div>
                         <ol class="remarkables-list" id="risk-lovers-list">
                             {% if remarkables and remarkables.for_risk_lovers %}
                                 {% for item in remarkables.for_risk_lovers %}
                                 <li>
                                     <strong>{{ item.symbol }}</strong>
-                                    <span class="text-muted"> | trend {{ item.trend_percent }}% | prev-day LOW<=0.75x hits {{ item.down_hits or item.loss_hits }} | prev-day HIGH>=1.5x hits {{ item.up_hits or item.gain_hits }}</span>
+                                    <span class="text-muted"> | trend {{ item.trend_percent }}% | prev-day LOW<=0.9x hits {{ item.down_hits or item.loss_hits }} | prev-day HIGH>=1.20x hits {{ item.up_hits or item.gain_hits }}</span>
                                     {% if item.match_type and item.match_type != 'strict' and item.match_type != 'cache_strict' %}
                                     <span class="text-warning"> (near match)</span>
                                     {% endif %}
@@ -495,7 +495,7 @@
                         </ol>
                     </div>
                     <div class="col-md-6">
-                        <div class="remarkables-title">No Pain But Gain</div>
+                        <div class="remarkables-title">Trending Stocks</div>
                         <ol class="remarkables-list" id="no-pain-list">
                             {% if remarkables and remarkables.no_pain_but_gain %}
                                 {% for item in remarkables.no_pain_but_gain %}
@@ -668,7 +668,7 @@
                         const near = item.match_type && item.match_type !== 'strict' && item.match_type !== 'cache_strict' ? ' <span class="text-warning">(near match)</span>' : '';
                         const downHits = (item.down_hits ?? item.loss_hits ?? 0);
                         const upHits = (item.up_hits ?? item.gain_hits ?? 0);
-                        return `<li><strong>${item.symbol}</strong> <span class="text-muted">| trend ${item.trend_percent}% | prev-day LOW<=0.75x hits ${downHits} | prev-day HIGH>=1.5x hits ${upHits}</span>${near}</li>`;
+                        return `<li><strong>${item.symbol}</strong> <span class="text-muted">| trend ${item.trend_percent}% | prev-day LOW<=0.9x hits ${downHits} | prev-day HIGH>=1.20x hits ${upHits}</span>${near}</li>`;
                     }
                     const near = item.match_type && item.match_type !== 'strict' && item.match_type !== 'cache_strict' ? ' <span class="text-warning">(near match)</span>' : '';
                     return `<li><strong>${item.symbol}</strong> <span class="text-muted">| trend ${item.trend_percent}% | max drop ${item.max_daily_drop_percent}%</span>${near}</li>`;

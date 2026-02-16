@@ -203,7 +203,7 @@ WATCHLIST_DIR = os.path.join(os.path.dirname(__file__), "data", "watchlists")
 REMARKABLES_CACHE_PATH = os.path.join(os.path.dirname(__file__), "cache", "remarkables_nasdaq.json")
 REMARKABLES_CACHE_TTL_SECONDS = 12 * 60 * 60
 REMARKABLES_BATCH_SIZE = 25
-REMARKABLES_RULE_VERSION = "2026-02-13-v6-risk-near-fill-up1.5"
+REMARKABLES_RULE_VERSION = "2026-02-16-v8-risk-near-fill-up1.20-down0.9"
 REMARKABLES_REFRESH_LOCK = threading.Lock()
 REMARKABLES_REFRESH_IN_PROGRESS = False
 REMARKABLES_MEMORY_CACHE = None
@@ -535,11 +535,11 @@ def _compute_remarkables():
             if close_3m.empty or len(close_3m) < 40:
                 continue
             trend_3m = _trend_percent(close_3m)
-            up_hits, down_hits = _prevday_highlow_hits(close_3m, high_3m, low_3m, up_mult=1.5, down_mult=0.75)
+            up_hits, down_hits = _prevday_highlow_hits(close_3m, high_3m, low_3m, up_mult=1.20, down_mult=0.9)
             # For Risk Lovers:
             # - trend >= +15% (3M)
-            # - >=2 days where today's LOW <= 75% of previous day's CLOSE
-            # - >=3 days where today's HIGH >= 150% of previous day's CLOSE
+            # - >=2 days where today's LOW <= 90% of previous day's CLOSE
+            # - >=3 days where today's HIGH >= 120% of previous day's CLOSE
             if trend_3m >= 15.0 and down_hits >= 2 and up_hits >= 3:
                 risk_candidates.append({
                     "symbol": sym,
@@ -579,7 +579,9 @@ def _compute_remarkables():
         key=lambda x: (x.get("_miss_points", 9999), -x.get("trend_percent", 0.0), -(x.get("up_hits", 0) + x.get("down_hits", 0)))
     )
     risk_sorted = risk_sorted[:5]
-    steady_sorted = steady_sorted[:5]
+    # Disjoint rule: symbols in risk list cannot appear in steady list.
+    risk_symbols = {x["symbol"] for x in risk_sorted}
+    steady_sorted = [x for x in steady_sorted if x["symbol"] not in risk_symbols][:5]
     if len(risk_sorted) < 5 and risk_near_sorted:
         used = {x["symbol"] for x in risk_sorted}
         for item in risk_near_sorted:
@@ -605,10 +607,10 @@ def _compute_remarkables():
             risk_sorted = risk_sorted[:5]
         if len(steady_sorted) < 5 and (local_steady or local_steady_near):
             used = {x["symbol"] for x in steady_sorted}
-            steady_sorted.extend([x for x in local_steady if x["symbol"] not in used])
+            steady_sorted.extend([x for x in local_steady if x["symbol"] not in used and x["symbol"] not in risk_symbols])
             used = {x["symbol"] for x in steady_sorted}
             if len(steady_sorted) < 5:
-                steady_sorted.extend([x for x in local_steady_near if x["symbol"] not in used])
+                steady_sorted.extend([x for x in local_steady_near if x["symbol"] not in used and x["symbol"] not in risk_symbols])
             steady_sorted = steady_sorted[:5]
 
     return {
@@ -677,7 +679,7 @@ def _compute_remarkables_from_local_cache():
             ls = pd.Series(pd.to_numeric(lows, errors="coerce")).dropna() if lows else s.copy()
             hs3 = hs.tail(len(s3))
             ls3 = ls.tail(len(s3))
-            up_hits, down_hits = _prevday_highlow_hits(s3, hs3, ls3, up_mult=1.5, down_mult=0.75)
+            up_hits, down_hits = _prevday_highlow_hits(s3, hs3, ls3, up_mult=1.20, down_mult=0.9)
             if trend_3m >= 15.0 and down_hits >= 2 and up_hits >= 3:
                 risk_strict.append({
                     "symbol": symbol,
@@ -756,6 +758,10 @@ def get_remarkables(force_refresh: bool = False):
     if cached:
         risk_list = cached.get("for_risk_lovers") or []
         steady_list = cached.get("no_pain_but_gain") or []
+        risk_symbols = {x.get("symbol") for x in risk_list if x.get("symbol")}
+        if steady_list:
+            steady_list = [x for x in steady_list if x.get("symbol") not in risk_symbols]
+            cached["no_pain_but_gain"] = steady_list[:5]
         if len(risk_list) < 5 or len(steady_list) < 5:
             local_risk, local_steady, local_risk_near, local_steady_near = _compute_remarkables_from_local_cache()
             if len(risk_list) < 5 and (local_risk or local_risk_near):
@@ -765,12 +771,13 @@ def get_remarkables(force_refresh: bool = False):
                 if len(risk_list) < 5:
                     risk_list.extend([x for x in local_risk_near if x.get("symbol") not in used])
                 cached["for_risk_lovers"] = risk_list[:5]
+                risk_symbols = {x.get("symbol") for x in cached["for_risk_lovers"] if x.get("symbol")}
             if len(steady_list) < 5 and (local_steady or local_steady_near):
                 used = {x.get("symbol") for x in steady_list}
-                steady_list.extend([x for x in local_steady if x.get("symbol") not in used])
+                steady_list.extend([x for x in local_steady if x.get("symbol") not in used and x.get("symbol") not in risk_symbols])
                 used = {x.get("symbol") for x in steady_list}
                 if len(steady_list) < 5:
-                    steady_list.extend([x for x in local_steady_near if x.get("symbol") not in used])
+                    steady_list.extend([x for x in local_steady_near if x.get("symbol") not in used and x.get("symbol") not in risk_symbols])
                 cached["no_pain_but_gain"] = steady_list[:5]
             if (cached.get("for_risk_lovers") or []) or (cached.get("no_pain_but_gain") or []):
                 cached["source"] = "cache_recovered"
@@ -808,7 +815,11 @@ def get_remarkables(force_refresh: bool = False):
     payload = _default_remarkables_payload()
     local_risk, local_steady, local_risk_near, local_steady_near = _compute_remarkables_from_local_cache()
     payload["for_risk_lovers"] = (local_risk + local_risk_near)[:5]
-    payload["no_pain_but_gain"] = (local_steady + local_steady_near)[:5]
+    risk_symbols = {x.get("symbol") for x in payload["for_risk_lovers"] if x.get("symbol")}
+    payload["no_pain_but_gain"] = [
+        x for x in (local_steady + local_steady_near)
+        if x.get("symbol") not in risk_symbols
+    ][:5]
     payload["source"] = "warming_up_daily_refresh"
     return payload
 
