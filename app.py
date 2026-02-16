@@ -1358,17 +1358,29 @@ def _upgrade_cached_payload(payload, symbol):
                 link = click.get('url')
             provider = (content.get('provider') or {}).get('displayName')
             published = content.get('pubDate') or content.get('displayTime')
+            summary = content.get('summary') or content.get('description') or ""
+            sent = _sentiment_score(title, summary)
             if title and link:
                 normalized.append({
                     'title': title,
                     'link': link,
                     'publisher': provider or '',
                     'published': published,
-                    'sentiment': None
+                    'sentiment': sent
                 })
         payload['news'] = normalized
     elif not isinstance(news, list):
         payload['news'] = []
+    # Backfill sentiment for already-normalized cached news items.
+    for item in (payload.get('news') or []):
+        if not isinstance(item, dict):
+            continue
+        if item.get('sentiment') is None:
+            sent = _sentiment_score(
+                item.get('title') or '',
+                item.get('summary') or item.get('description') or ''
+            )
+            item['sentiment'] = sent
     if 'pattern_chart_48h' not in payload:
         payload['pattern_chart_48h'] = None
     if 'analyst_insights' not in payload:
