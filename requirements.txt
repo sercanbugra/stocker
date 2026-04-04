@@ -1,0 +1,13 @@
+flask
+Flask-Dance
+yfinance
+pandas
+numpy
+scikit-learn
+xgboost
+plotly
+requests
+gunicorn
+vaderSentiment
+lxml
+beautifulsoup4
