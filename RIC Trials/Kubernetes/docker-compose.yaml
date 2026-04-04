@@ -1,7 +1,0 @@
-services:
-  cu:
-    build: ./cu
-  du:
-    build: ./du
-  ru:
-    build: ./ru
