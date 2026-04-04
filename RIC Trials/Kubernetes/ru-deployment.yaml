@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ru-deployment
+  labels:
+    app: openran-ru
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: openran-ru
+  template:
+    metadata:
+      labels:
+        app: openran-ru
+    spec:
+      containers:
+      - name: ru-rf
+        image: openran/ru-rf:latest
+      - name: ru-ecpri
+        image: openran/ru-ecpri:latest
+      nodeSelector:
+        openran-role: ru

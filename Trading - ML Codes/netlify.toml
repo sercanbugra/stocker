@@ -1,0 +1,16 @@
+[build]
+  command = ""
+  publish = "Stocker/templates"
+
+# Update the target domain below with your deployed backend host
+[[redirects]]
+  from = "/predict"
+  to = "https://REPLACE_WITH_BACKEND_HOST/predict"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/predict_excel"
+  to = "https://REPLACE_WITH_BACKEND_HOST/predict_excel"
+  status = 200
+  force = true

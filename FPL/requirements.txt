@@ -1,0 +1,12 @@
+# Required for data handling and numerical operations
+pandas>=2.0.0
+numpy>=1.20.0
+
+# Required for the Poisson Regression Machine Learning model
+statsmodels>=0.14.0
+scipy>=1.10.0
+scikit-learn>=1.2.0
+
+# Required for the conceptual web scraping function (to fetch official pairs)
+requests>=2.28.0
+beautifulsoup4>=4.11.1

@@ -1,0 +1,7 @@
+FROM ubuntu:20.04
+WORKDIR /openran
+RUN apt update && apt install -y git cmake g++ libtool autoconf pkg-config
+RUN git clone https://gitlab.eurecom.fr/oai/openairinterface5g.git
+WORKDIR /openran/openairinterface5g
+RUN ./build_oai --cu
+CMD ["./run_cu"]

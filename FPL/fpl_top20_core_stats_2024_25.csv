@@ -1,0 +1,81 @@
+Position,Player,GW1,GW2,GW3,GW4,GW5,GW6,GW7,Total Points,Team,Last Week Price (£m),Median Points,Weighted Avg Points,Chance of Playing Next Week,Appearances,Goals,Assists,Goals per Appearance,Assists per Appearance,Yellow Cards,Red Cards,Discipline Index
+Defender,Jurriën Timber,0.0,24.0,2.0,8.0,1.0,2.0,11.0,48.0,Arsenal,5.8,2.0,6.67,Unknown,7,2,2,0.29,0.29,2,0,2
+Defender,Gabriel dos Santos Magalhães,6.0,6.0,2.0,9.0,2.0,13.0,9.0,47.0,Arsenal,6.2,6.0,7.08,Likely to Play,7,1,0,0.14,0.0,0,0,0
+Defender,Marc Guéhi,6.0,2.0,15.0,6.0,7.0,7.0,3.0,46.0,Crystal Palace,4.8,6.0,6.46,Unknown,7,1,2,0.14,0.29,0,0,0
+Defender,Marcos Senesi Barón,2.0,9.0,14.0,3.0,9.0,7.0,2.0,46.0,Bournemouth,4.9,7.0,6.43,Unknown,7,0,2,0.0,0.29,1,0,1
+Defender,Dan Burn,9.0,2.0,6.0,6.0,9.0,0.0,11.0,43.0,Newcastle,5.0,6.0,6.22,Unknown,7,0,1,0.0,0.14,2,0,2
+Defender,Riccardo Calafiori,13.0,13.0,2.0,5.0,2.0,1.0,6.0,42.0,Arsenal,5.7,5.0,5.29,Unknown,7,1,2,0.14,0.29,3,0,3
+Defender,Omar Alderete,4.0,1.0,4.0,9.0,4.0,17.0,0.0,39.0,Sunderland,4.1,4.0,5.89,Likely to Play,7,1,1,0.14,0.14,1,0,1
+Defender,Maxence Lacroix,8.0,3.0,11.0,6.0,2.0,4.0,3.0,37.0,Crystal Palace,5.1,4.0,4.94,Unknown,7,0,1,0.0,0.14,1,0,1
+Defender,Tino Livramento,9.0,4.0,6.0,6.0,6.0,6.0,0.0,37.0,Newcastle,5.1,6.0,4.92,Out,7,0,1,0.0,0.14,0,0,0
+Defender,Daniel Muñoz Mejía,5.0,5.0,9.0,5.0,2.0,2.0,8.0,36.0,Crystal Palace,5.6,5.0,5.08,Unknown,7,1,1,0.14,0.14,3,0,3
+Defender,Michael Keane,2.0,8.0,3.0,6.0,1.0,11.0,4.0,35.0,Everton,4.5,4.0,5.16,Likely to Play,7,1,0,0.14,0.0,0,0,0
+Defender,Trevoh Chalobah,6.0,8.0,13.0,3.0,8.0,-3.0,0.0,35.0,Chelsea,5.2,6.0,4.29,Likely to Play,7,2,1,0.29,0.14,1,1,3
+Defender,Tyrick Mitchell,9.0,1.0,6.0,6.0,8.0,4.0,1.0,35.0,Crystal Palace,5.0,6.0,4.75,Unknown,7,1,0,0.14,0.0,2,0,2
+Defender,Chris Richards,6.0,2.0,8.0,6.0,4.0,4.0,3.0,33.0,Crystal Palace,4.5,4.0,4.57,Unknown,7,0,0,0.0,0.0,0,0,0
+Defender,Adrien Truffert,0.0,6.0,7.0,2.0,9.0,3.0,5.0,32.0,Bournemouth,4.5,5.0,4.75,Unknown,7,0,1,0.0,0.14,0,0,0
+Defender,Cristian Romero,6.0,7.0,2.0,12.0,2.0,2.0,1.0,32.0,Spurs,5.1,2.0,4.17,Unknown,7,0,1,0.0,0.14,3,0,3
+Defender,James Tarkowski,4.0,8.0,3.0,8.0,3.0,1.0,5.0,32.0,Everton,5.5,4.0,4.4,Unknown,7,0,0,0.0,0.0,1,0,1
+Defender,Micky van de Ven,6.0,6.0,1.0,14.0,1.0,2.0,2.0,32.0,Spurs,4.8,2.0,4.25,Unknown,7,1,0,0.14,0.0,1,0,1
+Defender,Joe Rodon,7.0,2.0,7.0,4.0,2.0,7.0,1.0,30.0,Leeds,4.0,4.0,4.08,Likely to Play,7,1,0,0.14,0.0,0,0,0
+Defender,Pedro Porro Sauceda,6.0,5.0,4.0,6.0,1.0,1.0,7.0,30.0,Spurs,5.6,5.0,4.16,Unknown,7,0,1,0.0,0.14,1,0,1
+Forward,Erling Haaland,13.0,2.0,9.0,13.0,9.0,16.0,8.0,70.0,Man City,14.4,9.0,10.21,Likely to Play,7,9,1,1.29,0.14,0,0,0
+Forward,João Pedro Junqueira de Jesus,2.0,15.0,9.0,7.0,2.0,2.0,2.0,39.0,Chelsea,7.7,2.0,5.05,Unknown,7,2,3,0.29,0.43,0,0,0
+Forward,Jarrod Bowen,2.0,2.0,9.0,2.0,9.0,9.0,2.0,35.0,West Ham,7.7,2.0,5.22,Unknown,7,3,0,0.43,0.0,0,0,0
+Forward,Hugo Ekitiké,11.0,9.0,2.0,2.0,8.0,0.0,1.0,33.0,Liverpool,8.7,2.0,4.05,Likely to Play,7,3,1,0.43,0.14,0,0,0
+Forward,Igor Thiago Nascimento Rodrigues,6.0,2.0,6.0,1.0,2.0,13.0,2.0,32.0,Brentford,6.0,2.0,4.67,Unknown,7,4,0,0.57,0.0,2,0,2
+Forward,Richarlison de Andrade,13.0,4.0,2.0,1.0,9.0,2.0,1.0,32.0,Spurs,6.8,2.0,4.05,Unknown,7,3,1,0.43,0.14,1,0,1
+Forward,Wilson Isidor,5.0,1.0,8.0,2.0,9.0,2.0,1.0,28.0,Sunderland,5.6,2.0,3.86,Unknown,7,3,0,0.43,0.0,0,0,0
+Forward,Viktor Gyökeres,1.0,12.0,1.0,6.0,2.0,2.0,2.0,26.0,Arsenal,9.0,2.0,3.46,Unknown,7,3,0,0.43,0.0,1,0,1
+Forward,Chris Wood,13.0,2.0,2.0,1.0,2.0,2.0,2.0,24.0,Nott'm Forest,7.4,2.0,2.9,Unknown,7,2,0,0.29,0.0,0,0,0
+Forward,Nick Woltemade,0.0,0.0,0.0,9.0,2.0,7.0,6.0,24.0,Newcastle,7.1,6.5,5.89,Unknown,4,3,0,0.75,0.0,0,0,0
+Forward,Benjamin Sesko,1.0,1.0,1.0,2.0,1.0,8.0,9.0,23.0,Man Utd,7.3,1.0,3.89,Unknown,7,2,0,0.29,0.0,0,0,0
+Forward,Francisco Evanilson de Lima Barbosa,1.0,2.0,8.0,5.0,2.0,2.0,2.0,22.0,Bournemouth,7.0,2.0,3.1,Unknown,7,1,1,0.14,0.14,1,0,1
+Forward,Lyle Foster,2.0,2.0,6.0,2.0,6.0,2.0,1.0,21.0,Burnley,5.0,2.0,2.95,Likely to Play,7,1,1,0.14,0.14,2,0,2
+Forward,Jean-Philippe Mateta,1.0,2.0,5.0,2.0,6.0,2.0,2.0,20.0,Crystal Palace,7.5,2.0,2.92,Unknown,7,2,0,0.29,0.0,2,0,2
+Forward,Ollie Watkins,2.0,2.0,2.0,2.0,2.0,8.0,2.0,20.0,Aston Villa,8.7,2.0,3.05,Likely to Play,7,1,0,0.14,0.0,0,0,0
+Forward,Danny Welbeck,1.0,0.0,2.0,2.0,1.0,11.0,1.0,18.0,Brighton,6.3,1.0,2.9,Unknown,7,2,0,0.29,0.0,2,0,2
+Forward,Dominic Calvert-Lewin,0.0,0.0,1.0,2.0,11.0,2.0,2.0,18.0,Leeds,5.5,2.0,3.24,Likely to Play,6,1,1,0.17,0.17,0,0,0
+Forward,Norberto Bercique Gomes Betuncal,2.0,0.0,7.0,2.0,1.0,2.0,1.0,15.0,Everton,5.4,2.0,2.06,Unknown,7,1,0,0.14,0.0,1,0,1
+Forward,Rodrigo Muniz Carvalho,7.0,0.0,1.0,2.0,5.0,0.0,0.0,15.0,Fulham,5.5,1.0,1.87,Out,7,1,1,0.14,0.14,1,0,1
+Forward,Eliezer Mayenda Dossou,8.0,2.0,2.0,0.0,1.0,0.0,1.0,14.0,Sunderland,5.5,1.0,1.59,Unknown,7,1,0,0.14,0.0,0,0,0
+Goalkeeper,Nick Pope,9.0,4.0,5.0,8.0,6.0,2.0,7.0,41.0,Newcastle,5.1,6.0,5.71,Unknown,7,0,1,0.0,0.14,1,0,1
+Goalkeeper,Robin Roefs,8.0,1.0,8.0,10.0,2.0,10.0,2.0,41.0,Sunderland,4.6,8.0,5.76,Unknown,7,0,0,0.0,0.0,1,0,1
+Goalkeeper,Guglielmo Vicario,9.0,9.0,3.0,8.0,1.0,2.0,3.0,35.0,Spurs,5.1,3.0,4.46,Unknown,7,0,0,0.0,0.0,0,0,0
+Goalkeeper,David Raya Martín,10.0,6.0,2.0,6.0,2.0,2.0,6.0,34.0,Arsenal,5.6,6.0,4.54,Unknown,7,0,0,0.0,0.0,1,0,1
+Goalkeeper,Jordan Pickford,2.0,15.0,1.0,6.0,1.0,2.0,3.0,30.0,Everton,5.5,2.0,3.92,Unknown,7,0,0,0.0,0.0,0,0,0
+Goalkeeper,Dean Henderson,6.0,2.0,7.0,6.0,1.0,3.0,2.0,27.0,Crystal Palace,5.0,3.0,3.6,Unknown,7,0,0,0.0,0.0,1,0,1
+Goalkeeper,Đorđe Petrović,2.0,6.0,5.0,2.0,6.0,3.0,3.0,27.0,Bournemouth,4.5,3.0,3.83,Unknown,7,0,0,0.0,0.0,1,0,1
+Goalkeeper,Caoimhín Kelleher,1.0,5.0,1.0,2.0,1.0,8.0,3.0,21.0,Brentford,4.5,2.0,3.19,Likely to Play,7,0,0,0.0,0.0,1,0,1
+Goalkeeper,Alisson Becker,1.0,1.0,8.0,6.0,2.0,2.0,0.0,20.0,Liverpool,5.5,2.0,2.75,Out,7,0,0,0.0,0.0,0,0,0
+Goalkeeper,Bernd Leno,3.0,3.0,2.0,8.0,1.0,1.0,2.0,20.0,Fulham,5.0,2.0,2.73,Unknown,7,0,0,0.0,0.0,1,0,1
+Goalkeeper,Martin Dúbravka,2.0,6.0,2.0,3.0,4.0,1.0,2.0,20.0,Burnley,4.0,2.0,2.73,Likely to Play,7,0,0,0.0,0.0,0,0,0
+Goalkeeper,Robert Lynch Sánchez,8.0,3.0,6.0,2.0,-3.0,1.0,2.0,19.0,Chelsea,4.9,2.0,2.22,Unknown,7,0,0,0.0,0.0,0,1,2
+Goalkeeper,Emiliano Martínez Romero,0.0,2.0,0.0,6.0,3.0,3.0,1.0,15.0,Aston Villa,5.0,2.0,2.27,Likely to Play,7,0,0,0.0,0.0,1,0,1
+Goalkeeper,Gianluigi Donnarumma,0.0,0.0,0.0,6.0,1.0,2.0,6.0,15.0,Man City,5.6,4.0,3.78,Unknown,4,0,0,0.0,0.0,1,0,1
+Goalkeeper,Matz Sels,2.0,2.0,2.0,1.0,3.0,2.0,3.0,15.0,Nott'm Forest,4.9,2.0,2.21,Unknown,7,0,0,0.0,0.0,1,0,1
+Goalkeeper,Lucas Estella Perri,6.0,0.0,6.0,0.0,0.0,0.0,0.0,12.0,Leeds,4.5,0.0,1.33,Likely to Play,7,0,0,0.0,0.0,0,0,0
+Goalkeeper,Altay Bayındır,2.0,2.0,1.0,2.0,2.0,2.0,0.0,11.0,Man Utd,5.0,2.0,1.49,Unknown,7,0,0,0.0,0.0,0,0,0
+Goalkeeper,Bart Verbruggen,2.0,1.0,2.0,2.0,1.0,2.0,1.0,11.0,Brighton,4.4,2.0,1.54,Unknown,7,0,0,0.0,0.0,0,0,0
+Goalkeeper,James Trafford,7.0,2.0,2.0,0.0,0.0,0.0,0.0,11.0,Man City,4.8,0.0,1.14,Unknown,7,0,0,0.0,0.0,0,0,0
+Goalkeeper,Karl Darlow,0.0,0.0,0.0,3.0,3.0,2.0,1.0,9.0,Leeds,4.0,1.0,1.44,Unknown,7,0,0,0.0,0.0,0,0,0
+Midfielder,Antoine Semenyo,15.0,6.0,2.0,13.0,5.0,7.0,18.0,66.0,Bournemouth,7.8,7.0,9.65,Unknown,7,6,3,0.86,0.43,1,0,1
+Midfielder,Moisés Caicedo Corozo,5.0,8.0,4.0,12.0,4.0,2.0,10.0,45.0,Chelsea,5.7,5.0,6.48,Unknown,7,3,0,0.43,0.0,1,0,1
+Midfielder,Enzo Fernández,3.0,10.0,12.0,4.0,1.0,9.0,2.0,41.0,Chelsea,6.7,4.0,5.6,Likely to Play,7,3,2,0.43,0.29,1,0,1
+Midfielder,Jaidon Anthony,2.0,13.0,6.0,3.0,10.0,6.0,1.0,41.0,Burnley,5.7,6.0,5.65,Likely to Play,7,4,1,0.57,0.14,2,0,2
+Midfielder,Declan Rice,6.0,6.0,4.0,1.0,3.0,9.0,11.0,40.0,Arsenal,6.5,6.0,6.03,Likely to Play,7,1,3,0.14,0.43,0,0,0
+Midfielder,Mohammed Kudus,10.0,3.0,2.0,3.0,7.0,2.0,12.0,39.0,Spurs,6.7,3.0,5.71,Unknown,7,1,5,0.14,0.71,2,0,2
+Midfielder,Iliman Ndiaye,2.0,8.0,7.0,5.0,6.0,2.0,7.0,37.0,Everton,6.5,6.0,5.32,Likely to Play,7,3,1,0.43,0.14,2,0,2
+Midfielder,Jack Grealish,1.0,11.0,10.0,2.0,1.0,2.0,10.0,37.0,Everton,6.9,2.0,5.29,Out,7,1,4,0.14,0.57,2,0,2
+Midfielder,Josh Cullen,4.0,14.0,2.0,3.0,4.0,4.0,6.0,37.0,Burnley,5.0,4.0,5.1,Unknown,7,1,1,0.14,0.14,0,0,0
+Midfielder,Ryan Gravenberch,0.0,7.0,2.0,3.0,15.0,8.0,2.0,37.0,Liverpool,5.6,3.0,5.62,Likely to Play,7,2,2,0.29,0.29,2,0,2
+Midfielder,Ismaïla Sarr,3.0,8.0,7.0,0.0,0.0,11.0,7.0,36.0,Crystal Palace,6.4,7.0,5.32,Likely to Play,7,3,1,0.43,0.14,1,0,1
+Midfielder,Mohamed Salah,8.0,5.0,3.0,9.0,5.0,2.0,2.0,34.0,Liverpool,14.5,5.0,4.51,Unknown,7,2,2,0.29,0.29,0,0,0
+Midfielder,Anton Stach,8.0,2.0,3.0,1.0,15.0,2.0,2.0,33.0,Leeds,5.0,2.0,4.62,Unknown,7,1,2,0.14,0.29,1,0,1
+Midfielder,Cody Gakpo,7.0,10.0,3.0,3.0,2.0,1.0,7.0,33.0,Liverpool,7.5,3.0,4.41,Unknown,7,2,2,0.29,0.29,0,0,0
+Midfielder,James Garner,2.0,10.0,4.0,5.0,4.0,7.0,1.0,33.0,Everton,5.0,4.0,4.57,Unknown,7,1,1,0.14,0.14,2,0,2
+Midfielder,Granit Xhaka,3.0,4.0,4.0,5.0,4.0,9.0,3.0,32.0,Sunderland,5.0,4.0,4.73,Unknown,7,0,3,0.0,0.43,3,0,3
+Midfielder,Martín Zubimendi Ibáñez,5.0,3.0,1.0,16.0,2.0,2.0,3.0,32.0,Arsenal,5.5,3.0,4.46,Unknown,7,2,0,0.29,0.0,1,0,1
+Midfielder,Tijjani Reijnders,10.0,2.0,2.0,3.0,9.0,2.0,3.0,31.0,Man City,5.8,3.0,4.21,Unknown,7,1,2,0.14,0.29,1,0,1
+Midfielder,Yankuba Minteh,3.0,2.0,4.0,6.0,9.0,5.0,2.0,31.0,Brighton,5.9,4.0,4.56,Unknown,7,1,2,0.14,0.29,0,0,0
+Midfielder,João Maria Lobo Alves Palhares Costa Palhinha Gonçalves,1.0,11.0,1.0,3.0,4.0,9.0,1.0,30.0,Spurs,5.5,3.0,4.27,Unknown,7,2,0,0.29,0.0,2,0,2

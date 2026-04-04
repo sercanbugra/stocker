@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: du-deployment
+  labels:
+    app: openran-du
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: openran-du
+  template:
+    metadata:
+      labels:
+        app: openran-du
+    spec:
+      containers:
+      - name: du-mac
+        image: openran/du-mac:latest
+      - name: du-rlc
+        image: openran/du-rlc:latest
+      - name: du-scheduler
+        image: openran/du-scheduler:latest
+      nodeSelector:
+        openran-role: du

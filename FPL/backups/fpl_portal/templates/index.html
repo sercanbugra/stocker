@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FPL Dashboard (Flexible)</title>
+
+  <!-- DataTables & Bootstrap -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+
+  <!-- Interact.js (drag & resize) -->
+  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+  <div id="workspace">
+    <!-- My FPL Team -->
+    <div class="window" id="team-window" style="top: 40px; left: 40px; width: 300px; height: 600px;">
+      <div class="window-header">My FPL Team</div>
+      <div class="window-body" id="team-list"><p>Loading...</p></div>
+    </div>
+
+    <!-- FPL Top Players -->
+    <div class="window" id="table-window" style="top: 40px; left: 400px; width: 800px; height: 400px;">
+      <div class="window-header">FPL Top Players</div>
+      <div class="window-body">
+        <table id="fplTable" class="display table table-striped">
+          <thead><tr></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Player Suggestions -->
+    <div class="window" id="suggestions-window" style="top: 500px; left: 400px; width: 800px; height: 250px;">
+      <div class="window-header">Player Suggestions</div>
+      <div class="window-body" id="suggestion-list"><p>Loading...</p></div>
+    </div>
+  </div>
+
+  <!-- JS Libraries -->
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+
+  <script>
+    // === Flexible windows (drag & resize) ===
+    interact('.window')
+      .draggable({
+        inertia: true,
+        modifiers: [
+          interact.modifiers.restrictRect({ restriction: 'parent' })
+        ],
+        listeners: {
+          move (event) {
+            const target = event.target;
+            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+            target.style.transform = `translate(${x}px, ${y}px)`;
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+          }
+        }
+      })
+      .resizable({
+        edges: { left: true, right: true, bottom: true, top: true },
+        listeners: {
+          move (event) {
+            let { x, y } = event.target.dataset;
+            x = (parseFloat(x) || 0);
+            y = (parseFloat(y) || 0);
+
+            Object.assign(event.target.style, {
+              width: `${event.rect.width}px`,
+              height: `${event.rect.height}px`
+            });
+
+            x += event.deltaRect.left;
+            y += event.deltaRect.top;
+            Object.assign(event.target.dataset, { x, y });
+            event.target.style.transform = `translate(${x}px, ${y}px)`;
+          }
+        }
+      });
+
+    // === Load Data from Flask API ===
+    window.onload = async function() {
+      try {
+        const [teamRes, dataRes, suggRes] = await Promise.all([
+          fetch('/api/myteam'),
+          fetch('/api/data'),
+          fetch('/api/suggestions')
+        ]);
+        const [teamData, fplData, suggestions] = await Promise.all([
+          teamRes.json(),
+          dataRes.json(),
+          suggRes.json()
+        ]);
+
+        // TEAM
+        const teamDiv = document.getElementById('team-list');
+        teamDiv.innerHTML = '';
+        teamData.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'player-card';
+          card.innerHTML = `
+            <img src="${p.photo}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+            <div><strong>${p.web_name}</strong><br><small>${p.team} | ${p.position}</small></div>`;
+          teamDiv.appendChild(card);
+        });
+
+        // TABLE
+        if (Array.isArray(fplData) && fplData.length > 0) {
+          const columns = Object.keys(fplData[0]).map(k => ({ data: k, title: k.replace(/_/g, ' ') }));
+          const headerRow = $('#fplTable thead tr');
+          headerRow.empty();
+          columns.forEach(c => headerRow.append(`<th>${c.title}</th>`));
+
+          $('#fplTable').DataTable({
+            data: fplData,
+            columns: columns,
+            pageLength: 10,
+            responsive: true
+          });
+        }
+
+        // SUGGESTIONS
+        const suggDiv = document.getElementById('suggestion-list');
+        suggDiv.innerHTML = '';
+        suggestions.forEach(s => {
+          const div = document.createElement('div');
+          div.className = 'suggestion-card';
+          div.innerHTML = `<strong>${s.name}</strong> (${s.team} - ${s.position})<br>
+                           <small>${s.reason}</small>`;
+          suggDiv.appendChild(div);
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    };
+  </script>
+</body>
+</html>

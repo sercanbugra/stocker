@@ -1,0 +1,23 @@
+# Optional pinned S&P 500 symbol list.
+# If present, the app will use this list instead of scraping Wikipedia.
+# Add or update symbols here as needed (one per line).
+AAPL
+MSFT
+AMZN
+GOOGL
+GOOG
+NVDA
+META
+BRK-B
+TSLA
+UNH
+JNJ
+V
+XOM
+WMT
+JPM
+PG
+MA
+HD
+CVX
+LLY
