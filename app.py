@@ -18,13 +18,13 @@ from datetime import datetime, timezone
 from requests.exceptions import HTTPError
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from plotly.utils import PlotlyJSONEncoder
-from io import BytesIO, StringIO
+from io import StringIO
 
 # Scikit-learn imports
 from sklearn.preprocessing import MinMaxScaler
 
 # Flask imports
-from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from flask_dance.contrib.google import make_google_blueprint, google
 from oauthlib.oauth2 import TokenExpiredError
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -1990,54 +1990,6 @@ def predict():
         return jsonify(resp)
     return jsonify(resp), status
 
-def _build_excel(symbol: str, payload: dict) -> BytesIO:
-    buffer = BytesIO()
-    future_dates = payload.get('future_dates') or []
-    pred_rows = []
-    for model, values in (payload.get('predictions') or {}).items():
-        for idx, val in enumerate(values):
-            date_val = future_dates[idx] if idx < len(future_dates) else None
-            pred_rows.append({
-                'Model': model,
-                'Date': date_val,
-                'Predicted Price': val
-            })
-    pred_df = pd.DataFrame(pred_rows)
-
-    actual_df = pd.DataFrame({
-        'Date': payload.get('actual_dates') or [],
-        'Close': payload.get('actual_close') or []
-    })
-
-    summary_df = pd.DataFrame([
-        {'Metric': 'Symbol', 'Value': symbol},
-        {'Metric': 'Current Price', 'Value': payload.get('current_price')}
-    ])
-
-    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-        summary_df.to_excel(writer, index=False, sheet_name='Summary')
-        actual_df.to_excel(writer, index=False, sheet_name='Actual_Close')
-        pred_df.to_excel(writer, index=False, sheet_name='Predictions')
-
-    buffer.seek(0)
-    return buffer
-
-@app.route('/predict_excel', methods=['POST'])
-def predict_excel():
-    symbol = (request.form.get('symbol') or '').strip().upper()
-    if not symbol:
-        return jsonify({'error': 'No symbol provided'}), 400
-    resp, status = run_prediction(symbol)
-    if status != 200:
-        return jsonify(resp), status
-    excel_stream = _build_excel(symbol, resp)
-    filename = f"{symbol}_forecast.xlsx"
-    return send_file(
-        excel_stream,
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        as_attachment=True,
-        download_name=filename
-    )
 
 if __name__ == '__main__':
     host = os.getenv('HOST', '0.0.0.0')

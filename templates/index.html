@@ -184,8 +184,7 @@
         }
         #auth-trigger.btn-action-equal,
         .logout-btn.btn-action-equal,
-        #add-watchlist.btn-action-equal,
-        #download-excel.btn-action-equal {
+        #add-watchlist.btn-action-equal {
             min-width: 162px;
         }
         .logo-ticker {
@@ -441,9 +440,6 @@
                                 <button id="add-watchlist" type="button" class="btn btn-outline-secondary flex-grow-1 flex-md-grow-0 btn-action-equal">
                                     <i class="fas fa-star"></i> Add to Watchlist
                                 </button>
-                                <button id="download-excel" type="button" class="btn btn-outline-success flex-grow-1 flex-md-grow-0 btn-action-equal" disabled>
-                                    <i class="fas fa-file-excel"></i> Download Excel
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -482,7 +478,7 @@
                             {% if remarkables and remarkables.for_risk_lovers %}
                                 {% for item in remarkables.for_risk_lovers %}
                                 <li>
-                                    <strong>{{ item.symbol }}</strong>
+                                    <a href="#" class="remarkable-symbol fw-bold" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
                                     <span class="text-muted"> | trend {{ item.trend_percent }}% | prev-day LOW<=0.9x hits {{ item.down_hits or item.loss_hits }} | prev-day HIGH>=1.20x hits {{ item.up_hits or item.gain_hits }}</span>
                                     {% if item.match_type and item.match_type != 'strict' and item.match_type != 'cache_strict' %}
                                     <span class="text-warning"> (near match)</span>
@@ -500,7 +496,7 @@
                             {% if remarkables and remarkables.no_pain_but_gain %}
                                 {% for item in remarkables.no_pain_but_gain %}
                                 <li>
-                                    <strong>{{ item.symbol }}</strong>
+                                    <a href="#" class="remarkable-symbol fw-bold" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
                                     <span class="text-muted"> | trend {{ item.trend_percent }}% | max drop {{ item.max_daily_drop_percent }}%</span>
                                     {% if item.match_type and item.match_type != 'strict' and item.match_type != 'cache_strict' %}
                                     <span class="text-warning"> (near match)</span>
@@ -636,7 +632,9 @@
     <footer class="site-footer mt-4">
         <div class="container">
             <div class="d-flex align-items-center gap-3 flex-wrap">
-                <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Company logo" class="footer-logo">
+                <a href="https://www.gultechs.net/" target="_blank" rel="noopener noreferrer">
+                    <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Company logo" class="footer-logo">
+                </a>
                 <div class="footer-text">
                     <strong>Stocker</strong>
                     <p class="mb-0">
@@ -652,7 +650,6 @@
         $(document).ready(function() {
             const $watchlistBody = $('#watchlist-body');
             const $watchlistNotice = $('#watchlist-notice');
-            const $downloadBtn = $('#download-excel');
             const $authModal = $('#auth-modal');
             const isLoggedIn = {{ 'true' if user else 'false' }};
             const $riskList = $('#risk-lovers-list');
@@ -666,14 +663,15 @@
                     return;
                 }
                 const html = items.slice(0, 5).map(item => {
+                    const sym = `<a href="#" class="remarkable-symbol fw-bold" data-symbol="${item.symbol}">${item.symbol}</a>`;
                     if (type === 'risk') {
                         const near = item.match_type && item.match_type !== 'strict' && item.match_type !== 'cache_strict' ? ' <span class="text-warning">(near match)</span>' : '';
                         const downHits = (item.down_hits ?? item.loss_hits ?? 0);
                         const upHits = (item.up_hits ?? item.gain_hits ?? 0);
-                        return `<li><strong>${item.symbol}</strong> <span class="text-muted">| trend ${item.trend_percent}% | prev-day LOW<=0.9x hits ${downHits} | prev-day HIGH>=1.20x hits ${upHits}</span>${near}</li>`;
+                        return `<li>${sym} <span class="text-muted">| trend ${item.trend_percent}% | prev-day LOW<=0.9x hits ${downHits} | prev-day HIGH>=1.20x hits ${upHits}</span>${near}</li>`;
                     }
                     const near = item.match_type && item.match_type !== 'strict' && item.match_type !== 'cache_strict' ? ' <span class="text-warning">(near match)</span>' : '';
-                    return `<li><strong>${item.symbol}</strong> <span class="text-muted">| trend ${item.trend_percent}% | max drop ${item.max_daily_drop_percent}%</span>${near}</li>`;
+                    return `<li>${sym} <span class="text-muted">| trend ${item.trend_percent}% | max drop ${item.max_daily_drop_percent}%</span>${near}</li>`;
                 }).join('');
                 $target.html(html);
             }
@@ -695,6 +693,13 @@
                     // keep server-rendered fallback content
                 }
             }
+
+            $(document).on('click', '.remarkable-symbol', function(e) {
+                e.preventDefault();
+                const symbol = $(this).data('symbol');
+                $('#stock-input').val(symbol);
+                $('#predict-btn').click();
+            });
 
             async function loadWatchlist() {
                 if (!isLoggedIn) {
@@ -1035,39 +1040,6 @@
                 await renderWatchlist();
             });
 
-            $downloadBtn.click(function() {
-                const symbol = $('#stock-input').val().trim().toUpperCase();
-                if (!symbol) {
-                    alert('Please enter a stock symbol first');
-                    return;
-                }
-                $('.loading-spinner').addClass('is-visible');
-                fetch('/predict_excel', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: $.param({ symbol })
-                }).then(resp => {
-                    if (!resp.ok) {
-                        return resp.json().then(data => Promise.reject(data));
-                    }
-                    return resp.blob();
-                }).then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${symbol}_forecast.xlsx`;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    window.URL.revokeObjectURL(url);
-                }).catch(err => {
-                    alert('Error: ' + (err && err.error ? err.error : 'Unknown error'));
-                }).finally(() => {
-                    $('.loading-spinner').removeClass('is-visible');
-                });
-            });
         });
     </script>
 </body>
