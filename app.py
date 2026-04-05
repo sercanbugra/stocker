@@ -278,8 +278,11 @@ def fetch_company_profile(symbol: str, stock_obj=None):
 
     return _normalize_company_info(symbol, {}), "Unavailable"
 
-WATCHLIST_DIR = os.path.join(os.path.dirname(__file__), "data", "watchlists")
-USERS_FILE = os.path.join(os.path.dirname(__file__), "data", "users.json")
+# On Fly.io, PERSISTENT_DATA_DIR is set to the mounted volume path (/data).
+# Locally it falls back to the repo's data/ folder.
+_DATA_DIR = os.getenv("PERSISTENT_DATA_DIR", os.path.join(os.path.dirname(__file__), "data"))
+WATCHLIST_DIR = os.path.join(_DATA_DIR, "watchlists")
+USERS_FILE = os.path.join(_DATA_DIR, "users.json")
 
 def _load_users() -> dict:
     if os.path.exists(USERS_FILE):
@@ -294,7 +297,7 @@ def _save_users(users: dict) -> None:
     os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
     with open(USERS_FILE, "w", encoding="utf-8") as f:
         json.dump(users, f)
-REMARKABLES_CACHE_PATH = os.path.join(os.path.dirname(__file__), "cache", "remarkables_nasdaq.json")
+REMARKABLES_CACHE_PATH = os.path.join(_DATA_DIR, "remarkables_nasdaq.json")
 REMARKABLES_CACHE_TTL_SECONDS = 12 * 60 * 60
 REMARKABLES_BATCH_SIZE = 25
 REMARKABLES_RULE_VERSION = "2026-02-16-v8-risk-near-fill-up1.20-down0.9"
@@ -704,7 +707,7 @@ def _compute_remarkables():
     }
 
 def _compute_remarkables_from_local_cache():
-    cache_dir = os.path.join(os.path.dirname(__file__), "cache")
+    cache_dir = os.path.join(_DATA_DIR, "cache")
     if not os.path.isdir(cache_dir):
         return [], [], [], []
     risk_strict = []
@@ -905,7 +908,7 @@ def get_remarkables(force_refresh: bool = False):
 
 def load_cached_response(symbol: str):
     """Load cached API-style response if available."""
-    cache_dir = os.path.join(os.path.dirname(__file__), 'cache')
+    cache_dir = os.path.join(_DATA_DIR, 'cache')
     cache_path = os.path.join(cache_dir, f'{symbol}.json')
     if not os.path.exists(cache_path):
         return None
@@ -923,7 +926,7 @@ def load_cached_response(symbol: str):
 
 def save_cached_response(symbol: str, payload: dict):
     """Persist API-style response to cache for reuse."""
-    cache_dir = os.path.join(os.path.dirname(__file__), 'cache')
+    cache_dir = os.path.join(_DATA_DIR, 'cache')
     os.makedirs(cache_dir, exist_ok=True)
     cache_path = os.path.join(cache_dir, f'{symbol}.json')
     try:

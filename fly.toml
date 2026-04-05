@@ -16,6 +16,10 @@ primary_region = 'ams'
   min_machines_running = 0
   processes = ['app']
 
+[[mounts]]
+  source = "stocker_data"
+  destination = "/data"
+
 [[vm]]
   cpu_kind = 'shared'
   cpus = 1
