@@ -27,6 +27,7 @@ from sklearn.preprocessing import MinMaxScaler
 from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, session
 from flask_dance.contrib.google import make_google_blueprint, google
 from oauthlib.oauth2 import TokenExpiredError
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Configure logging
 logging.basicConfig(
@@ -36,6 +37,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
 SENTIMENT_ANALYZER = SentimentIntensityAnalyzer()
 _USER_AGENT = "Mozilla/5.0"
@@ -181,7 +183,7 @@ def fetch_analyst_insights(symbol: str):
             epoch = item.get("epochGradeDate")
             date_str = ""
             if epoch:
-                date_str = datetime.utcfromtimestamp(epoch).strftime("%Y-%m-%d")
+                date_str = datetime.fromtimestamp(epoch, tz=timezone.utc).strftime("%Y-%m-%d")
             top_analysts.append({
                 "analyst": item.get("firm") or "",
                 "overallScore": score,
@@ -527,20 +529,6 @@ def _remarkables_cache_is_today(payload: dict) -> bool:
         return False
     return _remarkables_payload_day(payload) == _remarkables_day_key()
 
-def _remarkables_cache_is_fresh(payload: dict) -> bool:
-    if (payload or {}).get("rule_version") != REMARKABLES_RULE_VERSION:
-        return False
-    ts = (payload or {}).get("updated_at")
-    if not ts:
-        return False
-    try:
-        parsed = datetime.fromisoformat(ts)
-        if parsed.tzinfo is None:
-            parsed = parsed.replace(tzinfo=timezone.utc)
-        age = datetime.now(timezone.utc) - parsed.astimezone(timezone.utc)
-        return age.total_seconds() < REMARKABLES_CACHE_TTL_SECONDS
-    except Exception:
-        return False
 
 def _compute_remarkables():
     symbols = fetch_nasdaq_symbols()
@@ -1642,19 +1630,6 @@ def _forecast_tree_recursive(model, close_history, feature_scaler, close_scaler,
 
     return np.array(preds).reshape(-1, 1)
 
-def create_lstm_model(input_shape):
-    """Create LSTM model with functional API"""
-    inputs = Input(shape=input_shape)
-    x = LSTM(64, return_sequences=True)(inputs)
-    x = Dropout(0.3)(x)
-    x = LSTM(32, return_sequences=False)(x)
-    x = Dropout(0.3)(x)
-    x = Dense(16, activation='relu')(x)
-    outputs = Dense(1)(x)
-    
-    model = Model(inputs=inputs, outputs=outputs)
-    model.compile(optimizer='adam', loss='mse')
-    return model
 
 def train_prediction_models(close_values, forecast_horizon=30, time_steps=30):
     """Train multiple prediction models using engineered price features."""
