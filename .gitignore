@@ -1,1 +1,11 @@
 .env
+__pycache__/
+*.pyc
+*.pyo
+cache/
+output/
+*.xlsx
+*.xls
+.venv/
+venv/
+watchlists/
