@@ -1284,6 +1284,36 @@
                 };
             }
 
+            function escHtml(s) {
+                return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            }
+
+            function fmtNewsDate(raw) {
+                if (!raw) return '';
+                try {
+                    const d = new Date(raw);
+                    if (!isNaN(d)) return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                } catch (_) {}
+                return raw;
+            }
+
+            function sentimentPill(val) {
+                if (val === null || val === undefined) {
+                    return '<span class="sentiment-pill sentiment-neutral">— N/A</span>';
+                }
+                const score = Number(val);
+                const barWidth = Math.min(100, Math.abs(score));
+                let label, cls, barCls;
+                if (score >= 20)       { label = 'Bullish';  cls = 'sentiment-bull';    barCls = 'bar-bull'; }
+                else if (score <= -20) { label = 'Bearish';  cls = 'sentiment-bear';    barCls = 'bar-bear'; }
+                else                   { label = 'Neutral';  cls = 'sentiment-neutral'; barCls = 'bar-neutral'; }
+                return '<div class="sentiment-block">'
+                    + '<span class="sentiment-pill ' + cls + '">' + label + '</span>'
+                    + '<div class="sentiment-bar-track"><div class="sentiment-bar-fill ' + barCls + '" style="width:' + barWidth + '%"></div></div>'
+                    + '<span class="sentiment-score">' + (score > 0 ? '+' : '') + score + '</span>'
+                    + '</div>';
+            }
+
             function ratingClass(value) {
                 const text = (value || '').toString().toLowerCase();
                 if (text.includes('buy')) return 'rating-buy';
@@ -1451,7 +1481,6 @@
                             predictionsHtml = '<tr><td colspan="4" class="text-muted">Prediction data unavailable for this response.</td></tr>';
                         }
                         $('#predictions-body').html(predictionsHtml);
-                        $downloadBtn.prop('disabled', false);
 
                         const info = response.company_info || {};
                         const aboutHtml = `
@@ -1461,36 +1490,6 @@
                             <p class="mb-0">${info.summary || 'No description available.'}</p>
                         `;
                         $('#about-container').html(aboutHtml);
-
-                        function fmtNewsDate(raw) {
-                            if (!raw) return '';
-                            // ISO string (2026-04-05T18:09:58Z) or human-readable
-                            try {
-                                const d = new Date(raw);
-                                if (!isNaN(d)) return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                            } catch (_) {}
-                            return raw;
-                        }
-
-                        function sentimentPill(val) {
-                            if (val === null || val === undefined) {
-                                return `<span class="sentiment-pill sentiment-neutral">— N/A</span>`;
-                            }
-                            const score = Number(val);
-                            const barWidth = Math.min(100, Math.abs(score));
-                            let label, cls, barCls;
-                            if (score >= 20)       { label = 'Bullish';  cls = 'sentiment-bull';    barCls = 'bar-bull'; }
-                            else if (score <= -20) { label = 'Bearish';  cls = 'sentiment-bear';    barCls = 'bar-bear'; }
-                            else                   { label = 'Neutral';  cls = 'sentiment-neutral'; barCls = 'bar-neutral'; }
-                            return `
-                                <div class="sentiment-block">
-                                    <span class="sentiment-pill ${cls}">${label}</span>
-                                    <div class="sentiment-bar-track">
-                                        <div class="sentiment-bar-fill ${barCls}" style="width:${barWidth}%"></div>
-                                    </div>
-                                    <span class="sentiment-score">${score > 0 ? '+' : ''}${score}</span>
-                                </div>`;
-                        }
 
                         let newsHtml = '';
                         if (response.news && response.news.length) {
@@ -1503,9 +1502,9 @@
                                         <div class="card-body pb-2">
                                             <div class="d-flex justify-content-between align-items-start gap-2">
                                                 <div class="flex-grow-1 min-w-0">
-                                                    <h6 class="card-title mb-1 lh-sm">${article.title}</h6>
+                                                    <h6 class="card-title mb-1 lh-sm">${escHtml(article.title)}</h6>
                                                     <div class="d-flex align-items-center gap-2 flex-wrap">
-                                                        <small class="text-muted">${article.publisher || ''}</small>
+                                                        <small class="text-muted">${escHtml(article.publisher || '')}</small>
                                                         ${published}
                                                     </div>
                                                 </div>
