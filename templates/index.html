@@ -257,6 +257,22 @@
             color: var(--panel-text);
             font-size: 1.1rem;
             line-height: 1;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.15s;
+        }
+        .auth-modal-close:hover { opacity: 1; }
+        #auth-view-email .form-control {
+            background: var(--parliament-blue-deep);
+            border: 1px solid var(--panel-border);
+            color: var(--panel-text);
+        }
+        #auth-view-email .form-control::placeholder { color: var(--panel-muted); }
+        #auth-view-email .form-control:focus {
+            background: var(--parliament-blue-deep);
+            color: var(--panel-text);
+            border-color: #9ec3ff;
+            box-shadow: none;
         }
         .auth-link {
             color: #9ec3ff;
@@ -391,15 +407,39 @@
     <div class="auth-modal" id="auth-modal" aria-hidden="true">
         <div class="auth-modal-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="mb-0">Welcome</h6>
-                <button type="button" class="auth-modal-close" id="auth-close" aria-label="Close">Ã—</button>
+                <h6 class="mb-0" id="auth-modal-title">Welcome</h6>
+                <button type="button" class="auth-modal-close" id="auth-close" aria-label="Close">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <div class="d-grid gap-2">
-                <a class="btn btn-outline-light" href="/login/google?prompt=consent&select_account=1">Continue with Google</a>
-                <button class="btn btn-outline-light" type="button">Continue with Email</button>
+
+            <!-- Provider selection view -->
+            <div id="auth-view-providers">
+                <div class="d-grid gap-2">
+                    <a class="btn btn-outline-light" href="/login/google?prompt=consent&select_account=1">
+                        <i class="fab fa-google me-1"></i> Continue with Google
+                    </a>
+                    <button class="btn btn-outline-light" type="button" id="auth-email-toggle">
+                        <i class="fas fa-envelope me-1"></i> Continue with Email
+                    </button>
+                </div>
             </div>
-            <div class="mt-3 small text-center">
-                Already have an account? <a href="#" class="auth-link">Sign in</a>
+
+            <!-- Email login / register view -->
+            <div id="auth-view-email" style="display:none;">
+                <div id="auth-email-error" class="alert alert-danger py-2 small mb-2" style="display:none;"></div>
+                <div class="d-grid gap-2">
+                    <input type="email" id="auth-email-input" class="form-control" placeholder="Email address" autocomplete="email">
+                    <input type="password" id="auth-password-input" class="form-control" placeholder="Password (min. 6 chars)" autocomplete="current-password">
+                    <button class="btn btn-primary" type="button" id="auth-email-submit">Sign In</button>
+                    <button class="btn btn-link text-muted small p-0" type="button" id="auth-back">
+                        <i class="fas fa-arrow-left me-1"></i> Back
+                    </button>
+                </div>
+                <div class="mt-3 small text-center">
+                    <span id="auth-toggle-text">Don't have an account?</span>
+                    <a href="#" class="auth-link" id="auth-mode-toggle">Register</a>
+                </div>
             </div>
         </div>
     </div>
@@ -760,16 +800,90 @@
             renderWatchlist();
             loadRemarkables();
 
+            function closeAuthModal() {
+                $authModal.removeClass('is-visible').attr('aria-hidden', 'true');
+                // reset to provider view
+                $('#auth-view-providers').show();
+                $('#auth-view-email').hide();
+                $('#auth-email-input, #auth-password-input').val('');
+                $('#auth-email-error').hide().text('');
+                $('#auth-modal-title').text('Welcome');
+            }
+
+            function showEmailView(mode) {
+                // mode: 'login' | 'register'
+                $('#auth-view-providers').hide();
+                $('#auth-view-email').show();
+                if (mode === 'register') {
+                    $('#auth-modal-title').text('Create Account');
+                    $('#auth-email-submit').text('Register');
+                    $('#auth-toggle-text').text('Already have an account?');
+                    $('#auth-mode-toggle').text('Sign In').data('mode', 'login');
+                } else {
+                    $('#auth-modal-title').text('Sign In');
+                    $('#auth-email-submit').text('Sign In');
+                    $('#auth-toggle-text').text("Don't have an account?");
+                    $('#auth-mode-toggle').text('Register').data('mode', 'register');
+                }
+                $('#auth-email-input').focus();
+            }
+
             $('#auth-trigger').on('click', function() {
                 $authModal.addClass('is-visible').attr('aria-hidden', 'false');
             });
-            $('#auth-close').on('click', function() {
-                $authModal.removeClass('is-visible').attr('aria-hidden', 'true');
+            $('#auth-close').on('click', closeAuthModal);
+            $authModal.on('click', function(e) {
+                if (e.target === this) closeAuthModal();
             });
-            $authModal.on('click', function(event) {
-                if (event.target === this) {
-                    $authModal.removeClass('is-visible').attr('aria-hidden', 'true');
+            $('#auth-email-toggle').on('click', function() {
+                showEmailView('login');
+            });
+            $('#auth-back').on('click', function() {
+                $('#auth-view-email').hide();
+                $('#auth-view-providers').show();
+                $('#auth-modal-title').text('Welcome');
+                $('#auth-email-error').hide().text('');
+            });
+            $('#auth-mode-toggle').on('click', function(e) {
+                e.preventDefault();
+                const mode = $(this).data('mode') || 'register';
+                showEmailView(mode);
+                $('#auth-email-error').hide().text('');
+            });
+            $('#auth-email-submit').on('click', async function() {
+                const $btn = $(this);
+                const isRegister = $btn.text().trim() === 'Register';
+                const email = $('#auth-email-input').val().trim();
+                const password = $('#auth-password-input').val();
+                const $err = $('#auth-email-error');
+                $err.hide().text('');
+                if (!email || !password) {
+                    $err.text('Please enter your email and password.').show();
+                    return;
                 }
+                $btn.prop('disabled', true).text(isRegister ? 'Registering…' : 'Signing in…');
+                try {
+                    const endpoint = isRegister ? '/register/email' : '/login/email';
+                    const resp = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+                    const data = await resp.json();
+                    if (!resp.ok) {
+                        $err.text(data.error || 'An error occurred.').show();
+                    } else {
+                        window.location.reload();
+                    }
+                } catch (e) {
+                    $err.text('Network error. Please try again.').show();
+                } finally {
+                    $btn.prop('disabled', false).text(isRegister ? 'Register' : 'Sign In');
+                }
+            });
+            // Allow Enter key to submit
+            $('#auth-email-input, #auth-password-input').on('keydown', function(e) {
+                if (e.key === 'Enter') $('#auth-email-submit').click();
             });
 
             function applyChartTheme(layout) {

@@ -28,6 +28,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 from flask_dance.contrib.google import make_google_blueprint, google
 from oauthlib.oauth2 import TokenExpiredError
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Configure logging
 logging.basicConfig(
@@ -278,6 +279,21 @@ def fetch_company_profile(symbol: str, stock_obj=None):
     return _normalize_company_info(symbol, {}), "Unavailable"
 
 WATCHLIST_DIR = os.path.join(os.path.dirname(__file__), "data", "watchlists")
+USERS_FILE = os.path.join(os.path.dirname(__file__), "data", "users.json")
+
+def _load_users() -> dict:
+    if os.path.exists(USERS_FILE):
+        try:
+            with open(USERS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+def _save_users(users: dict) -> None:
+    os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
+    with open(USERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(users, f)
 REMARKABLES_CACHE_PATH = os.path.join(os.path.dirname(__file__), "cache", "remarkables_nasdaq.json")
 REMARKABLES_CACHE_TTL_SECONDS = 12 * 60 * 60
 REMARKABLES_BATCH_SIZE = 25
@@ -1720,6 +1736,39 @@ def logout():
         del google_bp.token
     session.clear()
     return redirect(url_for("home"))
+
+@app.route("/login/email", methods=["POST"])
+def login_email():
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").strip().lower()
+    password = data.get("password") or ""
+    if not email or not password:
+        return jsonify({"error": "Email and password are required."}), 400
+    users = _load_users()
+    hashed = users.get(email)
+    if not hashed or not check_password_hash(hashed, password):
+        return jsonify({"error": "Invalid email or password."}), 401
+    session["user_email"] = email
+    return jsonify({"ok": True})
+
+@app.route("/register/email", methods=["POST"])
+def register_email():
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").strip().lower()
+    password = data.get("password") or ""
+    if not email or not password:
+        return jsonify({"error": "Email and password are required."}), 400
+    if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+        return jsonify({"error": "Invalid email address."}), 400
+    if len(password) < 6:
+        return jsonify({"error": "Password must be at least 6 characters."}), 400
+    users = _load_users()
+    if email in users:
+        return jsonify({"error": "An account with this email already exists."}), 409
+    users[email] = generate_password_hash(password)
+    _save_users(users)
+    session["user_email"] = email
+    return jsonify({"ok": True})
 
 @app.route("/api/watchlist", methods=["GET", "POST"])
 def watchlist_api():
