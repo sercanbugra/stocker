@@ -1,1 +1,1 @@
-{"mervecan1986@hotmail.com": "scrypt:32768:8:1$fiH0Q3m5feXMcXdg$f9a0e56daeb1a806597663198368c14e64b7be88b65751a6f8f763549890dc9f7f92e5efae196d161b81e0f2025e60b683397358d3654e0d340b716ad28bdb81"}
+{"mervecan1986@hotmail.com": {"password_hash": "scrypt:32768:8:1$fiH0Q3m5feXMcXdg$f9a0e56daeb1a806597663198368c14e64b7be88b65751a6f8f763549890dc9f7f92e5efae196d161b81e0f2025e60b683397358d3654e0d340b716ad28bdb81", "tier": "free", "daily_usage": {"2026-04-05": 1}}}
