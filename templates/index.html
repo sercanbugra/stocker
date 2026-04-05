@@ -721,8 +721,11 @@
                     const resp = await fetch('/api/remarkables');
                     if (!resp.ok) return;
                     const payload = await resp.json();
-                    renderRemarkableList($riskList, payload.for_risk_lovers || [], 'risk');
-                    renderRemarkableList($noPainList, payload.no_pain_but_gain || [], 'steady');
+                    const riskItems = payload.for_risk_lovers || [];
+                    const steadyItems = payload.no_pain_but_gain || [];
+                    // Only overwrite server-rendered content when we have actual data
+                    if (riskItems.length) renderRemarkableList($riskList, riskItems, 'risk');
+                    if (steadyItems.length) renderRemarkableList($noPainList, steadyItems, 'steady');
                     if (payload.updated_at) {
                         $remarkablesUpdated.text(`updated ${payload.updated_at}`);
                     }

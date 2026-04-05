@@ -297,7 +297,7 @@ def _save_users(users: dict) -> None:
     os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
     with open(USERS_FILE, "w", encoding="utf-8") as f:
         json.dump(users, f)
-REMARKABLES_CACHE_PATH = os.path.join(_DATA_DIR, "remarkables_nasdaq.json")
+REMARKABLES_CACHE_PATH = os.path.join(_DATA_DIR, "cache", "remarkables_nasdaq.json")
 REMARKABLES_CACHE_TTL_SECONDS = 12 * 60 * 60
 REMARKABLES_BATCH_SIZE = 25
 REMARKABLES_RULE_VERSION = "2026-02-16-v8-risk-near-fill-up1.20-down0.9"
