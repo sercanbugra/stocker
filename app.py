@@ -1530,6 +1530,15 @@ def _upgrade_cached_payload(payload, symbol):
         payload['news'] = normalized
     elif not isinstance(news, list):
         payload['news'] = []
+    # If cached news is empty, attempt a live refresh now (fast, no ML re-run).
+    if not payload.get('news'):
+        try:
+            t = yf.Ticker(symbol)
+            fresh = fetch_news(t, symbol, 5)
+            if fresh:
+                payload['news'] = fresh
+        except Exception:
+            pass
     # Backfill sentiment for already-normalized cached news items.
     for item in (payload.get('news') or []):
         if not isinstance(item, dict):
