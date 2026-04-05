@@ -4,6 +4,7 @@ import json
 import time
 import re
 import threading
+import concurrent.futures
 import numpy as np
 import pandas as pd
 import yfinance as yf
@@ -35,6 +36,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
 SENTIMENT_ANALYZER = SentimentIntensityAnalyzer()
+_USER_AGENT = "Mozilla/5.0"
 
 google_bp = None
 google_client_id = os.getenv("GOOGLE_OAUTH_CLIENT_ID")
@@ -148,10 +150,10 @@ def fetch_analyst_insights(symbol: str):
 
     try:
         session_req = requests.Session()
-        session_req.get("https://fc.yahoo.com", headers={"User-Agent": "Mozilla/5.0"}, timeout=8)
+        session_req.get("https://fc.yahoo.com", headers={"User-Agent": _USER_AGENT}, timeout=8)
         crumb_resp = session_req.get(
             "https://query2.finance.yahoo.com/v1/test/getcrumb",
-            headers={"User-Agent": "Mozilla/5.0"},
+            headers={"User-Agent": _USER_AGENT},
             timeout=8
         )
         if not crumb_resp.ok or not crumb_resp.text:
@@ -162,7 +164,7 @@ def fetch_analyst_insights(symbol: str):
             "https://query2.finance.yahoo.com/v10/finance/quoteSummary/"
             f"{symbol}?modules=upgradeDowngradeHistory,recommendationTrend&crumb={crumb}"
         )
-        resp = session_req.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=8)
+        resp = session_req.get(url, headers={"User-Agent": _USER_AGENT}, timeout=8)
         if not resp.ok:
             fallback = _fallback_from_yfinance(symbol)
             return fallback if _has_rows(fallback) else empty_payload
@@ -241,10 +243,10 @@ def fetch_company_profile(symbol: str, stock_obj=None):
     # 2) QuoteSummary assetProfile fallback
     try:
         session_req = requests.Session()
-        session_req.get("https://fc.yahoo.com", headers={"User-Agent": "Mozilla/5.0"}, timeout=8)
+        session_req.get("https://fc.yahoo.com", headers={"User-Agent": _USER_AGENT}, timeout=8)
         crumb_resp = session_req.get(
             "https://query2.finance.yahoo.com/v1/test/getcrumb",
-            headers={"User-Agent": "Mozilla/5.0"},
+            headers={"User-Agent": _USER_AGENT},
             timeout=8
         )
         if crumb_resp.ok and crumb_resp.text:
@@ -253,7 +255,7 @@ def fetch_company_profile(symbol: str, stock_obj=None):
                 "https://query2.finance.yahoo.com/v10/finance/quoteSummary/"
                 f"{symbol}?modules=assetProfile,price&crumb={crumb}"
             )
-            resp = session_req.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=8)
+            resp = session_req.get(url, headers={"User-Agent": _USER_AGENT}, timeout=8)
             if resp.ok:
                 result = (resp.json().get("quoteSummary", {}).get("result") or [{}])[0]
                 profile = result.get("assetProfile") or {}
@@ -329,7 +331,7 @@ def fetch_stooq_history(symbol: str) -> pd.DataFrame:
     """Fallback data source when Yahoo is rate limited."""
     stooq_symbol = f"{symbol.lower()}.us"
     url = f"https://stooq.com/q/d/l/?s={stooq_symbol}&i=d"
-    resp = requests.get(url, timeout=12, headers={"User-Agent": "Mozilla/5.0"})
+    resp = requests.get(url, timeout=12, headers={"User-Agent": _USER_AGENT})
     resp.raise_for_status()
     text = (resp.text or "").strip()
     if not text or "No data" in text:
@@ -384,7 +386,7 @@ def fetch_sp500_stocks():
 def fetch_nasdaq_symbols():
     """Fetch full Nasdaq listed symbols."""
     url = "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt"
-    resp = requests.get(url, timeout=12, headers={"User-Agent": "Mozilla/5.0"})
+    resp = requests.get(url, timeout=12, headers={"User-Agent": _USER_AGENT})
     resp.raise_for_status()
     lines = resp.text.splitlines()
     symbols = []
@@ -1806,7 +1808,7 @@ def fetch_news(stock_obj, symbol, limit=5):
     if len(items) < limit:
         try:
             rss_url = f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={symbol}&region=US&lang=en-US"
-            resp = requests.get(rss_url, timeout=5, headers={"User-Agent": "Mozilla/5.0"})
+            resp = requests.get(rss_url, timeout=5, headers={"User-Agent": _USER_AGENT})
             if resp.ok and resp.text:
                 import xml.etree.ElementTree as ET
                 root = ET.fromstring(resp.text)
@@ -1920,123 +1922,21 @@ def run_prediction(symbol: str):
         # Pattern detection chart (last ~1 month)
         df_1m = df.tail(22) if len(df) > 22 else df.copy()
         last1_dates = [pd.Timestamp(ts).tz_localize(None).isoformat() for ts in df_1m.index]
-        fig_pattern = go.Figure(data=[
-            go.Candlestick(
-                x=last1_dates,
-                open=df_1m['Open'].astype(float).tolist(),
-                high=df_1m['High'].astype(float).tolist(),
-                low=df_1m['Low'].astype(float).tolist(),
-                close=df_1m['Close'].astype(float).tolist(),
-                name="OHLC (Last 1 Month)"
-            )
-        ])
-        pattern = detect_pattern(df_1m['Close'].astype(float).values)
-        if pattern:
-            start_idx = pattern['start_idx']
-            end_idx = pattern['end_idx']
-            trend_hint = _trend_hint_for_pattern(pattern['name'])
-            fig_pattern.update_layout(
-                title=f"{symbol} {pattern['name']} Pattern (Last 1 Month)",
-                xaxis_title='Date',
-                yaxis_title='Price'
-            )
-            fig_pattern.add_shape(
-                type="rect",
-                xref="x",
-                yref="paper",
-                x0=last1_dates[start_idx],
-                x1=last1_dates[end_idx],
-                y0=0,
-                y1=1,
-                fillcolor="rgba(255, 193, 7, 0.2)",
-                line_width=0
-            )
-            if trend_hint and trend_hint['text'] != 'Neutral':
-                y_val = float(df_1m['Close'].iloc[end_idx])
-                fig_pattern.add_annotation(
-                    x=last1_dates[end_idx],
-                    y=y_val,
-                    text=trend_hint['text'],
-                    showarrow=True,
-                    arrowhead=2,
-                    arrowsize=1.2,
-                    arrowwidth=2,
-                    arrowcolor=trend_hint['arrowcolor'],
-                    ax=0,
-                    ay=trend_hint['ay'],
-                    font={'color': trend_hint['color']}
-                )
-        else:
-            fig_pattern.update_layout(
-                title=f'{symbol} No Clear Pattern Detected (Last 1 Month)',
-                xaxis_title='Date',
-                yaxis_title='Price'
-            )
-        pattern_chart_json = json.loads(json.dumps(fig_pattern, cls=PlotlyJSONEncoder))
+        pattern_chart_json = _build_pattern_chart_from_series(
+            symbol, last1_dates,
+            df_1m['Close'].astype(float).tolist(),
+            open_values=df_1m['Open'].astype(float).tolist(),
+            high_values=df_1m['High'].astype(float).tolist(),
+            low_values=df_1m['Low'].astype(float).tolist()
+        )
 
         # Pattern detection chart (last 48 hours, hourly)
         pattern_chart_48h_json = None
         try:
             if stock is not None:
                 df_1h = stock.history(period='7d', interval='1h')
-            else:
-                df_1h = None
-            if df_1h is not None and not df_1h.empty:
-                df_48h = df_1h.tail(48)
-                last48_dates = [pd.Timestamp(ts).tz_localize(None).isoformat() for ts in df_48h.index]
-                fig_pattern_48h = go.Figure(data=[
-                    go.Candlestick(
-                        x=last48_dates,
-                        open=df_48h['Open'].astype(float).tolist(),
-                        high=df_48h['High'].astype(float).tolist(),
-                        low=df_48h['Low'].astype(float).tolist(),
-                        close=df_48h['Close'].astype(float).tolist(),
-                        name="OHLC (Last 48 Hours)"
-                    )
-                ])
-                pattern_48h = detect_pattern(df_48h['Close'].astype(float).values)
-                if pattern_48h:
-                    s_idx = pattern_48h['start_idx']
-                    e_idx = pattern_48h['end_idx']
-                    fig_pattern_48h.update_layout(
-                        title=f"{symbol} {pattern_48h['name']} Pattern (Last 48 Hours)",
-                        xaxis_title='Date',
-                        yaxis_title='Price'
-                    )
-                    fig_pattern_48h.add_shape(
-                        type="rect",
-                        xref="x",
-                        yref="paper",
-                        x0=last48_dates[s_idx],
-                        x1=last48_dates[e_idx],
-                        y0=0,
-                        y1=1,
-                        fillcolor="rgba(255, 193, 7, 0.2)",
-                        line_width=0
-                    )
-                    trend_hint_48h = _trend_hint_for_pattern(pattern_48h['name'])
-                    if trend_hint_48h and trend_hint_48h['text'] != 'Neutral':
-                        y_val = float(df_48h['Close'].iloc[e_idx])
-                        fig_pattern_48h.add_annotation(
-                            x=last48_dates[e_idx],
-                            y=y_val,
-                            text=trend_hint_48h['text'],
-                            showarrow=True,
-                            arrowhead=2,
-                            arrowsize=1.2,
-                            arrowwidth=2,
-                            arrowcolor=trend_hint_48h['arrowcolor'],
-                            ax=0,
-                            ay=trend_hint_48h['ay'],
-                            font={'color': trend_hint_48h['color']}
-                        )
-                else:
-                    fig_pattern_48h.update_layout(
-                        title=f'{symbol} No Clear Pattern Detected (Last 48 Hours)',
-                        xaxis_title='Date',
-                        yaxis_title='Price'
-                    )
-                pattern_chart_48h_json = json.loads(json.dumps(fig_pattern_48h, cls=PlotlyJSONEncoder))
+                if df_1h is not None and not df_1h.empty:
+                    pattern_chart_48h_json = _build_pattern_chart_48h_from_df(symbol, df_1h.tail(48))
         except Exception as exc:
             logger.warning(f"48h pattern chart failed for {symbol}: {exc}")
         if pattern_chart_48h_json is None:
@@ -2050,61 +1950,22 @@ def run_prediction(symbol: str):
             )
 
         # RSI chart (last ~1 month)
-        rsi_series = compute_rsi(df_1m['Close'].astype(float), window=14)
-        rsi_values = rsi_series.astype(float).tolist()
-        rsi_dates = last1_dates
-        rsi_fig = go.Figure(data=[
-            go.Scatter(
-                x=rsi_dates,
-                y=rsi_values,
-                mode='lines',
-                name='RSI (14)'
-            )
-        ])
-        rsi_fig.add_hline(y=70, line_dash="dash", line_color="red")
-        rsi_fig.add_hline(y=30, line_dash="dash", line_color="green")
-
-        rsi_signal = None
-        last_rsi = rsi_values[-1] if rsi_values else None
-        if last_rsi is not None:
-            if last_rsi >= 70:
-                rsi_signal = {'text': 'Sell', 'color': 'red', 'ay': 40, 'arrowcolor': 'red'}
-            elif last_rsi <= 30:
-                rsi_signal = {'text': 'Buy', 'color': 'green', 'ay': -40, 'arrowcolor': 'green'}
-
-        rsi_title_suffix = 'Neutral' if rsi_signal is None else rsi_signal['text']
-        rsi_fig.update_layout(
-            title=f'{symbol} RSI (Last 1 Month) - {rsi_title_suffix}',
-            xaxis_title='Date',
-            yaxis_title='RSI'
+        rsi_chart_json = _build_rsi_chart_from_series(
+            symbol, last1_dates, df_1m['Close'].astype(float).tolist()
         )
-        if rsi_signal and rsi_dates:
-            rsi_fig.add_annotation(
-                x=rsi_dates[-1],
-                y=last_rsi,
-                text=rsi_signal['text'],
-                showarrow=True,
-                arrowhead=2,
-                arrowsize=1.2,
-                arrowwidth=2,
-                arrowcolor=rsi_signal['arrowcolor'],
-                ax=0,
-                ay=rsi_signal['ay'],
-                font={'color': rsi_signal['color']}
-            )
-        rsi_chart_json = json.loads(json.dumps(rsi_fig, cls=PlotlyJSONEncoder))
 
         # 3M predictions removed in favor of pattern detection chart
         preds_3m = {}
         future_dates_3m_iso = []
 
-        # Fetch news with sentiment
-        news = fetch_news(stock, symbol, limit=5)
-
-        # Fetch company info
-        company_info, company_info_source = fetch_company_profile(symbol, stock_obj=stock)
-
-        analyst_payload = fetch_analyst_insights(symbol)
+        # Fetch news, company info, and analyst insights in parallel
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+            news_future = pool.submit(fetch_news, stock, symbol, 5)
+            profile_future = pool.submit(fetch_company_profile, symbol, stock)
+            analyst_future = pool.submit(fetch_analyst_insights, symbol)
+        news = news_future.result()
+        company_info, company_info_source = profile_future.result()
+        analyst_payload = analyst_future.result()
         response = {
             'chart': chart_json,
             'pattern_chart': pattern_chart_json,
