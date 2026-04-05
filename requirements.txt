@@ -12,3 +12,4 @@ gunicorn
 vaderSentiment
 lxml
 beautifulsoup4
+stripe

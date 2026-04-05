@@ -173,19 +173,11 @@
             transform: translateY(-5px);
         }
         .btn-action-equal {
-            min-height: 38px;
-        }
-        #add-watchlist.btn-action-equal {
-            border-color: #e0a800;
-            color: #e0a800;
-        }
-        #add-watchlist.btn-action-equal i {
-            color: #e0a800;
-        }
-        #auth-trigger.btn-action-equal,
-        .logout-btn.btn-action-equal,
-        #add-watchlist.btn-action-equal {
-            min-width: 162px;
+            width: 130px;
+            height: 38px;
+            white-space: nowrap;
+            padding-left: 8px;
+            padding-right: 8px;
         }
         .logo-ticker {
             width: 70px;
@@ -401,6 +393,163 @@
             font-size: 0.78rem;
             margin-top: 8px;
         }
+        /* Tier badge */
+        .tier-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 2px 7px;
+            border-radius: 20px;
+            vertical-align: middle;
+            text-transform: uppercase;
+        }
+        .tier-badge-free    { background: rgba(255,255,255,0.1); color: var(--panel-muted); }
+        .tier-badge-pro     { background: linear-gradient(135deg,#4f8ef7,#7c5af7); color: #fff; }
+        .tier-badge-premium { background: linear-gradient(135deg,#f7c04f,#f7814f); color: #fff; }
+        .tier-badge-admin   { background: linear-gradient(135deg,#f74f4f,#c0392b); color: #fff; }
+        /* Usage counter */
+        .usage-counter {
+            font-size: 0.72rem;
+            color: var(--panel-muted);
+            white-space: nowrap;
+        }
+        .usage-counter.warning { color: #f7c04f; }
+        /* Upgrade modal */
+        .upgrade-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(8,12,20,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1300;
+        }
+        .upgrade-modal.is-visible { display: flex; }
+        .upgrade-modal-card {
+            width: min(720px, 94vw);
+            background: var(--parliament-blue-soft);
+            border: 1px solid var(--panel-border);
+            border-radius: 20px;
+            padding: 28px 24px 24px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+            color: var(--panel-text);
+        }
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 18px;
+        }
+        .pricing-card {
+            background: var(--parliament-blue);
+            border: 1px solid var(--panel-border);
+            border-radius: 14px;
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .pricing-card.featured {
+            border-color: #4f8ef7;
+            box-shadow: 0 0 0 1px #4f8ef7;
+        }
+        .pricing-card .price {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .pricing-card .price sup { font-size: 1rem; vertical-align: super; }
+        .pricing-card .price sub { font-size: 0.75rem; color: var(--panel-muted); }
+        .pricing-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--panel-muted);
+        }
+        .pricing-card ul li::before { content: "✓ "; color: #6ee7a8; }
+        .pricing-card .btn { margin-top: auto; }
+        /* Sentiment pill */
+        .sentiment-block {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 3px;
+            min-width: 72px;
+        }
+        .sentiment-pill {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            padding: 2px 7px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .sentiment-bull    { background: rgba(110,231,168,0.15); color: #6ee7a8; }
+        .sentiment-bear    { background: rgba(255,138,138,0.15); color: #ff8a8a; }
+        .sentiment-neutral { background: rgba(255,255,255,0.08); color: var(--panel-muted); }
+        .sentiment-bar-track {
+            width: 100%;
+            height: 3px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .sentiment-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.4s ease;
+        }
+        .bar-bull    { background: #6ee7a8; }
+        .bar-bear    { background: #ff8a8a; }
+        .bar-neutral { background: rgba(255,255,255,0.3); }
+        .sentiment-score {
+            font-size: 0.65rem;
+            color: var(--panel-muted);
+        }
+        /* Pro feature cards */
+        .pro-card {
+            background-color: var(--parliament-blue-soft);
+            border: 1px solid rgba(79,142,247,0.35);
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+        .pro-card .card-header {
+            background-color: var(--parliament-blue);
+            border-bottom: 1px solid rgba(79,142,247,0.25);
+            border-radius: 16px 16px 0 0;
+            color: var(--panel-text);
+        }
+        .pro-lock {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 28px 16px;
+            color: var(--panel-muted);
+            text-align: center;
+            font-size: 0.88rem;
+        }
+        .pro-lock i { font-size: 1.6rem; color: #4f8ef7; }
+        /* Thesis text */
+        .thesis-section { margin-bottom: 12px; }
+        .thesis-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 4px;
+        }
+        .thesis-bull  .thesis-label { color: #6ee7a8; }
+        .thesis-bear  .thesis-label { color: #ff8a8a; }
+        .thesis-verdict .thesis-label { color: #f7c04f; }
+        .thesis-body { font-size: 0.88rem; color: var(--panel-text); line-height: 1.5; }
+        /* Peer table */
+        .peer-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .peer-table th { color: var(--panel-muted); font-weight: 600; padding: 6px 10px; border-bottom: 1px solid var(--panel-border); }
+        .peer-table td { padding: 8px 10px; border-bottom: 1px solid var(--panel-border); color: var(--panel-text); }
+        .peer-highlighted td { background: rgba(79,142,247,0.08); font-weight: 600; }
     </style>
 </head>
 <body>
@@ -443,6 +592,81 @@
             </div>
         </div>
     </div>
+    <!-- Upgrade Modal -->
+    <div class="upgrade-modal" id="upgrade-modal" aria-hidden="true">
+        <div class="upgrade-modal-card">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h5 class="mb-1" id="upgrade-modal-title">Unlock Unlimited Access</h5>
+                    <p class="text-muted small mb-0" id="upgrade-modal-subtitle">You've reached your free analysis limit for today.</p>
+                </div>
+                <button type="button" class="auth-modal-close" id="upgrade-close" aria-label="Close"><i class="fas fa-times"></i></button>
+            </div>
+            {% if subscribed %}
+            <div class="alert alert-success py-2 small mb-3">
+                <i class="fas fa-check-circle me-1"></i> Your subscription is active. Thank you!
+            </div>
+            {% endif %}
+            <div class="pricing-grid">
+                <!-- Free -->
+                <div class="pricing-card">
+                    <div>
+                        <span class="tier-badge tier-badge-free">Free</span>
+                        <div class="price mt-2"><sup>$</sup>0<sub>/mo</sub></div>
+                    </div>
+                    <ul>
+                        <li>{{ free_daily_limit }} analyses per day</li>
+                        <li>ML price predictions</li>
+                        <li>Pattern detection</li>
+                        <li>News &amp; sentiment</li>
+                    </ul>
+                    <button class="btn btn-outline-secondary btn-sm" disabled>Current plan</button>
+                </div>
+                <!-- Pro -->
+                <div class="pricing-card featured">
+                    <div>
+                        <span class="tier-badge tier-badge-pro">Pro</span>
+                        <div class="price mt-2"><sup>$</sup>7<sub>/mo</sub></div>
+                    </div>
+                    <ul>
+                        <li>Unlimited analyses</li>
+                        <li>Everything in Free</li>
+                        <li>AI Trade Thesis</li>
+                        <li>Peer comparison</li>
+                    </ul>
+                    {% if stripe_enabled %}
+                    <button class="btn btn-primary btn-sm upgrade-btn" data-tier="pro">Upgrade to Pro</button>
+                    {% else %}
+                    <button class="btn btn-primary btn-sm" disabled>Coming soon</button>
+                    {% endif %}
+                </div>
+                <!-- Premium -->
+                <div class="pricing-card">
+                    <div>
+                        <span class="tier-badge tier-badge-premium">Premium</span>
+                        <div class="price mt-2"><sup>$</sup>15<sub>/mo</sub></div>
+                    </div>
+                    <ul>
+                        <li>Everything in Pro</li>
+                        <li>AI Portfolio Advisor</li>
+                        <li>Earnings Summarizer</li>
+                        <li>Chat with your stocks</li>
+                    </ul>
+                    {% if stripe_enabled %}
+                    <button class="btn btn-warning btn-sm upgrade-btn" data-tier="premium">Upgrade to Premium</button>
+                    {% else %}
+                    <button class="btn btn-warning btn-sm" disabled>Coming soon</button>
+                    {% endif %}
+                </div>
+            </div>
+            {% if not user %}
+            <p class="text-muted small text-center mt-3 mb-0">
+                <a href="#" class="auth-link" id="upgrade-signin-link">Sign in</a> to get 5 free analyses per day.
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
     <!-- Loading Spinner -->
     <div class="loading-spinner text-center">
         <div class="stock-loader">
@@ -467,19 +691,51 @@
                             </button>
                         </div>
                         <div class="col-md-3 col-sm-12">
-                            <div class="d-flex flex-wrap gap-2 justify-content-end mt-2 mt-md-0">
+                            <div class="d-flex flex-column gap-2 align-items-end mt-2 mt-md-0">
+                                <div class="d-flex flex-wrap gap-2 justify-content-end w-100">
+                                    {% if user %}
+                                    <a href="/logout" class="btn btn-outline-warning btn-action-equal">
+                                        <i class="fas fa-sign-out-alt"></i> Sign out
+                                    </a>
+                                    {% if user_tier == 'admin' %}
+                                    <span class="btn btn-outline-danger btn-action-equal" style="cursor:default;">
+                                        <i class="fas fa-shield-alt"></i> Admin
+                                    </span>
+                                    {% elif user_tier in ('pro', 'premium') %}
+                                    <a href="/billing-portal" class="btn btn-outline-light btn-action-equal">
+                                        <span class="tier-badge tier-badge-{{ user_tier }} me-1">{{ user_tier }}</span> Billing
+                                    </a>
+                                    {% else %}
+                                    <button id="upgrade-trigger" type="button" class="btn btn-outline-primary btn-action-equal">
+                                        <i class="fas fa-bolt"></i> Upgrade
+                                    </button>
+                                    {% endif %}
+                                    <button id="add-watchlist" type="button" class="btn btn-outline-secondary btn-action-equal">
+                                        <i class="fas fa-star"></i> Watchlist
+                                    </button>
+                                    {% else %}
+                                    <button id="auth-trigger" type="button" class="btn btn-outline-light btn-action-equal">
+                                        <i class="fas fa-user"></i> Login / Sign Up
+                                    </button>
+                                    <button id="upgrade-trigger-anon" type="button" class="btn btn-outline-primary btn-action-equal">
+                                        <i class="fas fa-bolt"></i> Pricing
+                                    </button>
+                                    <button id="add-watchlist" type="button" class="btn btn-outline-secondary btn-action-equal">
+                                        <i class="fas fa-star"></i> Watchlist
+                                    </button>
+                                    {% endif %}
+                                </div>
                                 {% if user %}
-                                <a href="/logout" class="btn btn-outline-warning flex-grow-1 flex-md-grow-0 btn-action-equal logout-btn">
-                                    <i class="fas fa-sign-out-alt"></i> Sign out
-                                </a>
-                                {% else %}
-                                <button id="auth-trigger" type="button" class="btn btn-outline-light flex-grow-1 flex-md-grow-0 btn-action-equal">
-                                    <i class="fas fa-user"></i> Login / Sign Up
-                                </button>
+                                <div class="usage-counter" id="usage-counter">
+                                    {% if user_tier == 'admin' %}
+                                    <span class="tier-badge tier-badge-admin">admin</span> Full access
+                                    {% elif user_tier == 'free' %}
+                                    <span id="usage-text">loading usage...</span>
+                                    {% else %}
+                                    <span class="tier-badge tier-badge-{{ user_tier }}">{{ user_tier }}</span> Unlimited analyses
+                                    {% endif %}
+                                </div>
                                 {% endif %}
-                                <button id="add-watchlist" type="button" class="btn btn-outline-secondary flex-grow-1 flex-md-grow-0 btn-action-equal">
-                                    <i class="fas fa-star"></i> Add to Watchlist
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -665,6 +921,48 @@
                         </div>
                         <div class="card-body" id="news-container"></div>
                     </div>
+
+                    <!-- AI Trade Thesis — Pro -->
+                    <div class="pro-card mt-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-robot"></i> AI Trade Thesis</span>
+                            <span class="tier-badge tier-badge-pro">Pro</span>
+                        </div>
+                        <div id="thesis-container">
+                            {% if user_tier in ('pro', 'premium', 'admin') %}
+                            <div class="pro-lock text-muted small" id="thesis-placeholder">
+                                Run a prediction to generate an AI thesis.
+                            </div>
+                            {% else %}
+                            <div class="pro-lock">
+                                <i class="fas fa-lock"></i>
+                                <span>Available on Pro &amp; Premium</span>
+                                <button class="btn btn-primary btn-sm" id="thesis-upgrade-btn">Upgrade to Pro</button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Peer Comparison — Pro -->
+                    <div class="pro-card mt-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-chart-bar"></i> Peer Comparison</span>
+                            <span class="tier-badge tier-badge-pro">Pro</span>
+                        </div>
+                        <div id="peers-container">
+                            {% if user_tier in ('pro', 'premium', 'admin') %}
+                            <div class="pro-lock text-muted small" id="peers-placeholder">
+                                Run a prediction to load peer data.
+                            </div>
+                            {% else %}
+                            <div class="pro-lock">
+                                <i class="fas fa-lock"></i>
+                                <span>Available on Pro &amp; Premium</span>
+                                <button class="btn btn-primary btn-sm" id="peers-upgrade-btn">Upgrade to Pro</button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -691,11 +989,85 @@
             const $watchlistBody = $('#watchlist-body');
             const $watchlistNotice = $('#watchlist-notice');
             const $authModal = $('#auth-modal');
+            const $upgradeModal = $('#upgrade-modal');
             const isLoggedIn = {{ 'true' if user else 'false' }};
+            const userTier = {{ user_tier | tojson }};
             const $riskList = $('#risk-lovers-list');
             const $noPainList = $('#no-pain-list');
             const $remarkablesUpdated = $('#remarkables-updated');
             const $remarkablesMeta = $('#remarkables-meta');
+
+            // ---------------------------------------------------------------
+            // Usage counter
+            // ---------------------------------------------------------------
+            function updateUsageDisplay(usedToday, limit) {
+                if (!isLoggedIn || userTier !== 'free') return;
+                const remaining = Math.max(0, limit - usedToday);
+                const $el = $('#usage-text');
+                $el.text(`${remaining} free ${remaining === 1 ? 'analysis' : 'analyses'} left today`);
+                const $counter = $('#usage-counter');
+                if (remaining <= 1) $counter.addClass('warning');
+                else $counter.removeClass('warning');
+            }
+
+            if (isLoggedIn && userTier === 'free') {
+                fetch('/api/me').then(r => r.json()).then(d => {
+                    if (d.logged_in) updateUsageDisplay(d.used_today, d.daily_limit);
+                }).catch(() => {});
+            }
+
+            // ---------------------------------------------------------------
+            // Upgrade modal
+            // ---------------------------------------------------------------
+            function openUpgradeModal(subtitle) {
+                if (subtitle) $('#upgrade-modal-subtitle').text(subtitle);
+                $upgradeModal.addClass('is-visible').attr('aria-hidden', 'false');
+            }
+            function closeUpgradeModal() {
+                $upgradeModal.removeClass('is-visible').attr('aria-hidden', 'true');
+                $('#upgrade-modal-subtitle').text("You've reached your free analysis limit for today.");
+            }
+
+            $('#upgrade-close').on('click', closeUpgradeModal);
+            $upgradeModal.on('click', function(e) { if (e.target === this) closeUpgradeModal(); });
+
+            $('#upgrade-trigger, #upgrade-trigger-anon').on('click', function() {
+                openUpgradeModal("Choose the plan that fits you best.");
+            });
+
+            $('#upgrade-signin-link').on('click', function(e) {
+                e.preventDefault();
+                closeUpgradeModal();
+                $authModal.addClass('is-visible').attr('aria-hidden', 'false');
+            });
+
+            // Stripe checkout
+            $(document).on('click', '.upgrade-btn', async function() {
+                const tier = $(this).data('tier');
+                const $btn = $(this);
+                $btn.prop('disabled', true).text('Redirecting…');
+                try {
+                    const resp = await fetch('/create-checkout-session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ tier })
+                    });
+                    const data = await resp.json();
+                    if (data.url) {
+                        window.location.href = data.url;
+                    } else {
+                        alert(data.error || 'Could not start checkout. Please try again.');
+                        $btn.prop('disabled', false).text(tier === 'premium' ? 'Upgrade to Premium' : 'Upgrade to Pro');
+                    }
+                } catch (e) {
+                    alert('Network error. Please try again.');
+                    $btn.prop('disabled', false).text(tier === 'premium' ? 'Upgrade to Premium' : 'Upgrade to Pro');
+                }
+            });
+
+            {% if subscribed %}
+            openUpgradeModal("Your subscription is now active — enjoy unlimited analyses!");
+            {% endif %}
 
             function renderRemarkableList($target, items, type) {
                 if (!items || !items.length) {
@@ -745,20 +1117,10 @@
             });
 
             async function loadWatchlist() {
-                if (!isLoggedIn) {
-                    try {
-                        const raw = localStorage.getItem('watchlist') || '[]';
-                        const arr = JSON.parse(raw);
-                        return Array.isArray(arr) ? arr : [];
-                    } catch (e) {
-                        return [];
-                    }
-                }
+                if (!hasWatchlistAccess) return [];
                 try {
                     const resp = await fetch('/api/watchlist');
-                    if (!resp.ok) {
-                        return [];
-                    }
+                    if (!resp.ok) return [];
                     const data = await resp.json();
                     return Array.isArray(data.symbols) ? data.symbols : [];
                 } catch (e) {
@@ -767,10 +1129,7 @@
             }
 
             async function saveWatchlist(list) {
-                if (!isLoggedIn) {
-                    localStorage.setItem('watchlist', JSON.stringify(list));
-                    return;
-                }
+                if (!hasWatchlistAccess) return;
                 await fetch('/api/watchlist', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -779,6 +1138,14 @@
             }
 
             async function renderWatchlist() {
+                if (!hasWatchlistAccess) {
+                    const msg = isLoggedIn
+                        ? 'Upgrade to Pro to use your watchlist.'
+                        : 'Sign in with a Pro account to use your watchlist.';
+                    $watchlistBody.html(`<div class="col-12 text-muted small">${msg}</div>`);
+                    $watchlistNotice.text('');
+                    return;
+                }
                 const list = await loadWatchlist();
                 if (!list.length) {
                     $watchlistBody.html('<div class="col-12 text-muted">No symbols yet</div>');
@@ -889,25 +1256,31 @@
                 if (e.key === 'Enter') $('#auth-email-submit').click();
             });
 
-            function applyChartTheme(layout) {
+            const CHART_TEXT  = '#e7ecff';
+            const GRID_COLOR  = 'rgba(255,255,255,0.1)';
+            const ZERO_COLOR  = 'rgba(255,255,255,0.2)';
+            const axisTheme   = b => ({ ...(b || {}), gridcolor: GRID_COLOR, zerolinecolor: ZERO_COLOR, color: CHART_TEXT });
+
+            function applyChartTheme(layout, traceCount) {
                 const base = layout || {};
+                const legendRows = Math.ceil((traceCount || 1) / 3);
                 return {
                     ...base,
                     paper_bgcolor: '#24346a',
                     plot_bgcolor: '#1b2a57',
-                    font: { ...(base.font || {}), color: '#e7ecff' },
-                    xaxis: {
-                        ...(base.xaxis || {}),
-                        gridcolor: 'rgba(255,255,255,0.1)',
-                        zerolinecolor: 'rgba(255,255,255,0.2)',
-                        color: '#e7ecff'
+                    font:   { ...(base.font  || {}), color: CHART_TEXT },
+                    xaxis:  axisTheme(base.xaxis),
+                    yaxis:  axisTheme(base.yaxis),
+                    legend: {
+                        ...(base.legend || {}),
+                        orientation: 'h',
+                        yanchor: 'top',
+                        y: -0.15,
+                        xanchor: 'center',
+                        x: 0.5,
+                        font: { color: CHART_TEXT }
                     },
-                    yaxis: {
-                        ...(base.yaxis || {}),
-                        gridcolor: 'rgba(255,255,255,0.1)',
-                        zerolinecolor: 'rgba(255,255,255,0.2)',
-                        color: '#e7ecff'
-                    }
+                    margin: { ...(base.margin || {}), b: 40 + legendRows * 20 }
                 };
             }
 
@@ -1008,24 +1381,27 @@
                     success: function(response) {
                         $('.loading-spinner').removeClass('is-visible');
                         $('#results').show();
+                        if (response._meta) {
+                            updateUsageDisplay(response._meta.used_today, response._meta.daily_limit);
+                        }
 
                         const chartData = typeof response.chart === 'string' ? JSON.parse(response.chart) : response.chart;
-                        Plotly.newPlot('chart', chartData.data, applyChartTheme(chartData.layout));
+                        Plotly.newPlot('chart', chartData.data, applyChartTheme(chartData.layout, chartData.data.length));
                         if (response.pattern_chart) {
                             const patternData = typeof response.pattern_chart === 'string' ? JSON.parse(response.pattern_chart) : response.pattern_chart;
-                            Plotly.newPlot('pattern-chart', patternData.data, applyChartTheme(patternData.layout));
+                            Plotly.newPlot('pattern-chart', patternData.data, applyChartTheme(patternData.layout, patternData.data.length));
                         } else {
                             $('#pattern-chart').html('<div class="text-muted">Pattern chart unavailable for this response.</div>');
                         }
                         if (response.pattern_chart_48h) {
                             const pattern48Data = typeof response.pattern_chart_48h === 'string' ? JSON.parse(response.pattern_chart_48h) : response.pattern_chart_48h;
-                            Plotly.newPlot('pattern-chart-48h', pattern48Data.data, applyChartTheme(pattern48Data.layout));
+                            Plotly.newPlot('pattern-chart-48h', pattern48Data.data, applyChartTheme(pattern48Data.layout, pattern48Data.data.length));
                         } else {
                             $('#pattern-chart-48h').html('<div class="text-muted">48h pattern chart unavailable for this response.</div>');
                         }
                         if (response.rsi_chart) {
                             const rsiData = typeof response.rsi_chart === 'string' ? JSON.parse(response.rsi_chart) : response.rsi_chart;
-                            Plotly.newPlot('rsi-chart', rsiData.data, applyChartTheme(rsiData.layout));
+                            Plotly.newPlot('rsi-chart', rsiData.data, applyChartTheme(rsiData.layout, rsiData.data.length));
                         } else {
                             $('#rsi-chart').html('<div class="text-muted">RSI chart unavailable for this response.</div>');
                         }
@@ -1086,25 +1462,57 @@
                         `;
                         $('#about-container').html(aboutHtml);
 
+                        function fmtNewsDate(raw) {
+                            if (!raw) return '';
+                            // ISO string (2026-04-05T18:09:58Z) or human-readable
+                            try {
+                                const d = new Date(raw);
+                                if (!isNaN(d)) return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                            } catch (_) {}
+                            return raw;
+                        }
+
+                        function sentimentPill(val) {
+                            if (val === null || val === undefined) {
+                                return `<span class="sentiment-pill sentiment-neutral">— N/A</span>`;
+                            }
+                            const score = Number(val);
+                            const barWidth = Math.min(100, Math.abs(score));
+                            let label, cls, barCls;
+                            if (score >= 20)       { label = 'Bullish';  cls = 'sentiment-bull';    barCls = 'bar-bull'; }
+                            else if (score <= -20) { label = 'Bearish';  cls = 'sentiment-bear';    barCls = 'bar-bear'; }
+                            else                   { label = 'Neutral';  cls = 'sentiment-neutral'; barCls = 'bar-neutral'; }
+                            return `
+                                <div class="sentiment-block">
+                                    <span class="sentiment-pill ${cls}">${label}</span>
+                                    <div class="sentiment-bar-track">
+                                        <div class="sentiment-bar-fill ${barCls}" style="width:${barWidth}%"></div>
+                                    </div>
+                                    <span class="sentiment-score">${score > 0 ? '+' : ''}${score}</span>
+                                </div>`;
+                        }
+
                         let newsHtml = '';
                         if (response.news && response.news.length) {
                             response.news.forEach(article => {
-                                const published = article.published ? `<small class="text-muted">${article.published}</small>` : '';
-                                const sentimentVal = article.sentiment ?? null;
-                                const sentimentClass = sentimentVal === null ? 'text-muted' : (sentimentVal >= 0 ? 'text-success' : 'text-danger');
-                                const sentimentLabel = sentimentVal === null ? 'N/A' : sentimentVal;
+                                const published = article.published
+                                    ? `<small class="text-muted">${fmtNewsDate(article.published)}</small>`
+                                    : '';
                                 newsHtml += `
                                     <div class="card mb-2 news-article">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div>
-                                                    <h5 class="card-title mb-1">${article.title}</h5>
-                                                    <p class="card-text text-muted mb-1">${article.publisher || ''}</p>
-                                                    ${published}
+                                        <div class="card-body pb-2">
+                                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                                <div class="flex-grow-1 min-w-0">
+                                                    <h6 class="card-title mb-1 lh-sm">${article.title}</h6>
+                                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                        <small class="text-muted">${article.publisher || ''}</small>
+                                                        ${published}
+                                                    </div>
                                                 </div>
-                                                <div class="${sentimentClass} fw-bold">Sentiment: ${sentimentLabel}</div>
+                                                <div class="flex-shrink-0">${sentimentPill(article.sentiment ?? null)}</div>
                                             </div>
-                                            <a href="${article.link}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                                            <a href="${article.link}" target="_blank" rel="noopener noreferrer"
+                                               class="btn btn-sm btn-outline-primary mt-2">
                                                 <i class="fas fa-external-link-alt"></i> Read More
                                             </a>
                                         </div>
@@ -1112,22 +1520,165 @@
                                 `;
                             });
                         } else {
-                            newsHtml = '<div class="text-muted">No recent news found for this symbol.</div>';
+                            newsHtml = '<div class="text-muted p-2">No recent news found for this symbol.</div>';
                         }
                         $('#news-container').html(newsHtml);
+
+                        // Pro features — fire after prediction succeeds
+                        const currentSymbol = symbol;
+                        if (hasProAccess) {
+                            loadTradeThesis(currentSymbol);
+                            loadPeers(currentSymbol);
+                        }
                     },
                     error: function(xhr) {
                         $('.loading-spinner').removeClass('is-visible');
-                        alert('Error: ' + (xhr.responseJSON ? xhr.responseJSON.error : 'Unknown error'));
+                        const data = xhr.responseJSON || {};
+                        if (xhr.status === 429 && data.upgrade_required) {
+                            openUpgradeModal(data.error || "You've reached your daily limit.");
+                        } else {
+                            alert('Error: ' + (data.error || 'Unknown error'));
+                        }
                     }
                 });
             });
 
+            const proTiers = ['pro', 'premium', 'admin'];
+            const hasProAccess = isLoggedIn && proTiers.includes(userTier);
+            const watchlistTiers = proTiers;
+            const hasWatchlistAccess = hasProAccess;
+
+            // Upgrade button inside locked cards
+            $('#thesis-upgrade-btn, #peers-upgrade-btn').on('click', function() {
+                openUpgradeModal('Upgrade to Pro to unlock AI Trade Thesis and Peer Comparison.');
+            });
+
+            // ---------------------------------------------------------------
+            // AI Trade Thesis
+            // ---------------------------------------------------------------
+            function parseThesis(text) {
+                const sections = { bull: '', bear: '', verdict: '' };
+                const bullMatch   = text.match(/BULL CASE[:\s]*([\s\S]*?)(?=BEAR CASE|$)/i);
+                const bearMatch   = text.match(/BEAR CASE[:\s]*([\s\S]*?)(?=VERDICT|$)/i);
+                const verdictMatch = text.match(/VERDICT[:\s]*([\s\S]*?)$/i);
+                if (bullMatch)    sections.bull    = bullMatch[1].trim();
+                if (bearMatch)    sections.bear    = bearMatch[1].trim();
+                if (verdictMatch) sections.verdict = verdictMatch[1].trim();
+                return sections;
+            }
+
+            async function loadTradeThesis(sym) {
+                $('#thesis-container').html('<div class="pro-lock text-muted small"><i class="fas fa-spinner fa-spin me-1"></i> Generating thesis…</div>');
+                try {
+                    const resp = await fetch('/api/trade-thesis', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ symbol: sym })
+                    });
+                    const data = await resp.json();
+                    if (!resp.ok || data.error) {
+                        $('#thesis-container').html(`<div class="pro-lock text-muted small">${data.error || 'Could not generate thesis.'}</div>`);
+                        return;
+                    }
+                    const s = parseThesis(data.thesis || '');
+                    const fallback = data.thesis || '';
+                    if (!s.bull && !s.bear && !s.verdict) {
+                        $('#thesis-container').html(`<div class="card-body"><p class="thesis-body">${fallback}</p></div>`);
+                        return;
+                    }
+                    $('#thesis-container').html(`
+                        <div class="card-body">
+                            <div class="thesis-section thesis-bull">
+                                <div class="thesis-label">Bull Case</div>
+                                <div class="thesis-body">${s.bull || '—'}</div>
+                            </div>
+                            <div class="thesis-section thesis-bear">
+                                <div class="thesis-label">Bear Case</div>
+                                <div class="thesis-body">${s.bear || '—'}</div>
+                            </div>
+                            <div class="thesis-section thesis-verdict mb-0">
+                                <div class="thesis-label">Verdict</div>
+                                <div class="thesis-body">${s.verdict || '—'}</div>
+                            </div>
+                        </div>
+                    `);
+                } catch (e) {
+                    $('#thesis-container').html('<div class="pro-lock text-muted small">Network error. Please try again.</div>');
+                }
+            }
+
+            // ---------------------------------------------------------------
+            // Peer Comparison
+            // ---------------------------------------------------------------
+            function fmtMktCap(v) {
+                if (!v) return '—';
+                if (v >= 1e12) return '$' + (v / 1e12).toFixed(1) + 'T';
+                if (v >= 1e9)  return '$' + (v / 1e9).toFixed(1) + 'B';
+                if (v >= 1e6)  return '$' + (v / 1e6).toFixed(1) + 'M';
+                return '$' + v;
+            }
+
+            async function loadPeers(sym) {
+                $('#peers-container').html('<div class="pro-lock text-muted small"><i class="fas fa-spinner fa-spin me-1"></i> Loading peers…</div>');
+                try {
+                    const resp = await fetch('/api/peers', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ symbol: sym })
+                    });
+                    const data = await resp.json();
+                    if (!resp.ok || data.error) {
+                        $('#peers-container').html(`<div class="pro-lock text-muted small">${data.error || 'Could not load peers.'}</div>`);
+                        return;
+                    }
+                    const peers = data.peers || [];
+                    if (!peers.length) {
+                        $('#peers-container').html('<div class="pro-lock text-muted small">No peer data available for this symbol.</div>');
+                        return;
+                    }
+                    const currentPrice = data.current_price;
+                    const currentChg = '—';
+                    const allRows = [
+                        { symbol: sym, price: currentPrice, change_pct: null, market_cap: null, isMain: true },
+                        ...peers
+                    ];
+                    const rows = allRows.map(p => {
+                        const chgClass = p.change_pct === null ? '' : (p.change_pct >= 0 ? 'text-success' : 'text-danger');
+                        const chgIcon  = p.change_pct === null ? '' : (p.change_pct >= 0 ? '▲' : '▼');
+                        const chgTxt   = p.change_pct === null ? currentChg : `${chgIcon} ${Math.abs(p.change_pct).toFixed(2)}%`;
+                        return `<tr class="${p.isMain ? 'peer-highlighted' : ''}">
+                            <td>${p.symbol}${p.isMain ? ' <span class="tier-badge tier-badge-pro" style="font-size:0.55rem;">you</span>' : ''}</td>
+                            <td>$${(p.price || 0).toFixed(2)}</td>
+                            <td class="${chgClass}">${chgTxt}</td>
+                            <td>${fmtMktCap(p.market_cap)}</td>
+                        </tr>`;
+                    }).join('');
+                    $('#peers-container').html(`
+                        <div class="card-body p-0">
+                            <table class="peer-table">
+                                <thead><tr><th>Symbol</th><th>Price</th><th>5-day</th><th>Mkt Cap</th></tr></thead>
+                                <tbody>${rows}</tbody>
+                            </table>
+                        </div>
+                    `);
+                } catch (e) {
+                    $('#peers-container').html('<div class="pro-lock text-muted small">Network error. Please try again.</div>');
+                }
+            }
+
             $('#add-watchlist').click(async function(e) {
                 e.preventDefault();
+                if (!isLoggedIn) {
+                    openUpgradeModal('Sign in and upgrade to Pro to save your watchlist.');
+                    return;
+                }
+                if (!hasWatchlistAccess) {
+                    openUpgradeModal('Watchlist is available on Pro and Premium plans.');
+                    return;
+                }
                 const symbol = $('#stock-input').val().trim().toUpperCase();
                 if (!symbol) {
-                    alert('Please enter a stock symbol first');
+                    $watchlistNotice.text('Please enter a stock symbol first.');
                     return;
                 }
                 const list = await loadWatchlist();
@@ -1142,10 +1693,12 @@
             });
 
             $watchlistBody.on('click', '.watchlist-item', function() {
-                const sym = $(this).data('symbol');
-                if (sym) {
-                    triggerPredictFor(sym);
+                if (!hasWatchlistAccess) {
+                    openUpgradeModal('Upgrade to Pro to use your watchlist.');
+                    return;
                 }
+                const sym = $(this).data('symbol');
+                if (sym) triggerPredictFor(sym);
             });
 
             $watchlistBody.on('click', '.remove-watchlist', async function(e) {

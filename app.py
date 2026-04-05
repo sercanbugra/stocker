@@ -29,6 +29,8 @@ from flask_dance.contrib.google import make_google_blueprint, google
 from oauthlib.oauth2 import TokenExpiredError
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
+import stripe
 
 # Configure logging
 logging.basicConfig(
@@ -42,6 +44,20 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
 SENTIMENT_ANALYZER = SentimentIntensityAnalyzer()
 _USER_AGENT = "Mozilla/5.0"
+
+# Stripe
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_PRO_PRICE_ID = os.getenv("STRIPE_PRO_PRICE_ID", "")
+STRIPE_PREMIUM_PRICE_ID = os.getenv("STRIPE_PREMIUM_PRICE_ID", "")
+
+# Subscription tiers
+TIER_RANK = {"free": 0, "pro": 1, "premium": 2, "admin": 99}
+FREE_DAILY_LIMIT = 5
+ANON_DAILY_LIMIT = 3
+
+# Accounts that are always treated as admin regardless of users.json
+ADMIN_EMAILS = {"sercan.bugra@gmail.com"}
 
 google_bp = None
 google_client_id = os.getenv("GOOGLE_OAUTH_CLIENT_ID")
@@ -288,15 +304,75 @@ def _load_users() -> dict:
     if os.path.exists(USERS_FILE):
         try:
             with open(USERS_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
+                users = json.load(f)
         except Exception:
-            pass
+            return {}
+        # Migrate old flat format: {email: "hash_string"} → {email: {password_hash, tier, …}}
+        migrated = False
+        for email, val in list(users.items()):
+            if isinstance(val, str):
+                users[email] = {"password_hash": val, "tier": "free"}
+                migrated = True
+        if migrated:
+            _save_users(users)
+        return users
     return {}
 
 def _save_users(users: dict) -> None:
     os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
     with open(USERS_FILE, "w", encoding="utf-8") as f:
         json.dump(users, f)
+
+def _get_user_tier(email: str) -> str:
+    if not email:
+        return "free"
+    if email.lower() in ADMIN_EMAILS:
+        return "admin"
+    users = _load_users()
+    info = users.get(email, {})
+    if not isinstance(info, dict):
+        return "free"
+    tier = info.get("tier", "free")
+    status = info.get("subscription_status", "active")
+    if tier != "free" and status not in ("active", "trialing"):
+        return "free"
+    return tier
+
+def _check_and_increment_daily_usage(email: str):
+    """Returns (allowed, used_today, limit). Increments usage count if allowed."""
+    tier = _get_user_tier(email)
+    if TIER_RANK.get(tier, 0) >= TIER_RANK["pro"]:
+        return True, 0, -1  # paid users: unlimited
+
+    today = datetime.now(timezone.utc).date().isoformat()
+    users = _load_users()
+    info = users.get(email, {})
+    if not isinstance(info, dict):
+        info = {"password_hash": info, "tier": "free"}
+    daily_usage = info.get("daily_usage", {})
+    used = daily_usage.get(today, 0)
+    if used >= FREE_DAILY_LIMIT:
+        return False, used, FREE_DAILY_LIMIT
+    daily_usage[today] = used + 1
+    info["daily_usage"] = daily_usage
+    users[email] = info
+    _save_users(users)
+    return True, used + 1, FREE_DAILY_LIMIT
+
+def subscription_required(min_tier="pro"):
+    """Decorator that gates a route to users with at least `min_tier`."""
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            email = _get_current_user_email()
+            if not email:
+                return jsonify({"error": "Login required"}), 401
+            tier = _get_user_tier(email)
+            if TIER_RANK.get(tier, 0) < TIER_RANK[min_tier]:
+                return jsonify({"error": "upgrade_required", "required_tier": min_tier}), 403
+            return f(*args, **kwargs)
+        return wrapper
+    return decorator
 REMARKABLES_CACHE_PATH = os.path.join(_DATA_DIR, "cache", "remarkables_nasdaq.json")
 REMARKABLES_CACHE_TTL_SECONDS = 12 * 60 * 60
 REMARKABLES_BATCH_SIZE = 25
@@ -1725,7 +1801,22 @@ def home():
             if google_bp and google_bp.token:
                 del google_bp.token
             session.pop("user_email", None)
-    return render_template('index.html', stocks=stocks, user=user, remarkables=remarkables)
+    user_email = session.get("user_email")
+    if user_email and user is None:
+        user = {"email": user_email}
+    user_tier = _get_user_tier(user_email) if user_email else "free"
+    subscribed = request.args.get("subscribed") == "1"
+    return render_template(
+        'index.html',
+        stocks=stocks,
+        user=user,
+        remarkables=remarkables,
+        user_tier=user_tier,
+        user_email=user_email or "",
+        subscribed=subscribed,
+        stripe_enabled=bool(stripe.api_key),
+        free_daily_limit=FREE_DAILY_LIMIT,
+    )
 
 @app.route('/api/remarkables', methods=['GET'])
 def remarkables_api():
@@ -1748,11 +1839,15 @@ def login_email():
     if not email or not password:
         return jsonify({"error": "Email and password are required."}), 400
     users = _load_users()
-    hashed = users.get(email)
-    if not hashed or not check_password_hash(hashed, password):
+    info = users.get(email)
+    if not info:
+        return jsonify({"error": "Invalid email or password."}), 401
+    hashed = info["password_hash"] if isinstance(info, dict) else info
+    if not check_password_hash(hashed, password):
         return jsonify({"error": "Invalid email or password."}), 401
     session["user_email"] = email
-    return jsonify({"ok": True})
+    tier = info.get("tier", "free") if isinstance(info, dict) else "free"
+    return jsonify({"ok": True, "tier": tier})
 
 @app.route("/register/email", methods=["POST"])
 def register_email():
@@ -1768,16 +1863,19 @@ def register_email():
     users = _load_users()
     if email in users:
         return jsonify({"error": "An account with this email already exists."}), 409
-    users[email] = generate_password_hash(password)
+    users[email] = {"password_hash": generate_password_hash(password), "tier": "free"}
     _save_users(users)
     session["user_email"] = email
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "tier": "free"})
 
 @app.route("/api/watchlist", methods=["GET", "POST"])
 def watchlist_api():
     email = _get_current_user_email()
     if not email:
         return jsonify({"error": "unauthorized"}), 401
+    tier = _get_user_tier(email)
+    if TIER_RANK.get(tier, 0) < TIER_RANK["pro"]:
+        return jsonify({"error": "upgrade_required", "required_tier": "pro"}), 403
     path = _get_watchlist_path(email)
     if request.method == "GET":
         if not os.path.exists(path):
@@ -1802,6 +1900,156 @@ def watchlist_api():
         logger.error(f"Failed to write watchlist for {email}: {exc}")
         return jsonify({"error": "failed to save watchlist"}), 500
 
+# ---------------------------------------------------------------------------
+# AI Trade Thesis
+# ---------------------------------------------------------------------------
+_ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+
+def generate_trade_thesis(symbol: str, company_info: dict, current_price: float,
+                          predictions: dict, analyst_payload: dict, news: list,
+                          sentiment_avg: float | None) -> dict:
+    """Call Claude Haiku to generate a bull/bear/verdict trade thesis."""
+    if not _ANTHROPIC_API_KEY:
+        return {"error": "AI thesis not configured (missing ANTHROPIC_API_KEY)"}
+
+    # Build a compact context string — keep tokens low
+    avg_pred = None
+    pred_changes = []
+    for preds in predictions.values():
+        if preds:
+            chg = (preds[-1] - current_price) / current_price * 100
+            pred_changes.append(round(chg, 2))
+    if pred_changes:
+        avg_pred = round(sum(pred_changes) / len(pred_changes), 2)
+
+    reco = analyst_payload.get("recommendations") or []
+    latest_reco = reco[0] if reco else {}
+    analyst_summary = ""
+    if latest_reco:
+        sb = latest_reco.get("strongBuy", 0)
+        b  = latest_reco.get("buy", 0)
+        h  = latest_reco.get("hold", 0)
+        s  = latest_reco.get("sell", 0) + latest_reco.get("strongSell", 0)
+        analyst_summary = f"Analyst consensus: {sb} strong buy, {b} buy, {h} hold, {s} sell."
+
+    news_titles = "; ".join([n["title"] for n in (news or [])[:3] if n.get("title")])
+    sector = company_info.get("sector") or "Unknown"
+    industry = company_info.get("industry") or "Unknown"
+
+    prompt = (
+        f"You are a concise equity analyst. Write a trade thesis for {symbol} "
+        f"({sector} / {industry}) in exactly three short sections:\n"
+        f"1. BULL CASE (2 sentences max)\n"
+        f"2. BEAR CASE (2 sentences max)\n"
+        f"3. VERDICT (1 sentence — buy / hold / sell and why)\n\n"
+        f"Data:\n"
+        f"- Current price: ${current_price:.2f}\n"
+        f"- ML 30-day avg forecast change: {avg_pred:+.2f}%\n" if avg_pred is not None else ""
+        f"- {analyst_summary}\n"
+        f"- News sentiment score: {sentiment_avg if sentiment_avg is not None else 'N/A'}\n"
+        f"- Recent headlines: {news_titles or 'none'}\n\n"
+        f"Be direct. No disclaimers. No markdown headers — just the plain section labels."
+    )
+
+    try:
+        resp = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": _ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": "claude-haiku-4-5-20251001",
+                "max_tokens": 300,
+                "messages": [{"role": "user", "content": prompt}],
+            },
+            timeout=20,
+        )
+        resp.raise_for_status()
+        text = resp.json()["content"][0]["text"].strip()
+        return {"thesis": text}
+    except Exception as e:
+        logger.warning(f"Trade thesis API error for {symbol}: {e}")
+        return {"error": "Could not generate thesis. Please try again."}
+
+
+# ---------------------------------------------------------------------------
+# Peer Comparison
+# ---------------------------------------------------------------------------
+
+def fetch_peers(symbol: str, sector: str | None) -> list[dict]:
+    """Return up to 3 peers with basic price stats using yfinance."""
+    # Attempt to get peers from yfinance recommendations
+    peers = []
+    tried = set()
+    try:
+        t = yf.Ticker(symbol)
+        recs = getattr(t, "recommendations_summary", None)
+        # Try get_recommendations which returns a DataFrame of similar stocks
+        similar = None
+        try:
+            similar = t.get_recommendations(proxy=None, as_dict=False)
+        except Exception:
+            pass
+        if similar is not None and not similar.empty and "symbol" in similar.columns:
+            for sym in similar["symbol"].dropna().unique()[:6]:
+                sym = str(sym).upper()
+                if sym != symbol and sym not in tried:
+                    tried.add(sym)
+    except Exception:
+        pass
+
+    # Fallback: well-known peer maps for common sectors
+    SECTOR_PEERS = {
+        "Technology": ["MSFT", "GOOGL", "META", "NVDA", "AMD", "AAPL", "INTC", "QCOM"],
+        "Consumer Cyclical": ["AMZN", "TSLA", "HD", "NKE", "SBUX", "MCD"],
+        "Financial Services": ["JPM", "BAC", "WFC", "GS", "MS", "C"],
+        "Healthcare": ["JNJ", "UNH", "PFE", "ABBV", "MRK", "LLY"],
+        "Communication Services": ["GOOGL", "META", "NFLX", "DIS", "T", "VZ"],
+        "Energy": ["XOM", "CVX", "COP", "SLB", "EOG", "PSX"],
+        "Industrials": ["CAT", "BA", "HON", "GE", "LMT", "UPS"],
+        "Consumer Defensive": ["WMT", "PG", "KO", "PEP", "COST", "CL"],
+        "Basic Materials": ["LIN", "APD", "ECL", "NEM", "FCX", "NUE"],
+        "Real Estate": ["PLD", "AMT", "EQIX", "SPG", "O", "PSA"],
+        "Utilities": ["NEE", "DUK", "SO", "D", "EXC", "SRE"],
+    }
+    candidates = [s for s in SECTOR_PEERS.get(sector or "", []) if s != symbol]
+    for sym in candidates:
+        if sym not in tried:
+            tried.add(sym)
+
+    # Fetch data for up to 3 candidates
+    for sym in list(tried)[:6]:
+        if len(peers) >= 3:
+            break
+        try:
+            t = yf.Ticker(sym)
+            hist = t.history(period="5d")
+            if hist.empty:
+                continue
+            price = float(hist["Close"].iloc[-1])
+            prev  = float(hist["Close"].iloc[0])
+            chg   = (price - prev) / prev * 100
+            info  = t.fast_info
+            mkt   = getattr(info, "market_cap", None)
+            peers.append({
+                "symbol": sym,
+                "price": round(price, 2),
+                "change_pct": round(chg, 2),
+                "market_cap": int(mkt) if mkt else None,
+            })
+        except Exception:
+            continue
+
+    return peers
+
+
+def _avg_sentiment(news: list) -> float | None:
+    scores = [n["sentiment"] for n in (news or []) if n.get("sentiment") is not None]
+    return round(sum(scores) / len(scores), 1) if scores else None
+
+
 def _sentiment_score(*parts: str):
     text = " ".join([p for p in parts if p]).strip()
     if not text:
@@ -1812,56 +2060,72 @@ def _sentiment_score(*parts: str):
     except Exception:
         return None
 
+def _parse_yf_news_item(n: dict) -> dict | None:
+    """Parse a single yfinance news item regardless of old vs new API shape."""
+    # New shape (yfinance >= 0.2.50): all data under n['content']
+    content = n.get('content') or {}
+    if content:
+        title = content.get('title')
+        summary = content.get('summary') or content.get('description') or ''
+        publisher = (content.get('provider') or {}).get('displayName') or ''
+        pub_date = content.get('pubDate') or content.get('displayTime') or ''
+        click = content.get('clickThroughUrl') or content.get('canonicalUrl') or {}
+        link = click.get('url') if isinstance(click, dict) else None
+    else:
+        # Legacy shape: fields at top level
+        title = n.get('title')
+        summary = n.get('summary') or n.get('description') or ''
+        publisher = n.get('publisher') or (n.get('provider') or {}).get('displayName') or ''
+        pub_date = n.get('providerPublishTime') or ''
+        link = n.get('link') or n.get('url')
+
+    if not title or not link:
+        return None
+    return {
+        'title': title,
+        'link': link,
+        'publisher': publisher,
+        'published': pub_date,
+        'sentiment': _sentiment_score(title, summary),
+    }
+
+
 def fetch_news(stock_obj, symbol, limit=5):
     items = []
-    try:
-        raw = stock_obj.news or []
-        for n in raw[:limit]:
-            title = n.get('title')
-            link = n.get('link') or n.get('url')
-            publisher = n.get('publisher') or n.get('provider', {}).get('displayName')
-            published = n.get('providerPublishTime')
-            summary = n.get('summary') or n.get('description') or ''
-            sent = _sentiment_score(title, summary)
-            if title and link:
-                items.append({
-                    'title': title,
-                    'link': link,
-                    'publisher': publisher or '',
-                    'published': published,
-                    'sentiment': sent
-                })
-    except Exception as e:
-        logger.warning(f"YF news fetch failed for {symbol}: {e}")
 
+    # --- Primary: yfinance ---
+    if stock_obj is not None:
+        try:
+            raw = stock_obj.news or []
+            for n in raw:
+                parsed = _parse_yf_news_item(n)
+                if parsed:
+                    items.append(parsed)
+                if len(items) >= limit:
+                    break
+        except Exception as e:
+            logger.warning(f"YF news fetch failed for {symbol}: {e}")
+
+    # --- Fallback: Yahoo Finance search API ---
     if len(items) < limit:
         try:
-            rss_url = f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={symbol}&region=US&lang=en-US"
-            resp = requests.get(rss_url, timeout=5, headers={"User-Agent": _USER_AGENT})
-            if resp.ok and resp.text:
-                import xml.etree.ElementTree as ET
-                root = ET.fromstring(resp.text)
-                for item in root.findall('.//item'):
-                    title = (item.findtext('title') or '').strip()
-                    link = (item.findtext('link') or '').strip()
-                    pubdate = (item.findtext('pubDate') or '').strip()
-                    description = (item.findtext('description') or '').strip()
-                    sent = _sentiment_score(title, description)
-                    if title and link:
-                        items.append({
-                            'title': title,
-                            'link': link,
-                            'publisher': 'Yahoo Finance',
-                            'published': pubdate,
-                            'sentiment': sent
-                        })
+            url = (
+                f"https://query2.finance.yahoo.com/v1/finance/search"
+                f"?q={symbol}&newsCount={limit}&enableFuzzyQuery=false"
+            )
+            resp = requests.get(url, timeout=8, headers={"User-Agent": _USER_AGENT})
+            if resp.ok:
+                for n in (resp.json().get('news') or []):
+                    parsed = _parse_yf_news_item(n)
+                    if parsed:
+                        items.append(parsed)
                     if len(items) >= limit:
                         break
         except Exception as e:
-            logger.warning(f"RSS news fetch failed for {symbol}: {e}")
+            logger.warning(f"YF search news fetch failed for {symbol}: {e}")
 
-    # dedupe by title
-    seen = set()
+    # --- Dedupe by title ---
+    seen: set = set()
     deduped = []
     for it in items:
         t = it.get('title')
@@ -2037,11 +2301,209 @@ def run_prediction(symbol: str):
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    email = _get_current_user_email()
+    if email:
+        allowed, used, limit = _check_and_increment_daily_usage(email)
+        if not allowed:
+            return jsonify({
+                "error": "You've used all 5 free analyses for today. Upgrade to Pro for unlimited access.",
+                "upgrade_required": True,
+                "used_today": used,
+                "daily_limit": limit,
+            }), 429
+    else:
+        anon_used = session.get("anon_analyses", 0)
+        if anon_used >= ANON_DAILY_LIMIT:
+            return jsonify({
+                "error": f"You've used your {ANON_DAILY_LIMIT} free analyses. Sign in for more, or upgrade to Pro.",
+                "upgrade_required": True,
+                "sign_in_required": True,
+                "used_today": anon_used,
+                "daily_limit": ANON_DAILY_LIMIT,
+            }), 429
+        session["anon_analyses"] = anon_used + 1
+
     resp, status = run_prediction(request.form.get('symbol'))
     if status == 200:
+        tier = _get_user_tier(email) if email else "free"
+        today = datetime.now(timezone.utc).date().isoformat()
+        if email:
+            users = _load_users()
+            info = users.get(email, {})
+            used_now = info.get("daily_usage", {}).get(today, 0) if isinstance(info, dict) else 0
+        else:
+            used_now = session.get("anon_analyses", 0)
+        resp["_meta"] = {
+            "tier": tier,
+            "used_today": used_now,
+            "daily_limit": FREE_DAILY_LIMIT if tier == "free" else -1,
+        }
         return jsonify(resp)
     return jsonify(resp), status
 
+
+@app.route("/api/trade-thesis", methods=["POST"])
+@subscription_required("pro")
+def api_trade_thesis():
+    data = request.get_json(silent=True) or {}
+    symbol = (data.get("symbol") or "").strip().upper()
+    if not symbol:
+        return jsonify({"error": "symbol required"}), 400
+
+    cached = load_cached_response(symbol)
+    if not cached:
+        return jsonify({"error": "Run a prediction for this symbol first."}), 400
+
+    company_info = cached.get("company_info") or {}
+    current_price = cached.get("current_price") or 0.0
+    predictions   = cached.get("predictions") or {}
+    analyst       = cached.get("analyst_insights") or {}
+    news          = cached.get("news") or []
+    sentiment_avg = _avg_sentiment(news)
+
+    result = generate_trade_thesis(
+        symbol, company_info, current_price, predictions, analyst, news, sentiment_avg
+    )
+    return jsonify(result)
+
+
+@app.route("/api/peers", methods=["POST"])
+@subscription_required("pro")
+def api_peers():
+    data = request.get_json(silent=True) or {}
+    symbol = (data.get("symbol") or "").strip().upper()
+    if not symbol:
+        return jsonify({"error": "symbol required"}), 400
+
+    cached = load_cached_response(symbol)
+    sector = (cached.get("company_info") or {}).get("sector") if cached else None
+
+    peers = fetch_peers(symbol, sector)
+    current_price = (cached.get("current_price") or 0.0) if cached else 0.0
+    return jsonify({"symbol": symbol, "current_price": current_price, "peers": peers})
+
+
+@app.route("/api/me")
+def api_me():
+    email = _get_current_user_email()
+    if not email:
+        return jsonify({"logged_in": False, "tier": "free"})
+    tier = _get_user_tier(email)
+    users = _load_users()
+    info = users.get(email, {})
+    today = datetime.now(timezone.utc).date().isoformat()
+    used_today = info.get("daily_usage", {}).get(today, 0) if isinstance(info, dict) else 0
+    return jsonify({
+        "logged_in": True,
+        "email": email,
+        "tier": tier,
+        "used_today": used_today,
+        "daily_limit": FREE_DAILY_LIMIT if tier == "free" else -1,
+    })
+
+@app.route("/create-checkout-session", methods=["POST"])
+def create_checkout_session():
+    if not stripe.api_key:
+        return jsonify({"error": "Payments not configured on this server."}), 503
+    email = _get_current_user_email()
+    if not email:
+        return jsonify({"error": "Login required"}), 401
+    data = request.get_json(silent=True) or {}
+    tier = data.get("tier", "pro")
+    price_id = STRIPE_PREMIUM_PRICE_ID if tier == "premium" else STRIPE_PRO_PRICE_ID
+    if not price_id:
+        return jsonify({"error": "Price not configured"}), 503
+    try:
+        checkout = stripe.checkout.Session.create(
+            customer_email=email,
+            payment_method_types=["card"],
+            line_items=[{"price": price_id, "quantity": 1}],
+            mode="subscription",
+            success_url=url_for("home", _external=True) + "?subscribed=1",
+            cancel_url=url_for("home", _external=True),
+            metadata={"email": email},
+        )
+        return jsonify({"url": checkout.url})
+    except Exception as e:
+        logger.error(f"Stripe checkout error: {e}")
+        return jsonify({"error": "Failed to create checkout session"}), 500
+
+@app.route("/webhook/stripe", methods=["POST"])
+def stripe_webhook():
+    if not STRIPE_WEBHOOK_SECRET:
+        return "", 400
+    sig = request.headers.get("Stripe-Signature", "")
+    try:
+        event = stripe.Webhook.construct_event(request.data, sig, STRIPE_WEBHOOK_SECRET)
+    except Exception as e:
+        logger.warning(f"Stripe webhook signature error: {e}")
+        return "", 400
+
+    event_type = event["type"]
+    sub = event["data"]["object"]
+    customer_id = sub.get("customer")
+    users = _load_users()
+
+    def _apply_sub(info, sub_obj):
+        items = (sub_obj.get("items") or {}).get("data") or [{}]
+        price_id = (items[0].get("price") or {}).get("id", "")
+        info["tier"] = "premium" if price_id == STRIPE_PREMIUM_PRICE_ID else "pro"
+        info["subscription_status"] = sub_obj.get("status", "active")
+        info["current_period_end"] = sub_obj.get("current_period_end", 0)
+        info["stripe_subscription_id"] = sub_obj.get("id")
+        info["stripe_customer_id"] = customer_id
+
+    matched = False
+    for email, info in users.items():
+        if isinstance(info, dict) and info.get("stripe_customer_id") == customer_id:
+            if event_type in ("customer.subscription.created", "customer.subscription.updated"):
+                _apply_sub(info, sub)
+            elif event_type == "customer.subscription.deleted":
+                info["tier"] = "free"
+                info["subscription_status"] = "canceled"
+            elif event_type == "invoice.payment_failed":
+                info["subscription_status"] = "past_due"
+            matched = True
+            break
+
+    if not matched and event_type in ("customer.subscription.created", "customer.subscription.updated"):
+        # First-time subscriber: look up email from Stripe customer object
+        try:
+            customer = stripe.Customer.retrieve(customer_id)
+            customer_email = (customer.get("email") or "").lower()
+        except Exception:
+            customer_email = ""
+        if customer_email and customer_email in users:
+            info = users[customer_email]
+            if not isinstance(info, dict):
+                info = {"password_hash": info, "tier": "free"}
+            _apply_sub(info, sub)
+            users[customer_email] = info
+
+    _save_users(users)
+    return "", 200
+
+@app.route("/billing-portal")
+def billing_portal():
+    if not stripe.api_key:
+        return redirect(url_for("home"))
+    email = _get_current_user_email()
+    if not email:
+        return redirect(url_for("home"))
+    users = _load_users()
+    info = users.get(email, {})
+    customer_id = info.get("stripe_customer_id") if isinstance(info, dict) else None
+    if not customer_id:
+        return redirect(url_for("home"))
+    try:
+        portal = stripe.billing_portal.Session.create(
+            customer=customer_id,
+            return_url=url_for("home", _external=True),
+        )
+        return redirect(portal.url)
+    except Exception as e:
+        logger.error(f"Stripe billing portal error: {e}")
+        return redirect(url_for("home"))
 
 if __name__ == '__main__':
     host = os.getenv('HOST', '0.0.0.0')
