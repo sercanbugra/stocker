@@ -382,6 +382,10 @@ REMARKABLES_REFRESH_IN_PROGRESS = False
 REMARKABLES_MEMORY_CACHE = None
 REMARKABLES_MEMORY_DAY = None
 
+NEW_LISTINGS_CACHE_PATH = os.path.join(_DATA_DIR, "cache", "new_listings.json")
+_NEW_LISTINGS_MEM: list | None = None
+_NEW_LISTINGS_MEM_DAY: str | None = None
+
 def _sanitize_watchlist_key(value: str) -> str:
     if not value:
         return "anonymous"
@@ -1307,46 +1311,178 @@ def _build_pattern_chart_from_series(label, dates, close_values, open_values=Non
     )
     return json.loads(json.dumps(fig, cls=PlotlyJSONEncoder))
 
+def _detect_rsi_divergences(dates, close_values, rsi_values, lookback=5):
+    """
+    Detect classic RSI divergences over a short window.
+    Returns list of dicts with: x, y, text, color for annotations.
+    """
+    annotations = []
+    n = len(rsi_values)
+    if n < lookback + 2:
+        return annotations
+
+    # Find local price highs/lows and RSI highs/lows
+    for i in range(lookback, n - 1):
+        window_close = close_values[i - lookback:i + 1]
+        window_rsi   = rsi_values[i - lookback:i + 1]
+
+        # Bearish divergence: price makes higher high, RSI makes lower high
+        if (close_values[i] == max(window_close) and
+                rsi_values[i] < max(window_rsi) and
+                rsi_values[i] > 55):
+            annotations.append({
+                'x': dates[i], 'y': rsi_values[i],
+                'text': '⚠ Bearish Div', 'color': '#ff8a8a',
+                'ay': -35
+            })
+
+        # Bullish divergence: price makes lower low, RSI makes higher low
+        if (close_values[i] == min(window_close) and
+                rsi_values[i] > min(window_rsi) and
+                rsi_values[i] < 45):
+            annotations.append({
+                'x': dates[i], 'y': rsi_values[i],
+                'text': '↑ Bullish Div', 'color': '#6ee7a8',
+                'ay': 35
+            })
+
+    # Deduplicate: keep only first occurrence per divergence cluster
+    seen = set()
+    deduped = []
+    for a in annotations:
+        key = a['text']
+        if key not in seen:
+            seen.add(key)
+            deduped.append(a)
+    return deduped
+
+
 def _build_rsi_chart_from_series(label, dates, close_values):
     if not dates or not close_values:
         return None
-    window = 22
-    dates = dates[-window:] if len(dates) > window else dates
-    close_values = close_values[-window:] if len(close_values) > window else close_values
-    rsi_series = compute_rsi(pd.Series(close_values, dtype=float), window=14)
-    rsi_values = rsi_series.astype(float).tolist()
-    fig = go.Figure(data=[
-        go.Scatter(x=dates, y=rsi_values, mode='lines', name='RSI (14)')
-    ])
-    fig.add_hline(y=70, line_dash="dash", line_color="red")
-    fig.add_hline(y=30, line_dash="dash", line_color="green")
-    rsi_signal = None
-    last_rsi = rsi_values[-1] if rsi_values else None
-    if last_rsi is not None:
-        if last_rsi >= 70:
-            rsi_signal = {'text': 'Sell', 'color': 'red', 'ay': -40, 'arrowcolor': 'red'}
-        elif last_rsi <= 30:
-            rsi_signal = {'text': 'Buy', 'color': 'green', 'ay': 40, 'arrowcolor': 'green'}
-    rsi_title_suffix = 'Neutral' if rsi_signal is None else rsi_signal['text']
-    fig.update_layout(
-        title=f'{label} RSI (Last 1 Month) - {rsi_title_suffix}',
-        xaxis_title='Date',
-        yaxis_title='RSI'
-    )
-    if rsi_signal and dates:
+
+    # Use 45 days so divergence detection has enough history while showing ~1 month
+    window = 45
+    dates_full  = dates[-window:]       if len(dates) > window        else dates
+    close_full  = close_values[-window:] if len(close_values) > window else close_values
+
+    rsi_full   = compute_rsi(pd.Series(close_full, dtype=float), window=14).tolist()
+
+    # Display only last 22 trading days (~1 month) but detect divergences on full window
+    display_n   = min(22, len(dates_full))
+    dates_disp  = dates_full[-display_n:]
+    rsi_disp    = rsi_full[-display_n:]
+    close_disp  = close_full[-display_n:]
+
+    last_rsi = rsi_disp[-1] if rsi_disp else 50.0
+
+    # Badge text for current RSI
+    if last_rsi >= 70:
+        badge = f'RSI {last_rsi:.1f} — Overbought ⚠'
+        badge_color = '#ff8a8a'
+        signal_text = 'Overbought'
+    elif last_rsi <= 30:
+        badge = f'RSI {last_rsi:.1f} — Oversold ✓'
+        badge_color = '#6ee7a8'
+        signal_text = 'Oversold'
+    elif last_rsi >= 60:
+        badge = f'RSI {last_rsi:.1f} — Approaching Overbought'
+        badge_color = '#f7c04f'
+        signal_text = 'Elevated'
+    elif last_rsi <= 40:
+        badge = f'RSI {last_rsi:.1f} — Approaching Oversold'
+        badge_color = '#f7c04f'
+        signal_text = 'Depressed'
+    else:
+        badge = f'RSI {last_rsi:.1f} — Neutral'
+        badge_color = '#9ec3ff'
+        signal_text = 'Neutral'
+
+    fig = go.Figure()
+
+    # Zone shading — overbought (70-100) in red, oversold (0-30) in green
+    fig.add_hrect(y0=70, y1=100, fillcolor='rgba(255,100,100,0.10)',
+                  line_width=0, name='Overbought zone')
+    fig.add_hrect(y0=0,  y1=30,  fillcolor='rgba(100,220,140,0.10)',
+                  line_width=0, name='Oversold zone')
+
+    # Reference lines
+    fig.add_hline(y=70, line_dash='dash', line_color='rgba(255,100,100,0.6)',
+                  line_width=1, annotation_text='70', annotation_position='left')
+    fig.add_hline(y=50, line_dash='dot',  line_color='rgba(255,255,255,0.2)',
+                  line_width=1, annotation_text='50', annotation_position='left')
+    fig.add_hline(y=30, line_dash='dash', line_color='rgba(100,220,140,0.6)',
+                  line_width=1, annotation_text='30', annotation_position='left')
+
+    # RSI line — colour shifts based on zone
+    fig.add_trace(go.Scatter(
+        x=dates_disp, y=rsi_disp,
+        mode='lines',
+        name='RSI (14)',
+        line=dict(color='#9ec3ff', width=2),
+        fill='tozeroy',
+        fillcolor='rgba(79,142,247,0.06)',
+    ))
+
+    # Current RSI endpoint marker
+    fig.add_trace(go.Scatter(
+        x=[dates_disp[-1]],
+        y=[last_rsi],
+        mode='markers+text',
+        name='Current RSI',
+        marker=dict(color=badge_color, size=9, symbol='circle',
+                    line=dict(color='white', width=1)),
+        text=[f'{last_rsi:.1f}'],
+        textposition='top right',
+        textfont=dict(color=badge_color, size=11),
+        showlegend=False,
+    ))
+
+    # Divergence markers (run on full 45-day window)
+    divergences = _detect_rsi_divergences(dates_full, close_full, rsi_full)
+    # Only annotate those that fall inside the display window
+    display_set = set(dates_disp)
+    for div in divergences:
+        if div['x'] not in display_set:
+            continue
         fig.add_annotation(
-            x=dates[-1],
-            y=last_rsi,
-            text=rsi_signal['text'],
+            x=div['x'], y=div['y'],
+            text=div['text'],
             showarrow=True,
             arrowhead=2,
-            arrowsize=1.2,
-            arrowwidth=2,
-            arrowcolor=rsi_signal['arrowcolor'],
-            ax=0,
-            ay=rsi_signal['ay'],
-            font={'color': rsi_signal['color']}
+            arrowsize=1,
+            arrowwidth=1.5,
+            arrowcolor=div['color'],
+            ax=0, ay=div['ay'],
+            font=dict(color=div['color'], size=10),
+            bgcolor='rgba(27,42,87,0.8)',
+            bordercolor=div['color'],
+            borderwidth=1,
+            borderpad=3,
         )
+
+    # Badge annotation in top-left corner
+    fig.add_annotation(
+        xref='paper', yref='paper',
+        x=0.01, y=0.97,
+        text=f'<b>{badge}</b>',
+        showarrow=False,
+        font=dict(color=badge_color, size=12),
+        bgcolor='rgba(27,42,87,0.85)',
+        bordercolor=badge_color,
+        borderwidth=1,
+        borderpad=4,
+        xanchor='left', yanchor='top',
+    )
+
+    fig.update_layout(
+        title=f'{label} — RSI Analysis (Last 1 Month) · {signal_text}',
+        xaxis_title='Date',
+        yaxis=dict(title='RSI', range=[0, 100]),
+        legend=dict(orientation='h', yanchor='top', y=-0.25, xanchor='center', x=0.5),
+        margin=dict(b=80),
+    )
+
     return json.loads(json.dumps(fig, cls=PlotlyJSONEncoder))
 
 def _build_pattern_chart_48h_from_df(symbol: str, df_48h: pd.DataFrame):
@@ -1794,10 +1930,107 @@ def train_prediction_models(close_values, forecast_horizon=30, time_steps=30):
 
     return predictions
 
+def fetch_new_listings(days: int = 10, max_results: int = 10) -> list:
+    """Return US equities that started trading within the last `days` days.
+
+    Uses Yahoo Finance's screener API filtered by startdatetime.
+    Results are cached in memory + a daily JSON file so the page load stays fast.
+    """
+    global _NEW_LISTINGS_MEM, _NEW_LISTINGS_MEM_DAY
+    today_key = datetime.now(timezone.utc).date().isoformat()
+
+    if _NEW_LISTINGS_MEM is not None and _NEW_LISTINGS_MEM_DAY == today_key:
+        return _NEW_LISTINGS_MEM
+
+    try:
+        if os.path.exists(NEW_LISTINGS_CACHE_PATH):
+            with open(NEW_LISTINGS_CACHE_PATH, "r", encoding="utf-8") as fh:
+                fc = json.load(fh)
+            if fc.get("date") == today_key:
+                _NEW_LISTINGS_MEM = fc.get("listings", [])
+                _NEW_LISTINGS_MEM_DAY = today_key
+                return _NEW_LISTINGS_MEM
+    except Exception:
+        pass
+
+    listings = _fetch_new_listings_live(days, max_results)
+
+    try:
+        os.makedirs(os.path.dirname(NEW_LISTINGS_CACHE_PATH), exist_ok=True)
+        with open(NEW_LISTINGS_CACHE_PATH, "w", encoding="utf-8") as fh:
+            json.dump({"date": today_key, "listings": listings}, fh)
+    except Exception as exc:
+        logger.warning(f"Could not write new_listings cache: {exc}")
+
+    _NEW_LISTINGS_MEM = listings
+    _NEW_LISTINGS_MEM_DAY = today_key
+    return listings
+
+
+def _fetch_new_listings_live(days: int = 10, max_results: int = 10) -> list:
+    cutoff_ts = int(datetime.now(timezone.utc).timestamp() - days * 86400)
+    url = "https://query1.finance.yahoo.com/v1/finance/screener"
+    headers = {
+        "User-Agent": _USER_AGENT,
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "size": max_results * 3,
+        "offset": 0,
+        "sortField": "startdatetime",
+        "sortType": "DESC",
+        "quoteType": "EQUITY",
+        "query": {
+            "operator": "AND",
+            "operands": [
+                {"operator": "GT", "operands": ["startdatetime", cutoff_ts]},
+                {"operator": "EQ", "operands": ["region", "us"]},
+            ],
+        },
+        "userId": "",
+        "userIdType": "guid",
+    }
+    try:
+        resp = requests.post(url, json=payload, headers=headers, timeout=10)
+        resp.raise_for_status()
+        quotes = resp.json().get("finance", {}).get("result", [{}])[0].get("quotes", [])
+    except Exception as exc:
+        logger.warning(f"_fetch_new_listings_live failed: {exc}")
+        return []
+
+    results = []
+    for q in quotes:
+        sym = q.get("symbol", "")
+        if not sym:
+            continue
+        ipo_ts = q.get("startdatetime")
+        ipo_date = ""
+        if ipo_ts:
+            try:
+                ipo_date = datetime.fromtimestamp(ipo_ts, tz=timezone.utc).strftime("%b %d")
+            except Exception:
+                pass
+        chg = q.get("regularMarketChangePercent") or 0
+        results.append({
+            "symbol": sym,
+            "name": q.get("longName") or q.get("shortName") or sym,
+            "ipo_date": ipo_date,
+            "price": q.get("regularMarketPrice"),
+            "change_pct": round(float(chg), 2),
+            "exchange": q.get("fullExchangeName") or q.get("exchange") or "",
+        })
+        if len(results) >= max_results:
+            break
+
+    return results
+
+
 @app.route('/')
 def home():
     stocks = fetch_sp500_stocks()
     remarkables = get_remarkables(force_refresh=False)
+    new_listings = fetch_new_listings()
     user = None
     if google_client_id and google_client_secret and google.authorized:
         try:
@@ -1820,6 +2053,7 @@ def home():
         stocks=stocks,
         user=user,
         remarkables=remarkables,
+        new_listings=new_listings,
         user_tier=user_tier,
         user_email=user_email or "",
         subscribed=subscribed,
@@ -1945,6 +2179,14 @@ def generate_trade_thesis(symbol: str, company_info: dict, current_price: float,
     sector = company_info.get("sector") or "Unknown"
     industry = company_info.get("industry") or "Unknown"
 
+    data_lines = [f"- Current price: ${current_price:.2f}"]
+    if avg_pred is not None:
+        data_lines.append(f"- ML 30-day avg forecast change: {avg_pred:+.2f}%")
+    if analyst_summary:
+        data_lines.append(f"- {analyst_summary}")
+    data_lines.append(f"- News sentiment score: {sentiment_avg if sentiment_avg is not None else 'N/A'}")
+    data_lines.append(f"- Recent headlines: {news_titles or 'none'}")
+
     prompt = (
         f"You are a concise equity analyst. Write a trade thesis for {symbol} "
         f"({sector} / {industry}) in exactly three short sections:\n"
@@ -1952,12 +2194,8 @@ def generate_trade_thesis(symbol: str, company_info: dict, current_price: float,
         f"2. BEAR CASE (2 sentences max)\n"
         f"3. VERDICT (1 sentence — buy / hold / sell and why)\n\n"
         f"Data:\n"
-        f"- Current price: ${current_price:.2f}\n"
-        f"- ML 30-day avg forecast change: {avg_pred:+.2f}%\n" if avg_pred is not None else ""
-        f"- {analyst_summary}\n"
-        f"- News sentiment score: {sentiment_avg if sentiment_avg is not None else 'N/A'}\n"
-        f"- Recent headlines: {news_titles or 'none'}\n\n"
-        f"Be direct. No disclaimers. No markdown headers — just the plain section labels."
+        + "\n".join(data_lines)
+        + "\n\nBe direct. No disclaimers. No markdown headers — just the plain section labels."
     )
 
     try:
@@ -1975,7 +2213,9 @@ def generate_trade_thesis(symbol: str, company_info: dict, current_price: float,
             },
             timeout=20,
         )
-        resp.raise_for_status()
+        if not resp.ok:
+            logger.warning(f"Trade thesis API error for {symbol}: {resp.status_code} {resp.text}")
+            return {"error": "Could not generate thesis. Please try again."}
         text = resp.json()["content"][0]["text"].strip()
         return {"thesis": text}
     except Exception as e:
@@ -1987,71 +2227,127 @@ def generate_trade_thesis(symbol: str, company_info: dict, current_price: float,
 # Peer Comparison
 # ---------------------------------------------------------------------------
 
-def fetch_peers(symbol: str, sector: str | None) -> list[dict]:
-    """Return up to 3 peers with basic price stats using yfinance."""
-    # Attempt to get peers from yfinance recommendations
-    peers = []
-    tried = set()
+def _fetch_ticker_fundamentals(sym: str) -> dict | None:
+    """Fetch full fundamentals for one ticker. Returns None on failure."""
     try:
-        t = yf.Ticker(symbol)
-        recs = getattr(t, "recommendations_summary", None)
-        # Try get_recommendations which returns a DataFrame of similar stocks
-        similar = None
-        try:
-            similar = t.get_recommendations(proxy=None, as_dict=False)
-        except Exception:
-            pass
-        if similar is not None and not similar.empty and "symbol" in similar.columns:
-            for sym in similar["symbol"].dropna().unique()[:6]:
-                sym = str(sym).upper()
-                if sym != symbol and sym not in tried:
-                    tried.add(sym)
+        t = yf.Ticker(sym)
+        info = t.info
+        price = info.get("regularMarketPrice") or info.get("currentPrice")
+        mkt_cap = info.get("marketCap")
+        if not price or not mkt_cap:
+            return None
+
+        hist = t.history(period="1y")
+        if hist.empty:
+            return None
+
+        close = hist["Close"]
+        price_now   = float(close.iloc[-1])
+        price_1w    = float(close.iloc[-5])  if len(close) >= 5  else None
+        price_1m    = float(close.iloc[-21]) if len(close) >= 21 else None
+        price_3m    = float(close.iloc[-63]) if len(close) >= 63 else None
+        price_start = float(close.iloc[0])
+
+        def pct(a, b):
+            return round((a - b) / b * 100, 2) if b else None
+
+        week_52_high = info.get("fiftyTwoWeekHigh")
+        week_52_low  = info.get("fiftyTwoWeekLow")
+        off_high = pct(price_now, week_52_high) if week_52_high else None
+
+        return {
+            "symbol":          sym,
+            "name":            info.get("shortName") or sym,
+            "sector":          info.get("sector"),
+            "industry":        info.get("industry"),
+            "market_cap":      int(mkt_cap),
+            "price":           round(price_now, 2),
+            "chg_1w":          pct(price_now, price_1w),
+            "chg_1m":          pct(price_now, price_1m),
+            "chg_3m":          pct(price_now, price_3m),
+            "chg_ytd":         pct(price_now, price_start),
+            "pe_trailing":     round(info.get("trailingPE"), 2) if info.get("trailingPE") else None,
+            "pe_forward":      round(info.get("forwardPE"), 2)  if info.get("forwardPE")  else None,
+            "revenue_growth":  round(info.get("revenueGrowth", 0) * 100, 1) if info.get("revenueGrowth") is not None else None,
+            "profit_margin":   round(info.get("profitMargins", 0) * 100, 1) if info.get("profitMargins") is not None else None,
+            "roe":             round(info.get("returnOnEquity", 0) * 100, 1) if info.get("returnOnEquity") is not None else None,
+            "week_52_high":    week_52_high,
+            "week_52_low":     week_52_low,
+            "off_52w_high":    off_high,
+        }
     except Exception:
-        pass
+        return None
 
-    # Fallback: well-known peer maps for common sectors
-    SECTOR_PEERS = {
-        "Technology": ["MSFT", "GOOGL", "META", "NVDA", "AMD", "AAPL", "INTC", "QCOM"],
-        "Consumer Cyclical": ["AMZN", "TSLA", "HD", "NKE", "SBUX", "MCD"],
-        "Financial Services": ["JPM", "BAC", "WFC", "GS", "MS", "C"],
-        "Healthcare": ["JNJ", "UNH", "PFE", "ABBV", "MRK", "LLY"],
-        "Communication Services": ["GOOGL", "META", "NFLX", "DIS", "T", "VZ"],
-        "Energy": ["XOM", "CVX", "COP", "SLB", "EOG", "PSX"],
-        "Industrials": ["CAT", "BA", "HON", "GE", "LMT", "UPS"],
-        "Consumer Defensive": ["WMT", "PG", "KO", "PEP", "COST", "CL"],
-        "Basic Materials": ["LIN", "APD", "ECL", "NEM", "FCX", "NUE"],
-        "Real Estate": ["PLD", "AMT", "EQIX", "SPG", "O", "PSA"],
-        "Utilities": ["NEE", "DUK", "SO", "D", "EXC", "SRE"],
-    }
-    candidates = [s for s in SECTOR_PEERS.get(sector or "", []) if s != symbol]
-    for sym in candidates:
-        if sym not in tried:
-            tried.add(sym)
 
-    # Fetch data for up to 3 candidates
-    for sym in list(tried)[:6]:
-        if len(peers) >= 3:
-            break
+def fetch_peers(symbol: str, sector: str | None) -> dict:
+    """
+    Find genuine peers by matching industry + market-cap proximity from the
+    S&P 500 universe. Returns target fundamentals + up to 4 peer fundamentals.
+    """
+    # Step 1 — fetch target fundamentals
+    target = _fetch_ticker_fundamentals(symbol)
+    if not target:
+        return {"target": None, "peers": []}
+
+    target_industry = target.get("industry")
+    target_mktcap   = target.get("market_cap") or 0
+
+    # Step 2 — build candidate list from S&P 500 + NASDAQ pool
+    all_symbols = fetch_sp500_stocks()
+    candidates = [s for s in all_symbols if s != symbol]
+
+    # Step 3 — score candidates: fetch info in parallel, filter by industry,
+    #           rank by log market-cap distance to target
+    import math
+
+    def _score(sym):
         try:
             t = yf.Ticker(sym)
-            hist = t.history(period="5d")
-            if hist.empty:
-                continue
-            price = float(hist["Close"].iloc[-1])
-            prev  = float(hist["Close"].iloc[0])
-            chg   = (price - prev) / prev * 100
-            info  = t.fast_info
-            mkt   = getattr(info, "market_cap", None)
-            peers.append({
-                "symbol": sym,
-                "price": round(price, 2),
-                "change_pct": round(chg, 2),
-                "market_cap": int(mkt) if mkt else None,
-            })
+            info = t.info
+            ind = info.get("industry")
+            sec = info.get("sector")
+            mkt = info.get("marketCap") or 0
+            if not mkt:
+                return None
+            # Industry match scores better than sector-only match
+            if ind and ind == target_industry:
+                match = "industry"
+            elif sec and sec == target.get("sector"):
+                match = "sector"
+            else:
+                return None  # different sector — skip
+            # Log-scale market cap distance (smaller = closer in size)
+            dist = abs(math.log10(mkt + 1) - math.log10(target_mktcap + 1))
+            return (sym, match, dist, mkt)
         except Exception:
-            continue
+            return None
 
-    return peers
+    scored = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+        futures = {pool.submit(_score, s): s for s in candidates[:120]}
+        for fut in concurrent.futures.as_completed(futures):
+            result = fut.result()
+            if result:
+                scored.append(result)
+
+    # Sort: industry matches first, then by market-cap proximity
+    scored.sort(key=lambda x: (0 if x[1] == "industry" else 1, x[2]))
+
+    # Step 4 — fetch full fundamentals for top candidates until we have 4 peers
+    peers = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+        futures = [pool.submit(_fetch_ticker_fundamentals, s[0]) for s in scored[:12]]
+        for fut in concurrent.futures.as_completed(futures):
+            data = fut.result()
+            if data and len(peers) < 4:
+                peers.append(data)
+
+    # Re-sort peers by market cap proximity to target for display
+    peers.sort(key=lambda p: abs(
+        math.log10(p["market_cap"] + 1) - math.log10(target_mktcap + 1)
+    ))
+
+    return {"target": target, "peers": peers[:4]}
 
 
 def _avg_sentiment(news: list) -> float | None:
@@ -2387,9 +2683,8 @@ def api_peers():
     cached = load_cached_response(symbol)
     sector = (cached.get("company_info") or {}).get("sector") if cached else None
 
-    peers = fetch_peers(symbol, sector)
-    current_price = (cached.get("current_price") or 0.0) if cached else 0.0
-    return jsonify({"symbol": symbol, "current_price": current_price, "peers": peers})
+    result = fetch_peers(symbol, sector)
+    return jsonify(result)
 
 
 @app.route("/api/me")

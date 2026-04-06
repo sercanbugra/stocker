@@ -16,11 +16,63 @@
             --panel-text: #e7ecff;
             --panel-muted: rgba(231, 236, 255, 0.7);
             --panel-border: rgba(255, 255, 255, 0.08);
+            --body-bg: radial-gradient(circle at 10% 20%, #2f3b73 0, #1b2a57 45%, #0f1b3d 100%);
         }
+
+        /* ── Dark Red Theme ── */
+        [data-theme="crimson"] {
+            --parliament-blue: #2a0f0f;
+            --parliament-blue-soft: #3d1515;
+            --parliament-blue-deep: #1a0808;
+            --panel-text: #ffe8e8;
+            --panel-muted: rgba(255, 232, 232, 0.65);
+            --panel-border: rgba(255, 100, 100, 0.12);
+            --body-bg: radial-gradient(circle at 10% 20%, #4a1a1a 0, #2a0f0f 45%, #150505 100%);
+        }
+
+        /* ── Midnight Black Theme ── */
+        [data-theme="midnight"] {
+            --parliament-blue: #0d0d0d;
+            --parliament-blue-soft: #181818;
+            --parliament-blue-deep: #080808;
+            --panel-text: #e8e8e8;
+            --panel-muted: rgba(232, 232, 232, 0.55);
+            --panel-border: rgba(255, 255, 255, 0.07);
+            --body-bg: radial-gradient(circle at 10% 20%, #222222 0, #111111 45%, #000000 100%);
+        }
+
         body {
-            background: radial-gradient(circle at 10% 20%, #2f3b73 0, #1b2a57 45%, #0f1b3d 100%);
+            background: var(--body-bg);
             font-family: 'Inter', 'Arial', sans-serif;
+            transition: background 0.3s ease;
         }
+
+        /* Theme switcher */
+        .theme-switcher {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+        .theme-switcher-label {
+            font-size: 0.75rem;
+            color: var(--panel-muted);
+            white-space: nowrap;
+        }
+        .theme-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s, transform 0.15s;
+            flex-shrink: 0;
+        }
+        .theme-dot:hover { transform: scale(1.15); }
+        .theme-dot.active { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.3); }
+        .theme-dot-blue    { background: radial-gradient(circle, #2f3b73, #1b2a57); }
+        .theme-dot-crimson { background: radial-gradient(circle, #4a1a1a, #2a0f0f); }
+        .theme-dot-midnight{ background: radial-gradient(circle, #333, #000); }
         .container {
             max-width: 1400px;
             padding-top: 20px;
@@ -172,13 +224,6 @@
         .news-article:hover {
             transform: translateY(-5px);
         }
-        .btn-action-equal {
-            width: 130px;
-            height: 38px;
-            white-space: nowrap;
-            padding-left: 8px;
-            padding-right: 8px;
-        }
         .logo-ticker {
             width: 70px;
             height: auto;
@@ -201,11 +246,6 @@
         }
         .footer-text {
             max-width: 520px;
-        }
-        @media (min-width: 768px) {
-            #predict-btn {
-                margin-top: 64px;
-            }
         }
         .small-close {
             width: 0.45rem;
@@ -388,6 +428,71 @@
             color: var(--panel-text);
             font-size: 0.88rem;
         }
+        .remarkable-symbol {
+            color: #ffffff !important;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .remarkable-symbol:hover {
+            color: #9ec3ff !important;
+            text-decoration: underline;
+        }
+        .rm-info-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            margin-left: 5px;
+        }
+        .rm-info-icon {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(158,195,255,0.18);
+            border: 1px solid rgba(158,195,255,0.35);
+            color: #9ec3ff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+            line-height: 1;
+            user-select: none;
+            flex-shrink: 0;
+        }
+        .rm-tooltip {
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 6px);
+            transform: translateX(-50%);
+            background: #0f1b3d;
+            border: 1px solid rgba(158,195,255,0.25);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.75rem;
+            color: var(--panel-text);
+            white-space: nowrap;
+            z-index: 900;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+        }
+        .rm-tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: rgba(158,195,255,0.25);
+        }
+        .rm-info-wrap:hover .rm-tooltip { opacity: 1; }
+        .rm-tooltip-row { display: flex; gap: 8px; align-items: center; }
+        .rm-tooltip-row + .rm-tooltip-row { margin-top: 4px; }
+        .rm-tooltip-key { color: var(--panel-muted); min-width: 90px; }
+        .rm-tooltip-val { color: #9ec3ff; font-weight: 600; }
+        .rm-near-match { color: #f7c04f; font-size: 0.7rem; margin-top: 5px; }
         .remarkables-meta {
             color: var(--panel-muted);
             font-size: 0.78rem;
@@ -544,12 +649,237 @@
         .thesis-bull  .thesis-label { color: #6ee7a8; }
         .thesis-bear  .thesis-label { color: #ff8a8a; }
         .thesis-verdict .thesis-label { color: #f7c04f; }
-        .thesis-body { font-size: 0.88rem; color: var(--panel-text); line-height: 1.5; }
+        .thesis-body { font-size: 0.96rem; color: var(--panel-text); line-height: 1.6; }
         /* Peer table */
-        .peer-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .peer-table th { color: var(--panel-muted); font-weight: 600; padding: 6px 10px; border-bottom: 1px solid var(--panel-border); }
-        .peer-table td { padding: 8px 10px; border-bottom: 1px solid var(--panel-border); color: var(--panel-text); }
-        .peer-highlighted td { background: rgba(79,142,247,0.08); font-weight: 600; }
+        .peer-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+        .peer-table th { color: var(--panel-muted); font-weight: 600; padding: 5px 8px; border-bottom: 1px solid var(--panel-border); white-space: nowrap; }
+        .peer-table td { padding: 6px 8px; border-bottom: 1px solid var(--panel-border); color: var(--panel-text); white-space: nowrap; vertical-align: middle; }
+        .peer-highlighted td { background: rgba(79,142,247,0.08); }
+        .peer-highlighted td strong { color: #9ec3ff; }
+
+        /* ── New Listings ── */
+        .new-listings-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.83rem;
+        }
+        .new-listings-table th {
+            color: var(--panel-muted);
+            font-weight: 600;
+            padding: 5px 10px;
+            border-bottom: 1px solid var(--panel-border);
+            white-space: nowrap;
+            text-align: left;
+        }
+        .new-listings-table td {
+            padding: 7px 10px;
+            border-bottom: 1px solid var(--panel-border);
+            color: var(--panel-text);
+            vertical-align: middle;
+        }
+        .new-listings-table tr:last-child td { border-bottom: none; }
+        .new-listings-table tr:hover td { background: rgba(255,255,255,0.03); }
+        .nl-symbol-link {
+            color: #ffffff !important;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .nl-symbol-link:hover { color: #9ec3ff !important; text-decoration: underline; }
+        .nl-name {
+            color: var(--panel-muted);
+            font-size: 0.77rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+        .nl-exchange {
+            font-size: 0.72rem;
+            color: var(--panel-muted);
+            background: rgba(255,255,255,0.06);
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+        .nl-date { color: var(--panel-muted); font-size: 0.78rem; white-space: nowrap; }
+        .nl-chg-pos { color: #6ee7a8; font-weight: 600; }
+        .nl-chg-neg { color: #ff8a8a; font-weight: 600; }
+        .nl-chg-flat { color: var(--panel-muted); }
+
+        /* ── Top toolbar ── */
+        .top-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            background: var(--parliament-blue-soft);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 10px 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+        .toolbar-logo-wrap {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            text-decoration: none;
+        }
+        .toolbar-logo {
+            height: 36px;
+            width: auto;
+            display: block;
+        }
+        .toolbar-search {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 0 1 320px;
+            min-width: 180px;
+        }
+        .ticker-input-wrap {
+            position: relative;
+            flex: 1;
+        }
+        .ticker-search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--panel-muted);
+            font-size: 0.78rem;
+            pointer-events: none;
+        }
+        .ticker-input {
+            width: 100%;
+            padding: 7px 10px 7px 30px;
+            background: var(--parliament-blue-deep);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            color: var(--panel-text);
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .ticker-input::placeholder { color: var(--panel-muted); }
+        .ticker-input:focus {
+            border-color: #9ec3ff;
+            box-shadow: 0 0 0 2px rgba(158,195,255,0.15);
+        }
+        .btn-predict {
+            padding: 7px 18px;
+            background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: opacity 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(13,110,253,0.3);
+        }
+        .btn-predict:hover { opacity: 0.9; box-shadow: 0 4px 14px rgba(13,110,253,0.4); }
+        .btn-predict:active { opacity: 0.8; }
+        .toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
+        /* Base toolbar button */
+        .tb-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 7px 13px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            border: 1px solid transparent;
+            text-decoration: none;
+            transition: background 0.18s, border-color 0.18s, color 0.18s, box-shadow 0.18s;
+            line-height: 1.2;
+        }
+        .tb-btn i { font-size: 0.78rem; }
+        /* Watchlist */
+        .tb-btn-watch {
+            background: rgba(255,165,0,0.12);
+            border-color: rgba(255,165,0,0.35);
+            color: #ffb347;
+        }
+        .tb-btn-watch:hover {
+            background: rgba(255,165,0,0.22);
+            box-shadow: 0 2px 8px rgba(255,165,0,0.2);
+        }
+        /* Locked / greyed watchlist */
+        .tb-btn-locked {
+            background: rgba(255,255,255,0.04) !important;
+            border-color: rgba(255,255,255,0.12) !important;
+            color: var(--panel-muted) !important;
+        }
+        .tb-btn-locked:hover { background: rgba(255,255,255,0.08) !important; }
+        /* Upgrade / Pricing */
+        .tb-btn-upgrade {
+            background: linear-gradient(135deg, rgba(79,142,247,0.15), rgba(124,90,247,0.15));
+            border-color: rgba(79,142,247,0.4);
+            color: #9ec3ff;
+        }
+        .tb-btn-upgrade:hover {
+            background: linear-gradient(135deg, rgba(79,142,247,0.25), rgba(124,90,247,0.25));
+            box-shadow: 0 2px 8px rgba(79,142,247,0.25);
+        }
+        /* Login */
+        .tb-btn-login {
+            background: rgba(255,255,255,0.07);
+            border-color: rgba(255,255,255,0.2);
+            color: var(--panel-text);
+        }
+        .tb-btn-login:hover {
+            background: rgba(255,255,255,0.13);
+        }
+        /* Sign out */
+        .tb-btn-signout {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.15);
+            color: var(--panel-muted);
+        }
+        .tb-btn-signout:hover {
+            background: rgba(255,80,80,0.12);
+            border-color: rgba(255,80,80,0.3);
+            color: #ff8a8a;
+        }
+        /* Billing portal */
+        .tb-btn-billing {
+            background: rgba(110,231,168,0.08);
+            border-color: rgba(110,231,168,0.3);
+            color: #6ee7a8;
+        }
+        .tb-btn-billing:hover {
+            background: rgba(110,231,168,0.16);
+            box-shadow: 0 2px 8px rgba(110,231,168,0.2);
+        }
+        /* Admin badge button */
+        .tb-btn-admin {
+            background: rgba(247,79,79,0.1);
+            border-color: rgba(247,79,79,0.3);
+            color: #ff8a8a;
+        }
+        /* Usage indicator */
+        .toolbar-usage {
+            font-size: 0.72rem;
+            color: var(--panel-muted);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        /* Mobile: stack search + actions */
+        @media (max-width: 575px) {
+            .top-toolbar { gap: 8px; padding: 10px 12px; }
+            .toolbar-search { flex: 1 1 100%; }
+            .toolbar-actions { margin-left: 0; }
+        }
     </style>
 </head>
 <body>
@@ -612,7 +942,7 @@
                 <div class="pricing-card">
                     <div>
                         <span class="tier-badge tier-badge-free">Free</span>
-                        <div class="price mt-2"><sup>$</sup>0<sub>/mo</sub></div>
+                        <div class="price mt-2"><sup>£</sup>0<sub>/mo</sub></div>
                     </div>
                     <ul>
                         <li>{{ free_daily_limit }} analyses per day</li>
@@ -626,11 +956,12 @@
                 <div class="pricing-card featured">
                     <div>
                         <span class="tier-badge tier-badge-pro">Pro</span>
-                        <div class="price mt-2"><sup>$</sup>7<sub>/mo</sub></div>
+                        <div class="price mt-2"><sup>£</sup>5<sub>/mo</sub></div>
                     </div>
                     <ul>
                         <li>Unlimited analyses</li>
                         <li>Everything in Free</li>
+                        <li>Watchlist (save &amp; track tickers)</li>
                         <li>AI Trade Thesis</li>
                         <li>Peer comparison</li>
                     </ul>
@@ -644,7 +975,7 @@
                 <div class="pricing-card">
                     <div>
                         <span class="tier-badge tier-badge-premium">Premium</span>
-                        <div class="price mt-2"><sup>$</sup>15<sub>/mo</sub></div>
+                        <div class="price mt-2"><sup>£</sup>10<sub>/mo</sub></div>
                     </div>
                     <ul>
                         <li>Everything in Pro</li>
@@ -677,80 +1008,91 @@
     </div>
 
     <div class="container">
+
+        <!-- ── Top toolbar ── -->
+        <div class="top-toolbar mb-3">
+            <!-- Logo -->
+            <a href="https://www.gultechs.net/" target="_blank" rel="noopener noreferrer" class="toolbar-logo-wrap">
+                <img src="{{ url_for('static', filename='stocker_logo.png') }}" alt="Stocker" class="toolbar-logo">
+            </a>
+
+            <!-- Ticker input + Predict -->
+            <div class="toolbar-search">
+                <div class="ticker-input-wrap">
+                    <i class="fas fa-search ticker-search-icon"></i>
+                    <input id="stock-input" type="text" class="ticker-input" placeholder="Ticker symbol (e.g. AAPL)" autocomplete="off" />
+                </div>
+                <button id="predict-btn" class="btn-predict">
+                    <i class="fas fa-chart-line"></i> Analyse
+                </button>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="toolbar-actions">
+                {% if user %}
+                    <!-- Watchlist -->
+                    <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch">
+                        <i class="fas fa-star"></i><span>Watchlist</span>
+                    </button>
+                    <!-- Tier / Billing / Upgrade -->
+                    {% if user_tier == 'admin' %}
+                    <span class="tb-btn tb-btn-admin" style="cursor:default;">
+                        <i class="fas fa-shield-alt"></i><span>Admin</span>
+                    </span>
+                    {% elif user_tier in ('pro', 'premium') %}
+                    <a href="/billing-portal" class="tb-btn tb-btn-billing">
+                        <span class="tier-badge tier-badge-{{ user_tier }} me-1">{{ user_tier }}</span><span>Billing</span>
+                    </a>
+                    {% else %}
+                    <button id="upgrade-trigger" type="button" class="tb-btn tb-btn-upgrade">
+                        <i class="fas fa-bolt"></i><span>Upgrade</span>
+                    </button>
+                    {% endif %}
+                    <!-- Sign out -->
+                    <a href="/logout" class="tb-btn tb-btn-signout">
+                        <i class="fas fa-sign-out-alt"></i><span>Sign out</span>
+                    </a>
+                {% else %}
+                    <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch tb-btn-locked">
+                        <i class="fas fa-star"></i><span>Watchlist</span>
+                    </button>
+                    <button id="upgrade-trigger-anon" type="button" class="tb-btn tb-btn-upgrade">
+                        <i class="fas fa-bolt"></i><span>Pricing</span>
+                    </button>
+                    <button id="auth-trigger" type="button" class="tb-btn tb-btn-login">
+                        <i class="fas fa-user"></i><span>Login</span>
+                    </button>
+                {% endif %}
+            </div>
+
+            <!-- Usage / tier badge -->
+            {% if user %}
+            <div class="toolbar-usage" id="usage-counter">
+                {% if user_tier == 'admin' %}
+                <span class="tier-badge tier-badge-admin">admin</span>&nbsp;Full access
+                {% elif user_tier == 'free' %}
+                <span id="usage-text">loading…</span>
+                {% else %}
+                <span class="tier-badge tier-badge-{{ user_tier }}">{{ user_tier }}</span>&nbsp;Unlimited
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
         <div class="row gy-2 align-items-stretch">
-            <div class="col-lg-8 col-md-9 col-12">
+            <div class="col-lg-5 col-md-5 col-12">
                 <div class="stock-selector h-100">
-                    <div class="row g-2 align-items-center">
-                        <div class="col-md-7 col-sm-12">
-                            <img src="{{ url_for('static', filename='stocker_logo.png') }}" alt="Stocker logo" class="ticker-logo">
-                            <input id="stock-input" type="text" class="form-control w-100" placeholder="Enter ticker (e.g., AAPL)" />
-                        </div>
-                        <div class="col-md-2 col-sm-12 mt-2 mt-md-0">
-                            <button id="predict-btn" class="btn btn-primary w-100">
-                                <i class="fas fa-search"></i> Predict
-                            </button>
-                        </div>
-                        <div class="col-md-3 col-sm-12">
-                            <div class="d-flex flex-column gap-2 align-items-end mt-2 mt-md-0">
-                                <div class="d-flex flex-wrap gap-2 justify-content-end w-100">
-                                    {% if user %}
-                                    <a href="/logout" class="btn btn-outline-warning btn-action-equal">
-                                        <i class="fas fa-sign-out-alt"></i> Sign out
-                                    </a>
-                                    {% if user_tier == 'admin' %}
-                                    <span class="btn btn-outline-danger btn-action-equal" style="cursor:default;">
-                                        <i class="fas fa-shield-alt"></i> Admin
-                                    </span>
-                                    {% elif user_tier in ('pro', 'premium') %}
-                                    <a href="/billing-portal" class="btn btn-outline-light btn-action-equal">
-                                        <span class="tier-badge tier-badge-{{ user_tier }} me-1">{{ user_tier }}</span> Billing
-                                    </a>
-                                    {% else %}
-                                    <button id="upgrade-trigger" type="button" class="btn btn-outline-primary btn-action-equal">
-                                        <i class="fas fa-bolt"></i> Upgrade
-                                    </button>
-                                    {% endif %}
-                                    <button id="add-watchlist" type="button" class="btn btn-outline-secondary btn-action-equal">
-                                        <i class="fas fa-star"></i> Watchlist
-                                    </button>
-                                    {% else %}
-                                    <button id="auth-trigger" type="button" class="btn btn-outline-light btn-action-equal">
-                                        <i class="fas fa-user"></i> Login / Sign Up
-                                    </button>
-                                    <button id="upgrade-trigger-anon" type="button" class="btn btn-outline-primary btn-action-equal">
-                                        <i class="fas fa-bolt"></i> Pricing
-                                    </button>
-                                    <button id="add-watchlist" type="button" class="btn btn-outline-secondary btn-action-equal">
-                                        <i class="fas fa-star"></i> Watchlist
-                                    </button>
-                                    {% endif %}
-                                </div>
-                                {% if user %}
-                                <div class="usage-counter" id="usage-counter">
-                                    {% if user_tier == 'admin' %}
-                                    <span class="tier-badge tier-badge-admin">admin</span> Full access
-                                    {% elif user_tier == 'free' %}
-                                    <span id="usage-text">loading usage...</span>
-                                    {% else %}
-                                    <span class="tier-badge tier-badge-{{ user_tier }}">{{ user_tier }}</span> Unlimited analyses
-                                    {% endif %}
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-1"><small class="text-muted">**All predictions are experimental and not financial advice. Do your own research before investing.</small></div>
+                    <div class="mt-1"><small class="text-muted">* All predictions are experimental and not financial advice. Do your own research before investing.</small></div>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-3 col-12">
+            <div class="col-lg-7 col-md-7 col-12">
                 <div class="card watchlist-card h-100">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span><i class="fas fa-star"></i> Watchlist</span>
                         <small class="text-muted">click to load</small>
                     </div>
                     <div class="card-body p-2">
-                        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2" id="watchlist-body">
+                        <div class="row row-cols-3 row-cols-md-4 row-cols-lg-5 g-2" id="watchlist-body">
                             <!-- watchlist items -->
                         </div>
                         <div class="text-muted small mt-2" id="watchlist-notice"></div>
@@ -775,10 +1117,15 @@
                                 {% for item in remarkables.for_risk_lovers %}
                                 <li>
                                     <a href="#" class="remarkable-symbol fw-bold" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
-                                    <span class="text-muted"> | trend {{ item.trend_percent }}% | prev-day LOW<=0.9x hits {{ item.down_hits or item.loss_hits }} | prev-day HIGH>=1.20x hits {{ item.up_hits or item.gain_hits }}</span>
-                                    {% if item.match_type and item.match_type != 'strict' and item.match_type != 'cache_strict' %}
-                                    <span class="text-warning"> (near match)</span>
-                                    {% endif %}
+                                    <span class="rm-info-wrap">
+                                        <span class="rm-info-icon">i</span>
+                                        <span class="rm-tooltip">
+                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
+                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Low hits (&le;0.9×)</span><span class="rm-tooltip-val">{{ item.down_hits or item.loss_hits }}</span></div>
+                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">High hits (&ge;1.2×)</span><span class="rm-tooltip-val">{{ item.up_hits or item.gain_hits }}</span></div>
+                                            {% if item.match_type and item.match_type != 'strict' and item.match_type != 'cache_strict' %}<div class="rm-near-match">&#9888; Near match</div>{% endif %}
+                                        </span>
+                                    </span>
                                 </li>
                                 {% endfor %}
                             {% else %}
@@ -793,10 +1140,14 @@
                                 {% for item in remarkables.no_pain_but_gain %}
                                 <li>
                                     <a href="#" class="remarkable-symbol fw-bold" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
-                                    <span class="text-muted"> | trend {{ item.trend_percent }}% | max drop {{ item.max_daily_drop_percent }}%</span>
-                                    {% if item.match_type and item.match_type != 'strict' and item.match_type != 'cache_strict' %}
-                                    <span class="text-warning"> (near match)</span>
-                                    {% endif %}
+                                    <span class="rm-info-wrap">
+                                        <span class="rm-info-icon">i</span>
+                                        <span class="rm-tooltip">
+                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
+                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Max daily drop</span><span class="rm-tooltip-val">{{ item.max_daily_drop_percent }}%</span></div>
+                                            {% if item.match_type and item.match_type != 'strict' and item.match_type != 'cache_strict' %}<div class="rm-near-match">&#9888; Near match</div>{% endif %}
+                                        </span>
+                                    </span>
                                 </li>
                                 {% endfor %}
                             {% else %}
@@ -812,6 +1163,55 @@
                     scanning status unavailable
                     {% endif %}
                 </div>
+            </div>
+        </div>
+
+        <!-- New Listings Section -->
+        <div class="card remarkable-card mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-rocket"></i> New Listings <small class="text-muted ms-2" style="font-size:0.75rem;">last 10 days</small></span>
+            </div>
+            <div class="card-body p-0">
+                {% if new_listings %}
+                <div style="overflow-x:auto;">
+                    <table class="new-listings-table">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Name</th>
+                                <th>Listed</th>
+                                <th>Exchange</th>
+                                <th style="text-align:right;">Price</th>
+                                <th style="text-align:right;">Change</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in new_listings %}
+                            <tr>
+                                <td><a href="#" class="nl-symbol-link" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a></td>
+                                <td><span class="nl-name" title="{{ item.name }}">{{ item.name }}</span></td>
+                                <td><span class="nl-date">{{ item.ipo_date }}</span></td>
+                                <td><span class="nl-exchange">{{ item.exchange }}</span></td>
+                                <td style="text-align:right;">
+                                    {% if item.price %}${{ "%.2f"|format(item.price) }}{% else %}&mdash;{% endif %}
+                                </td>
+                                <td style="text-align:right;">
+                                    {% if item.change_pct > 0 %}
+                                    <span class="nl-chg-pos">+{{ "%.2f"|format(item.change_pct) }}%</span>
+                                    {% elif item.change_pct < 0 %}
+                                    <span class="nl-chg-neg">{{ "%.2f"|format(item.change_pct) }}%</span>
+                                    {% else %}
+                                    <span class="nl-chg-flat">0.00%</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-muted small p-3">No new listings found in the last 10 days, or data is temporarily unavailable.</div>
+                {% endif %}
             </div>
         </div>
 
@@ -894,6 +1294,7 @@
                     </div>
                 </div>
                 <div class="col-lg-4 d-flex flex-column">
+                    <!-- 1. Prediction Results -->
                     <div class="card predictions-card mb-3">
                         <div class="card-header">
                             <i class="fas fa-calculator"></i> Prediction Results
@@ -915,15 +1316,8 @@
                         </div>
                     </div>
 
-                    <div class="card news-card flex-grow-1">
-                        <div class="card-header">
-                            <i class="fas fa-newspaper"></i> Latest News
-                        </div>
-                        <div class="card-body" id="news-container"></div>
-                    </div>
-
-                    <!-- AI Trade Thesis — Pro -->
-                    <div class="pro-card mt-3">
+                    <!-- 2. AI Trade Thesis — Pro -->
+                    <div class="pro-card mb-3">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span><i class="fas fa-robot"></i> AI Trade Thesis</span>
                             <span class="tier-badge tier-badge-pro">Pro</span>
@@ -943,8 +1337,8 @@
                         </div>
                     </div>
 
-                    <!-- Peer Comparison — Pro -->
-                    <div class="pro-card mt-3">
+                    <!-- 3. Peer Comparison — Pro -->
+                    <div class="pro-card mb-3">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span><i class="fas fa-chart-bar"></i> Peer Comparison</span>
                             <span class="tier-badge tier-badge-pro">Pro</span>
@@ -963,6 +1357,14 @@
                             {% endif %}
                         </div>
                     </div>
+
+                    <!-- 4. Latest News -->
+                    <div class="card news-card flex-grow-1">
+                        <div class="card-header">
+                            <i class="fas fa-newspaper"></i> Latest News
+                        </div>
+                        <div class="card-body" id="news-container"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -980,12 +1382,39 @@
                         Secure, research-backed, and designed for everyday investors.
                     </p>
                 </div>
+                <div class="theme-switcher">
+                    <span class="theme-switcher-label"><i class="fas fa-palette me-1"></i>Theme</span>
+                    <div class="theme-dot theme-dot-blue active"     data-theme=""         title="Ocean Blue"></div>
+                    <div class="theme-dot theme-dot-crimson"         data-theme="crimson"  title="Dark Crimson"></div>
+                    <div class="theme-dot theme-dot-midnight"        data-theme="midnight" title="Midnight Black"></div>
+                </div>
             </div>
         </div>
     </footer>
 
     <script>
         $(document).ready(function() {
+
+            // ---------------------------------------------------------------
+            // Theme switcher
+            // ---------------------------------------------------------------
+            const THEME_KEY = 'stocker_theme';
+            function applyTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                $('.theme-dot').removeClass('active');
+                $(`.theme-dot[data-theme="${theme}"]`).addClass('active');
+                try { localStorage.setItem(THEME_KEY, theme); } catch(_) {}
+            }
+            // Restore saved theme on load
+            try {
+                const saved = localStorage.getItem(THEME_KEY) || '';
+                applyTheme(saved);
+            } catch(_) { applyTheme(''); }
+
+            $(document).on('click', '.theme-dot', function() {
+                applyTheme($(this).data('theme') || '');
+            });
+
             const $watchlistBody = $('#watchlist-body');
             const $watchlistNotice = $('#watchlist-notice');
             const $authModal = $('#auth-modal');
@@ -1109,7 +1538,7 @@
                 }
             }
 
-            $(document).on('click', '.remarkable-symbol', function(e) {
+            $(document).on('click', '.remarkable-symbol, .nl-symbol-link', function(e) {
                 e.preventDefault();
                 const symbol = $(this).data('symbol');
                 $('#stock-input').val(symbol);
@@ -1140,8 +1569,8 @@
             async function renderWatchlist() {
                 if (!hasWatchlistAccess) {
                     const msg = isLoggedIn
-                        ? 'Upgrade to Pro to use your watchlist.'
-                        : 'Sign in with a Pro account to use your watchlist.';
+                        ? '⭐ Watchlist is a Pro feature (£5/mo). Upgrade to save &amp; track tickers.'
+                        : '⭐ Sign in with a Pro account to use your watchlist.';
                     $watchlistBody.html(`<div class="col-12 text-muted small">${msg}</div>`);
                     $watchlistNotice.text('');
                     return;
@@ -1256,19 +1685,24 @@
                 if (e.key === 'Enter') $('#auth-email-submit').click();
             });
 
-            const CHART_TEXT  = '#e7ecff';
-            const GRID_COLOR  = 'rgba(255,255,255,0.1)';
-            const ZERO_COLOR  = 'rgba(255,255,255,0.2)';
-            const axisTheme   = b => ({ ...(b || {}), gridcolor: GRID_COLOR, zerolinecolor: ZERO_COLOR, color: CHART_TEXT });
+            function getCssVar(name) {
+                return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+            }
 
             function applyChartTheme(layout, traceCount) {
                 const base = layout || {};
                 const legendRows = Math.ceil((traceCount || 1) / 3);
+                const chartText  = getCssVar('--panel-text') || '#e7ecff';
+                const paperBg    = getCssVar('--parliament-blue-soft') || '#24346a';
+                const plotBg     = getCssVar('--parliament-blue') || '#1b2a57';
+                const gridColor  = 'rgba(255,255,255,0.1)';
+                const zeroColor  = 'rgba(255,255,255,0.2)';
+                const axisTheme  = b => ({ ...(b || {}), gridcolor: gridColor, zerolinecolor: zeroColor, color: chartText });
                 return {
                     ...base,
-                    paper_bgcolor: '#24346a',
-                    plot_bgcolor: '#1b2a57',
-                    font:   { ...(base.font  || {}), color: CHART_TEXT },
+                    paper_bgcolor: paperBg,
+                    plot_bgcolor: plotBg,
+                    font:   { ...(base.font  || {}), color: chartText },
                     xaxis:  axisTheme(base.xaxis),
                     yaxis:  axisTheme(base.yaxis),
                     legend: {
@@ -1278,7 +1712,7 @@
                         y: -0.15,
                         xanchor: 'center',
                         x: 0.5,
-                        font: { color: CHART_TEXT }
+                        font: { color: chartText }
                     },
                     margin: { ...(base.margin || {}), b: 40 + legendRows * 20 }
                 };
@@ -1611,14 +2045,44 @@
             // ---------------------------------------------------------------
             function fmtMktCap(v) {
                 if (!v) return '—';
-                if (v >= 1e12) return '$' + (v / 1e12).toFixed(1) + 'T';
+                if (v >= 1e12) return '$' + (v / 1e12).toFixed(2) + 'T';
                 if (v >= 1e9)  return '$' + (v / 1e9).toFixed(1) + 'B';
                 if (v >= 1e6)  return '$' + (v / 1e6).toFixed(1) + 'M';
                 return '$' + v;
             }
 
+            function fmtPct(v) {
+                if (v === null || v === undefined) return '<span class="text-muted">—</span>';
+                const cls = v >= 0 ? 'text-success' : 'text-danger';
+                return '<span class="' + cls + '">' + (v >= 0 ? '▲' : '▼') + ' ' + Math.abs(v).toFixed(2) + '%</span>';
+            }
+
+            function fmtVal(v, suffix) {
+                if (v === null || v === undefined) return '<span class="text-muted">—</span>';
+                return v + (suffix || '');
+            }
+
+            function peerRow(p, isTarget) {
+                const rowCls = isTarget ? 'peer-highlighted' : '';
+                const nameBadge = isTarget
+                    ? ' <span class="tier-badge" style="background:rgba(79,142,247,0.2);color:#9ec3ff;font-size:0.5rem;">you</span>'
+                    : '';
+                return '<tr class="' + rowCls + '">'
+                    + '<td><strong>' + p.symbol + '</strong>' + nameBadge + '<br><small class="text-muted" style="font-size:0.7rem">' + escHtml((p.name || '').substring(0,22)) + '</small></td>'
+                    + '<td>$' + (p.price || 0).toFixed(2) + '</td>'
+                    + '<td>' + fmtMktCap(p.market_cap) + '</td>'
+                    + '<td>' + fmtPct(p.chg_1w) + '</td>'
+                    + '<td>' + fmtPct(p.chg_1m) + '</td>'
+                    + '<td>' + fmtPct(p.chg_3m) + '</td>'
+                    + '<td>' + fmtVal(p.pe_trailing, 'x') + '</td>'
+                    + '<td>' + fmtVal(p.pe_forward, 'x') + '</td>'
+                    + '<td>' + fmtVal(p.revenue_growth !== null && p.revenue_growth !== undefined ? p.revenue_growth.toFixed(1) : null, '%') + '</td>'
+                    + '<td>' + fmtVal(p.profit_margin !== null && p.profit_margin !== undefined ? p.profit_margin.toFixed(1) : null, '%') + '</td>'
+                    + '</tr>';
+            }
+
             async function loadPeers(sym) {
-                $('#peers-container').html('<div class="pro-lock text-muted small"><i class="fas fa-spinner fa-spin me-1"></i> Loading peers…</div>');
+                $('#peers-container').html('<div class="pro-lock text-muted small"><i class="fas fa-spinner fa-spin me-1"></i> Finding industry peers…</div>');
                 try {
                     const resp = await fetch('/api/peers', {
                         method: 'POST',
@@ -1627,39 +2091,30 @@
                     });
                     const data = await resp.json();
                     if (!resp.ok || data.error) {
-                        $('#peers-container').html(`<div class="pro-lock text-muted small">${data.error || 'Could not load peers.'}</div>`);
+                        $('#peers-container').html('<div class="pro-lock text-muted small">' + (data.error || 'Could not load peers.') + '</div>');
                         return;
                     }
-                    const peers = data.peers || [];
-                    if (!peers.length) {
+                    const target = data.target;
+                    const peers  = data.peers || [];
+                    if (!target) {
                         $('#peers-container').html('<div class="pro-lock text-muted small">No peer data available for this symbol.</div>');
                         return;
                     }
-                    const currentPrice = data.current_price;
-                    const currentChg = '—';
-                    const allRows = [
-                        { symbol: sym, price: currentPrice, change_pct: null, market_cap: null, isMain: true },
-                        ...peers
-                    ];
-                    const rows = allRows.map(p => {
-                        const chgClass = p.change_pct === null ? '' : (p.change_pct >= 0 ? 'text-success' : 'text-danger');
-                        const chgIcon  = p.change_pct === null ? '' : (p.change_pct >= 0 ? '▲' : '▼');
-                        const chgTxt   = p.change_pct === null ? currentChg : `${chgIcon} ${Math.abs(p.change_pct).toFixed(2)}%`;
-                        return `<tr class="${p.isMain ? 'peer-highlighted' : ''}">
-                            <td>${p.symbol}${p.isMain ? ' <span class="tier-badge tier-badge-pro" style="font-size:0.55rem;">you</span>' : ''}</td>
-                            <td>$${(p.price || 0).toFixed(2)}</td>
-                            <td class="${chgClass}">${chgTxt}</td>
-                            <td>${fmtMktCap(p.market_cap)}</td>
-                        </tr>`;
-                    }).join('');
-                    $('#peers-container').html(`
-                        <div class="card-body p-0">
-                            <table class="peer-table">
-                                <thead><tr><th>Symbol</th><th>Price</th><th>5-day</th><th>Mkt Cap</th></tr></thead>
-                                <tbody>${rows}</tbody>
-                            </table>
-                        </div>
-                    `);
+
+                    const industry = target.industry || target.sector || '';
+                    const thead = '<thead><tr>'
+                        + '<th>Symbol</th><th>Price</th><th>Mkt Cap</th>'
+                        + '<th>1W</th><th>1M</th><th>3M</th>'
+                        + '<th>P/E</th><th>Fwd P/E</th>'
+                        + '<th>Rev Growth</th><th>Net Margin</th>'
+                        + '</tr></thead>';
+
+                    const rows = peerRow(target, true) + peers.map(p => peerRow(p, false)).join('');
+
+                    $('#peers-container').html(
+                        '<div class="px-3 pt-2 pb-1"><small class="text-muted">Industry: <strong>' + escHtml(industry) + '</strong> · ranked by market-cap proximity</small></div>'
+                        + '<div class="table-responsive"><table class="peer-table">' + thead + '<tbody>' + rows + '</tbody></table></div>'
+                    );
                 } catch (e) {
                     $('#peers-container').html('<div class="pro-lock text-muted small">Network error. Please try again.</div>');
                 }
@@ -1672,7 +2127,7 @@
                     return;
                 }
                 if (!hasWatchlistAccess) {
-                    openUpgradeModal('Watchlist is available on Pro and Premium plans.');
+                    openUpgradeModal('Watchlist is a Pro feature — upgrade to save and track your tickers.');
                     return;
                 }
                 const symbol = $('#stock-input').val().trim().toUpperCase();
