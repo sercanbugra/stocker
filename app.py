@@ -382,9 +382,15 @@ REMARKABLES_REFRESH_IN_PROGRESS = False
 REMARKABLES_MEMORY_CACHE = None
 REMARKABLES_MEMORY_DAY = None
 
-NEW_LISTINGS_CACHE_PATH = os.path.join(_DATA_DIR, "cache", "new_listings.json")
-_NEW_LISTINGS_MEM: list | None = None
-_NEW_LISTINGS_MEM_DAY: str | None = None
+DIVIDEND_CACHE_PATH = os.path.join(_DATA_DIR, "cache", "dividend_stocks.json")
+_DIVIDEND_MEM: list | None = None
+_DIVIDEND_MEM_DAY: str | None = None
+
+UNDERVALUED_CACHE_PATH = os.path.join(_DATA_DIR, "cache", "undervalued_stocks.json")
+_UNDERVALUED_MEM: list | None = None
+_UNDERVALUED_MEM_DAY: str | None = None
+_UNDERVALUED_REFRESH_LOCK = threading.Lock()
+_UNDERVALUED_REFRESH_IN_PROGRESS = False
 
 def _sanitize_watchlist_key(value: str) -> str:
     if not value:
@@ -1930,107 +1936,277 @@ def train_prediction_models(close_values, forecast_horizon=30, time_steps=30):
 
     return predictions
 
-def fetch_new_listings(days: int = 10, max_results: int = 10) -> list:
-    """Return US equities that started trading within the last `days` days.
+_DIVIDEND_REFRESH_LOCK = threading.Lock()
+_DIVIDEND_REFRESH_IN_PROGRESS = False
 
-    Uses Yahoo Finance's screener API filtered by startdatetime.
-    Results are cached in memory + a daily JSON file so the page load stays fast.
+def fetch_top_dividend_stocks(max_results: int = 5) -> list:
+    """Return top dividend stocks sorted by yield DESC, cached daily.
+    On first load with no cache, triggers a background fetch and returns [].
     """
-    global _NEW_LISTINGS_MEM, _NEW_LISTINGS_MEM_DAY
+    global _DIVIDEND_MEM, _DIVIDEND_MEM_DAY
     today_key = datetime.now(timezone.utc).date().isoformat()
 
-    if _NEW_LISTINGS_MEM is not None and _NEW_LISTINGS_MEM_DAY == today_key:
-        return _NEW_LISTINGS_MEM
+    if _DIVIDEND_MEM is not None and _DIVIDEND_MEM_DAY == today_key:
+        return _DIVIDEND_MEM
 
     try:
-        if os.path.exists(NEW_LISTINGS_CACHE_PATH):
-            with open(NEW_LISTINGS_CACHE_PATH, "r", encoding="utf-8") as fh:
+        if os.path.exists(DIVIDEND_CACHE_PATH):
+            with open(DIVIDEND_CACHE_PATH, "r", encoding="utf-8") as fh:
                 fc = json.load(fh)
-            if fc.get("date") == today_key:
-                _NEW_LISTINGS_MEM = fc.get("listings", [])
-                _NEW_LISTINGS_MEM_DAY = today_key
-                return _NEW_LISTINGS_MEM
+            cached_stocks = fc.get("stocks", [])
+            if fc.get("date") == today_key and cached_stocks:
+                _DIVIDEND_MEM = cached_stocks
+                _DIVIDEND_MEM_DAY = today_key
+                return _DIVIDEND_MEM
     except Exception:
         pass
 
-    listings = _fetch_new_listings_live(days, max_results)
+    # No valid cache — run fetch in background, return stale or empty for now
+    _start_dividend_refresh_if_needed(max_results)
+    return _DIVIDEND_MEM or []
 
+
+def _start_dividend_refresh_if_needed(max_results: int = 5):
+    global _DIVIDEND_REFRESH_IN_PROGRESS
+    with _DIVIDEND_REFRESH_LOCK:
+        if _DIVIDEND_REFRESH_IN_PROGRESS:
+            return
+        _DIVIDEND_REFRESH_IN_PROGRESS = True
+    t = threading.Thread(target=_dividend_refresh_worker, args=(max_results,), daemon=True)
+    t.start()
+
+
+def _dividend_refresh_worker(max_results: int = 5):
+    global _DIVIDEND_MEM, _DIVIDEND_MEM_DAY, _DIVIDEND_REFRESH_IN_PROGRESS
     try:
-        os.makedirs(os.path.dirname(NEW_LISTINGS_CACHE_PATH), exist_ok=True)
-        with open(NEW_LISTINGS_CACHE_PATH, "w", encoding="utf-8") as fh:
-            json.dump({"date": today_key, "listings": listings}, fh)
+        today_key = datetime.now(timezone.utc).date().isoformat()
+        stocks = _fetch_dividend_stocks_live(max_results)
+        if stocks:
+            try:
+                os.makedirs(os.path.dirname(DIVIDEND_CACHE_PATH), exist_ok=True)
+                with open(DIVIDEND_CACHE_PATH, "w", encoding="utf-8") as fh:
+                    json.dump({"date": today_key, "stocks": stocks}, fh)
+            except Exception as exc:
+                logger.warning(f"Could not write dividend cache: {exc}")
+            _DIVIDEND_MEM = stocks
+            _DIVIDEND_MEM_DAY = today_key
     except Exception as exc:
-        logger.warning(f"Could not write new_listings cache: {exc}")
+        logger.warning(f"Dividend background refresh failed: {exc}")
+    finally:
+        with _DIVIDEND_REFRESH_LOCK:
+            _DIVIDEND_REFRESH_IN_PROGRESS = False
 
-    _NEW_LISTINGS_MEM = listings
-    _NEW_LISTINGS_MEM_DAY = today_key
-    return listings
+
+_DIVIDEND_CANDIDATES = [
+    "MO", "T", "VZ", "IBM", "CVX", "XOM", "PFE", "MMM", "KO", "PG",
+    "JNJ", "ABBV", "PM", "MCD", "TGT", "WMT", "HD", "LOW", "CAT",
+    "GPC", "SYY", "NEE", "SO", "DUK", "D", "ED", "O", "WBA", "HRL",
+    "CLX", "KMB", "CL", "MDT", "ABT", "BDX", "AFL", "ADP", "ITW",
+    "EMR", "DOV", "NUE", "SWK", "PPG", "SHW", "APD", "CINF", "CB",
+    "GWW", "CTAS", "ATO", "BEN", "SPGI",
+]
+
+def _get_yahoo_crumb():
+    """Return (session, crumb) using the same pattern as fetch_analyst_insights."""
+    session_req = requests.Session()
+    session_req.get("https://fc.yahoo.com", headers={"User-Agent": _USER_AGENT}, timeout=8)
+    crumb_resp = session_req.get(
+        "https://query2.finance.yahoo.com/v1/test/getcrumb",
+        headers={"User-Agent": _USER_AGENT},
+        timeout=8,
+    )
+    if not crumb_resp.ok or not crumb_resp.text.strip():
+        return None, None
+    return session_req, crumb_resp.text.strip()
 
 
-def _fetch_new_listings_live(days: int = 10, max_results: int = 10) -> list:
-    cutoff_ts = int(datetime.now(timezone.utc).timestamp() - days * 86400)
-    url = "https://query1.finance.yahoo.com/v1/finance/screener"
-    headers = {
-        "User-Agent": _USER_AGENT,
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "size": max_results * 3,
-        "offset": 0,
-        "sortField": "startdatetime",
-        "sortType": "DESC",
-        "quoteType": "EQUITY",
-        "query": {
-            "operator": "AND",
-            "operands": [
-                {"operator": "GT", "operands": ["startdatetime", cutoff_ts]},
-                {"operator": "EQ", "operands": ["region", "us"]},
-            ],
-        },
-        "userId": "",
-        "userIdType": "guid",
-    }
-    try:
-        resp = requests.post(url, json=payload, headers=headers, timeout=10)
-        resp.raise_for_status()
-        quotes = resp.json().get("finance", {}).get("result", [{}])[0].get("quotes", [])
-    except Exception as exc:
-        logger.warning(f"_fetch_new_listings_live failed: {exc}")
+def _fetch_dividend_stocks_live(max_results: int = 5) -> list:
+    """Fetch summaryDetail for each candidate via quoteSummary (crumb-auth),
+    sort by dividendYield DESC, return top max_results."""
+    session_req, crumb = _get_yahoo_crumb()
+    if not crumb:
+        logger.warning("Dividend fetch: could not obtain Yahoo crumb")
         return []
 
-    results = []
-    for q in quotes:
-        sym = q.get("symbol", "")
-        if not sym:
-            continue
-        ipo_ts = q.get("startdatetime")
-        ipo_date = ""
-        if ipo_ts:
-            try:
-                ipo_date = datetime.fromtimestamp(ipo_ts, tz=timezone.utc).strftime("%b %d")
-            except Exception:
-                pass
-        chg = q.get("regularMarketChangePercent") or 0
-        results.append({
-            "symbol": sym,
-            "name": q.get("longName") or q.get("shortName") or sym,
-            "ipo_date": ipo_date,
-            "price": q.get("regularMarketPrice"),
-            "change_pct": round(float(chg), 2),
-            "exchange": q.get("fullExchangeName") or q.get("exchange") or "",
-        })
-        if len(results) >= max_results:
-            break
+    def _fetch_one(sym):
+        try:
+            url = (
+                f"https://query2.finance.yahoo.com/v10/finance/quoteSummary/{sym}"
+                f"?modules=summaryDetail,price&crumb={crumb}"
+            )
+            resp = session_req.get(url, headers={"User-Agent": _USER_AGENT}, timeout=8)
+            if not resp.ok:
+                return None
+            result = (resp.json().get("quoteSummary", {}).get("result") or [{}])[0]
+            sd = result.get("summaryDetail", {})
+            pr = result.get("price", {})
 
-    return results
+            div_yield = float((sd.get("dividendYield") or {}).get("raw", 0) or 0)
+            div_rate  = float((sd.get("dividendRate")  or {}).get("raw", 0) or 0)
+            price     = float((pr.get("regularMarketPrice") or {}).get("raw", 0) or 0)
+            chg       = float((pr.get("regularMarketChangePercent") or {}).get("raw", 0) or 0)
+            name      = (pr.get("longName") or pr.get("shortName") or sym)
+
+            if div_yield <= 0:
+                return None
+            return {
+                "symbol":     sym,
+                "name":       name,
+                "yield_pct":  round(div_yield * 100, 2),
+                "annual_div": round(div_rate, 2),
+                "price":      round(price, 2) if price else None,
+                "change_pct": round(chg * 100, 2),
+            }
+        except Exception:
+            return None
+
+    results = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as pool:
+        futures = {pool.submit(_fetch_one, sym): sym for sym in _DIVIDEND_CANDIDATES}
+        for fut in concurrent.futures.as_completed(futures):
+            data = fut.result()
+            if data:
+                results.append(data)
+
+    results.sort(key=lambda x: x["yield_pct"], reverse=True)
+    return results[:max_results]
+
+
+# ---------------------------------------------------------------------------
+# Top Undervalued Stocks (by Free Cash Flow Yield)
+# ---------------------------------------------------------------------------
+_UNDERVALUED_CANDIDATES = [
+    "AAPL", "MSFT", "GOOGL", "META", "AMZN", "NVDA", "BRK-B", "JPM", "BAC",
+    "WFC", "C", "GS", "MS", "CVX", "XOM", "COP", "EOG", "MPC", "PSX",
+    "JNJ", "PFE", "MRK", "ABBV", "BMY", "AMGN", "GILD", "CVS", "UNH",
+    "HD", "LOW", "WMT", "TGT", "COST", "MCD", "SBUX", "NKE", "DIS",
+    "CSCO", "INTC", "QCOM", "TXN", "AMAT", "MU", "HPQ", "IBM", "ORCL",
+    "CAT", "DE", "MMM", "HON", "GE", "RTX", "LMT", "NOC", "BA",
+    "F", "GM", "TSLA", "VZ", "T", "CMCSA", "CHTR", "NFLX",
+]
+
+def fetch_top_undervalued_stocks(max_results: int = 5) -> list:
+    """Return top undervalued stocks by FCF yield, cached daily."""
+    global _UNDERVALUED_MEM, _UNDERVALUED_MEM_DAY
+    today_key = datetime.now(timezone.utc).date().isoformat()
+
+    if _UNDERVALUED_MEM is not None and _UNDERVALUED_MEM_DAY == today_key:
+        return _UNDERVALUED_MEM
+
+    try:
+        if os.path.exists(UNDERVALUED_CACHE_PATH):
+            with open(UNDERVALUED_CACHE_PATH, "r", encoding="utf-8") as fh:
+                fc = json.load(fh)
+            cached_stocks = fc.get("stocks", [])
+            if fc.get("date") == today_key and cached_stocks:
+                _UNDERVALUED_MEM = cached_stocks
+                _UNDERVALUED_MEM_DAY = today_key
+                return _UNDERVALUED_MEM
+    except Exception:
+        pass
+
+    _start_undervalued_refresh_if_needed(max_results)
+    return _UNDERVALUED_MEM or []
+
+
+def _start_undervalued_refresh_if_needed(max_results: int = 5):
+    global _UNDERVALUED_REFRESH_IN_PROGRESS
+    with _UNDERVALUED_REFRESH_LOCK:
+        if _UNDERVALUED_REFRESH_IN_PROGRESS:
+            return
+        _UNDERVALUED_REFRESH_IN_PROGRESS = True
+    t = threading.Thread(target=_undervalued_refresh_worker, args=(max_results,), daemon=True)
+    t.start()
+
+
+def _undervalued_refresh_worker(max_results: int = 5):
+    global _UNDERVALUED_MEM, _UNDERVALUED_MEM_DAY, _UNDERVALUED_REFRESH_IN_PROGRESS
+    try:
+        today_key = datetime.now(timezone.utc).date().isoformat()
+        stocks = _fetch_undervalued_stocks_live(max_results)
+        if stocks:
+            try:
+                os.makedirs(os.path.dirname(UNDERVALUED_CACHE_PATH), exist_ok=True)
+                with open(UNDERVALUED_CACHE_PATH, "w", encoding="utf-8") as fh:
+                    json.dump({"date": today_key, "stocks": stocks}, fh)
+            except Exception as exc:
+                logger.warning(f"Could not write undervalued cache: {exc}")
+            _UNDERVALUED_MEM = stocks
+            _UNDERVALUED_MEM_DAY = today_key
+    except Exception as exc:
+        logger.warning(f"Undervalued background refresh failed: {exc}")
+    finally:
+        with _UNDERVALUED_REFRESH_LOCK:
+            _UNDERVALUED_REFRESH_IN_PROGRESS = False
+
+
+def _fetch_undervalued_stocks_live(max_results: int = 5) -> list:
+    """Fetch financialData + price via quoteSummary for each candidate.
+    Rank by FCF yield (freeCashflow / marketCap) DESC — positive FCF only."""
+    session_req, crumb = _get_yahoo_crumb()
+    if not crumb:
+        logger.warning("Undervalued fetch: could not obtain Yahoo crumb")
+        return []
+
+    def _fetch_one(sym):
+        try:
+            url = (
+                f"https://query2.finance.yahoo.com/v10/finance/quoteSummary/{sym}"
+                f"?modules=financialData,price,defaultKeyStatistics&crumb={crumb}"
+            )
+            resp = session_req.get(url, headers={"User-Agent": _USER_AGENT}, timeout=8)
+            if not resp.ok:
+                return None
+            result = (resp.json().get("quoteSummary", {}).get("result") or [{}])[0]
+            fd = result.get("financialData", {})
+            pr = result.get("price", {})
+            ks = result.get("defaultKeyStatistics", {})
+
+            fcf      = float((fd.get("freeCashflow")        or {}).get("raw", 0) or 0)
+            mcap     = float((pr.get("marketCap")           or {}).get("raw", 0) or 0)
+            price    = float((pr.get("regularMarketPrice")  or {}).get("raw", 0) or 0)
+            chg      = float((pr.get("regularMarketChangePercent") or {}).get("raw", 0) or 0)
+            pfcf     = float((ks.get("priceToFreeCashflows") or {}).get("raw", 0) or 0)
+            name     = pr.get("longName") or pr.get("shortName") or sym
+
+            if fcf <= 0 or mcap <= 0:
+                return None
+
+            fcf_yield = round(fcf / mcap * 100, 2)
+            if fcf_yield < 1.0:   # skip negligible yields
+                return None
+
+            return {
+                "symbol":    sym,
+                "name":      name,
+                "fcf_yield": fcf_yield,
+                "pfcf":      round(pfcf, 1) if pfcf > 0 else None,
+                "fcf":       fcf,
+                "mcap":      mcap,
+                "price":     round(price, 2) if price else None,
+                "change_pct": round(chg * 100, 2),
+            }
+        except Exception:
+            return None
+
+    results = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as pool:
+        futures = {pool.submit(_fetch_one, sym): sym for sym in _UNDERVALUED_CANDIDATES}
+        for fut in concurrent.futures.as_completed(futures):
+            data = fut.result()
+            if data:
+                results.append(data)
+
+    results.sort(key=lambda x: x["fcf_yield"], reverse=True)
+    return results[:max_results]
 
 
 @app.route('/')
 def home():
     stocks = fetch_sp500_stocks()
     remarkables = get_remarkables(force_refresh=False)
-    new_listings = fetch_new_listings()
+    new_listings = fetch_top_dividend_stocks()
+    undervalued_stocks = fetch_top_undervalued_stocks()
     user = None
     if google_client_id and google_client_secret and google.authorized:
         try:
@@ -2053,7 +2229,8 @@ def home():
         stocks=stocks,
         user=user,
         remarkables=remarkables,
-        new_listings=new_listings,
+        dividend_stocks=new_listings,
+        undervalued_stocks=undervalued_stocks,
         user_tier=user_tier,
         user_email=user_email or "",
         subscribed=subscribed,
@@ -2670,6 +2847,240 @@ def api_trade_thesis():
         symbol, company_info, current_price, predictions, analyst, news, sentiment_avg
     )
     return jsonify(result)
+
+
+@app.route("/api/earnings-summary", methods=["POST"])
+@subscription_required("premium")
+def api_earnings_summary():
+    data = request.get_json(silent=True) or {}
+    symbol = (data.get("symbol") or "").strip().upper()
+    if not symbol:
+        return jsonify({"error": "symbol required"}), 400
+    result = generate_earnings_summary(symbol)
+    return jsonify(result)
+
+
+def generate_earnings_summary(symbol: str) -> dict:
+    """Fetch earnings data via yfinance and summarise with Claude Haiku."""
+    if not _ANTHROPIC_API_KEY:
+        return {"error": "AI features not configured (missing ANTHROPIC_API_KEY)"}
+
+    try:
+        ticker = yf.Ticker(symbol)
+        info = ticker.info or {}
+
+        # ── Upcoming / most-recent earnings date ──
+        earnings_date = None
+        cal = ticker.calendar
+        if cal is not None:
+            if isinstance(cal, dict):
+                ed = cal.get("Earnings Date")
+                if ed:
+                    earnings_date = str(ed[0]) if isinstance(ed, (list, tuple)) else str(ed)
+            elif hasattr(cal, "columns") and "Earnings Date" in cal.columns:
+                earnings_date = str(cal["Earnings Date"].iloc[0])
+
+        # ── Historical EPS (last 4 quarters) ──
+        eps_lines = []
+        try:
+            eh = ticker.earnings_history
+            if eh is not None and not eh.empty:
+                for _, row in eh.head(4).iterrows():
+                    date_lbl = str(row.name)[:10] if hasattr(row.name, "__str__") else ""
+                    est = row.get("epsEstimate") if "epsEstimate" in row else None
+                    act = row.get("epsActual")   if "epsActual"   in row else None
+                    surprise = row.get("epsDifference") if "epsDifference" in row else None
+                    parts = [f"Q ending {date_lbl}"]
+                    if est  is not None: parts.append(f"est ${est:.2f}")
+                    if act  is not None: parts.append(f"actual ${act:.2f}")
+                    if surprise is not None:
+                        parts.append(f"surprise {'+' if surprise >= 0 else ''}{surprise:.2f}")
+                    eps_lines.append(", ".join(parts))
+        except Exception:
+            pass
+
+        # ── Annual revenue & earnings trend ──
+        rev_lines = []
+        try:
+            fin = ticker.financials
+            if fin is not None and not fin.empty:
+                for col in list(fin.columns)[:3]:
+                    year = str(col)[:4]
+                    rev = fin.loc["Total Revenue", col] if "Total Revenue" in fin.index else None
+                    net = fin.loc["Net Income", col]    if "Net Income"    in fin.index else None
+                    parts = [year]
+                    if rev is not None: parts.append(f"rev ${rev/1e9:.1f}B")
+                    if net is not None: parts.append(f"net ${net/1e9:.1f}B")
+                    rev_lines.append(", ".join(parts))
+        except Exception:
+            pass
+
+        # ── Forward estimates from info dict ──
+        fwd_eps    = info.get("forwardEps")
+        fwd_pe     = info.get("forwardPE")
+        rev_growth = info.get("revenueGrowth")
+        earn_growth= info.get("earningsGrowth")
+        sector     = info.get("sector") or "Unknown"
+        industry   = info.get("industry") or "Unknown"
+        name       = info.get("longName") or symbol
+
+        data_lines = [f"Company: {name} ({sector} / {industry})"]
+        if earnings_date:
+            data_lines.append(f"Next earnings date: {earnings_date}")
+        if fwd_eps  is not None: data_lines.append(f"Forward EPS estimate: ${fwd_eps:.2f}")
+        if fwd_pe   is not None: data_lines.append(f"Forward P/E: {fwd_pe:.1f}x")
+        if rev_growth   is not None: data_lines.append(f"Revenue growth (YoY): {rev_growth*100:.1f}%")
+        if earn_growth  is not None: data_lines.append(f"Earnings growth (YoY): {earn_growth*100:.1f}%")
+        if eps_lines:
+            data_lines.append("Recent EPS history:")
+            data_lines.extend(f"  {l}" for l in eps_lines)
+        if rev_lines:
+            data_lines.append("Annual financials:")
+            data_lines.extend(f"  {l}" for l in rev_lines)
+
+    except Exception as exc:
+        logger.warning(f"Earnings data fetch failed for {symbol}: {exc}")
+        return {"error": "Could not fetch earnings data. Please try again."}
+
+    prompt = (
+        f"You are a financial analyst. Based on the earnings data below, write a concise "
+        f"earnings summary for {symbol} in exactly three sections:\n"
+        f"1. EARNINGS TREND — 2 sentences on recent EPS/revenue trajectory\n"
+        f"2. UPCOMING OUTLOOK — 2 sentences on forward estimates and what to watch\n"
+        f"3. INVESTOR TAKEAWAY — 1 sentence verdict on whether earnings support the current valuation\n\n"
+        f"Data:\n" + "\n".join(data_lines) +
+        "\n\nBe direct and specific. No disclaimers. No markdown. Just plain section labels."
+    )
+
+    try:
+        resp = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": _ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": "claude-haiku-4-5-20251001",
+                "max_tokens": 350,
+                "messages": [{"role": "user", "content": prompt}],
+            },
+            timeout=20,
+        )
+        if not resp.ok:
+            logger.warning(f"Earnings summary API error for {symbol}: {resp.status_code} {resp.text}")
+            return {"error": "Could not generate summary. Please try again."}
+        text = resp.json()["content"][0]["text"].strip()
+        return {"summary": text}
+    except Exception as e:
+        logger.warning(f"Earnings summary error for {symbol}: {e}")
+        return {"error": "Could not generate summary. Please try again."}
+
+
+@app.route("/api/portfolio-advisor", methods=["POST"])
+@subscription_required("premium")
+def api_portfolio_advisor():
+    data = request.get_json(silent=True) or {}
+    symbol = (data.get("symbol") or "").strip().upper()
+    if not symbol:
+        return jsonify({"error": "symbol required"}), 400
+
+    cached = load_cached_response(symbol)
+    if not cached:
+        return jsonify({"error": "Run a prediction for this symbol first."}), 400
+
+    company_info  = cached.get("company_info") or {}
+    current_price = cached.get("current_price") or 0.0
+    predictions   = cached.get("predictions") or {}
+    analyst       = cached.get("analyst_insights") or {}
+    news          = cached.get("news") or []
+    sentiment_avg = _avg_sentiment(news)
+
+    result = generate_portfolio_advice(
+        symbol, company_info, current_price, predictions, analyst, news, sentiment_avg
+    )
+    return jsonify(result)
+
+
+def generate_portfolio_advice(symbol: str, company_info: dict, current_price: float,
+                               predictions: dict, analyst_payload: dict, news: list,
+                               sentiment_avg: float | None) -> dict:
+    """Call Claude Haiku to generate portfolio sizing and risk advice."""
+    if not _ANTHROPIC_API_KEY:
+        return {"error": "AI advisor not configured (missing ANTHROPIC_API_KEY)"}
+
+    pred_changes = []
+    for preds in predictions.values():
+        if preds:
+            chg = (preds[-1] - current_price) / current_price * 100
+            pred_changes.append(round(chg, 2))
+    avg_pred = round(sum(pred_changes) / len(pred_changes), 2) if pred_changes else None
+
+    reco = analyst_payload.get("recommendations") or []
+    latest_reco = reco[0] if reco else {}
+    analyst_summary = ""
+    if latest_reco:
+        sb = latest_reco.get("strongBuy", 0)
+        b  = latest_reco.get("buy", 0)
+        h  = latest_reco.get("hold", 0)
+        s  = latest_reco.get("sell", 0) + latest_reco.get("strongSell", 0)
+        analyst_summary = f"{sb} strong buy, {b} buy, {h} hold, {s} sell"
+
+    sector   = company_info.get("sector") or "Unknown"
+    industry = company_info.get("industry") or "Unknown"
+    beta     = company_info.get("beta")
+    pe_ratio = company_info.get("pe_ratio") or company_info.get("trailingPE")
+    mktcap   = company_info.get("market_cap") or company_info.get("marketCap")
+
+    data_lines = [f"- Symbol: {symbol} ({sector} / {industry})"]
+    data_lines.append(f"- Current price: ${current_price:.2f}")
+    if avg_pred is not None:
+        data_lines.append(f"- ML 30-day avg forecast change: {avg_pred:+.2f}%")
+    if beta is not None:
+        data_lines.append(f"- Beta: {beta}")
+    if pe_ratio:
+        data_lines.append(f"- P/E ratio: {pe_ratio}")
+    if mktcap:
+        data_lines.append(f"- Market cap: ${mktcap:,}")
+    if analyst_summary:
+        data_lines.append(f"- Analyst consensus: {analyst_summary}")
+    data_lines.append(f"- News sentiment: {sentiment_avg if sentiment_avg is not None else 'N/A'}")
+
+    prompt = (
+        f"You are a portfolio advisor. Based on the data below, give practical portfolio guidance "
+        f"for {symbol} in exactly four short sections:\n"
+        f"1. POSITION SIZE — recommended portfolio allocation % and why (1-2 sentences)\n"
+        f"2. RISK PROFILE — key risks and volatility outlook (2 sentences)\n"
+        f"3. ENTRY STRATEGY — when/how to build a position (1-2 sentences)\n"
+        f"4. EXIT STRATEGY — target price or conditions to sell/trim (1-2 sentences)\n\n"
+        f"Data:\n"
+        + "\n".join(data_lines)
+        + "\n\nBe direct and specific. No disclaimers. No markdown. Just plain section labels."
+    )
+
+    try:
+        resp = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": _ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": "claude-haiku-4-5-20251001",
+                "max_tokens": 400,
+                "messages": [{"role": "user", "content": prompt}],
+            },
+            timeout=20,
+        )
+        if not resp.ok:
+            logger.warning(f"Portfolio advisor API error for {symbol}: {resp.status_code} {resp.text}")
+            return {"error": "Could not generate advice. Please try again."}
+        text = resp.json()["content"][0]["text"].strip()
+        return {"advice": text}
+    except Exception as e:
+        logger.warning(f"Portfolio advisor error for {symbol}: {e}")
+        return {"error": "Could not generate advice. Please try again."}
 
 
 @app.route("/api/peers", methods=["POST"])

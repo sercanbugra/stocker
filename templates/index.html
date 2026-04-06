@@ -411,32 +411,101 @@
         .remarkable-card .card-body {
             padding: 14px 16px;
         }
-        .remarkables-title {
-            font-size: 0.92rem;
+        /* ── Remarkables redesign ── */
+        .rm-col-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px 8px;
+            border-bottom: 1px solid var(--panel-border);
+            margin-bottom: 6px;
+        }
+        .rm-col-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.78rem;
+            flex-shrink: 0;
+        }
+        .rm-col-icon-risk       { background: rgba(255,138,138,0.15); color: #ff8a8a; }
+        .rm-col-icon-trend      { background: rgba(110,231,168,0.15); color: #6ee7a8; }
+        .rm-col-icon-dividend   { background: rgba(247,192,79,0.15);  color: #f7c04f; }
+        .rm-col-icon-undervalued{ background: rgba(158,195,255,0.15); color: #9ec3ff; }
+        .rm-fcf-badge {
+            font-size: 0.72rem;
             font-weight: 700;
-            margin-bottom: 8px;
+            color: #9ec3ff;
+            background: rgba(158,195,255,0.12);
+            border-radius: 5px;
+            padding: 1px 6px;
+            white-space: nowrap;
+        }
+        .rm-col-title {
+            font-size: 0.88rem;
+            font-weight: 700;
             color: var(--panel-text);
             letter-spacing: 0.2px;
         }
-        .remarkables-list {
-            list-style: decimal;
-            padding-left: 18px;
-            margin-bottom: 0;
+        .rm-col-subtitle {
+            font-size: 0.7rem;
+            color: var(--panel-muted);
+            margin-top: 1px;
         }
-        .remarkables-list li {
-            margin-bottom: 6px;
-            color: var(--panel-text);
-            font-size: 0.88rem;
+        .rm-list {
+            list-style: none;
+            padding: 0 8px;
+            margin: 0;
+        }
+        .rm-list li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 6px;
+            border-radius: 8px;
+            transition: background 0.15s;
+        }
+        .rm-list li:hover { background: rgba(255,255,255,0.04); }
+        .rm-rank {
+            font-size: 0.68rem;
+            color: var(--panel-muted);
+            width: 14px;
+            text-align: right;
+            flex-shrink: 0;
         }
         .remarkable-symbol {
             color: #ffffff !important;
             font-weight: 700;
             text-decoration: none;
+            font-size: 0.88rem;
+            flex: 1;
         }
         .remarkable-symbol:hover {
             color: #9ec3ff !important;
             text-decoration: underline;
         }
+        .rm-chg-pos { color: #6ee7a8; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+        .rm-chg-neg { color: #ff8a8a; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+        .rm-chg-flat { color: var(--panel-muted); font-size: 0.78rem; white-space: nowrap; }
+        .rm-yield-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #f7c04f;
+            background: rgba(247,192,79,0.12);
+            border-radius: 5px;
+            padding: 1px 6px;
+            white-space: nowrap;
+        }
+        .remarkables-meta {
+            font-size: 0.7rem;
+            color: var(--panel-muted);
+            padding: 6px 14px 2px;
+        }
+        /* keep old names for JS compat */
+        .remarkables-list { list-style: none; padding: 0; margin: 0; }
+        .remarkables-title { display: none; }
         .rm-info-wrap {
             position: relative;
             display: inline-flex;
@@ -657,28 +726,7 @@
         .peer-highlighted td { background: rgba(79,142,247,0.08); }
         .peer-highlighted td strong { color: #9ec3ff; }
 
-        /* ── New Listings ── */
-        .new-listings-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.83rem;
-        }
-        .new-listings-table th {
-            color: var(--panel-muted);
-            font-weight: 600;
-            padding: 5px 10px;
-            border-bottom: 1px solid var(--panel-border);
-            white-space: nowrap;
-            text-align: left;
-        }
-        .new-listings-table td {
-            padding: 7px 10px;
-            border-bottom: 1px solid var(--panel-border);
-            color: var(--panel-text);
-            vertical-align: middle;
-        }
-        .new-listings-table tr:last-child td { border-bottom: none; }
-        .new-listings-table tr:hover td { background: rgba(255,255,255,0.03); }
+        /* ── Dividend / shared list helpers ── */
         .nl-symbol-link {
             color: #ffffff !important;
             font-weight: 700;
@@ -686,25 +734,9 @@
             cursor: pointer;
         }
         .nl-symbol-link:hover { color: #9ec3ff !important; text-decoration: underline; }
-        .nl-name {
-            color: var(--panel-muted);
-            font-size: 0.77rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 180px;
-        }
-        .nl-exchange {
-            font-size: 0.72rem;
-            color: var(--panel-muted);
-            background: rgba(255,255,255,0.06);
-            padding: 1px 6px;
-            border-radius: 4px;
-        }
-        .nl-date { color: var(--panel-muted); font-size: 0.78rem; white-space: nowrap; }
-        .nl-chg-pos { color: #6ee7a8; font-weight: 600; }
-        .nl-chg-neg { color: #ff8a8a; font-weight: 600; }
-        .nl-chg-flat { color: var(--panel-muted); }
+        .nl-chg-pos { color: #6ee7a8; font-weight: 600; font-size: 0.82rem; }
+        .nl-chg-neg { color: #ff8a8a; font-weight: 600; font-size: 0.82rem; }
+        .nl-chg-flat { color: var(--panel-muted); font-size: 0.82rem; }
 
         /* ── Top toolbar ── */
         .top-toolbar {
@@ -966,9 +998,9 @@
                         <li>Peer comparison</li>
                     </ul>
                     {% if stripe_enabled %}
-                    <button class="btn btn-primary btn-sm upgrade-btn" data-tier="pro">Upgrade to Pro</button>
+                    <button class="btn btn-primary btn-sm upgrade-btn" data-tier="pro">Choose Pro</button>
                     {% else %}
-                    <button class="btn btn-primary btn-sm" disabled>Coming soon</button>
+                    <button class="btn btn-primary btn-sm upgrade-btn" data-tier="pro">Choose Pro</button>
                     {% endif %}
                 </div>
                 <!-- Premium -->
@@ -1104,19 +1136,28 @@
         <div class="card remarkable-card mt-3">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="fas fa-bolt"></i> Remarkables</span>
-                <small class="text-muted" id="remarkables-updated">
+                <small class="text-muted" id="remarkables-updated" style="font-size:0.72rem;">
                     {% if remarkables and remarkables.updated_at %}updated {{ remarkables.updated_at }}{% else %}not ready{% endif %}
                 </small>
             </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="remarkables-title">Risk Lovers</div>
-                        <ol class="remarkables-list" id="risk-lovers-list">
+            <div class="card-body p-0">
+                <div class="row g-0" style="border-bottom:1px solid var(--panel-border);">
+
+                    <!-- Risk Lovers -->
+                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
+                        <div class="rm-col-header">
+                            <div class="rm-col-icon rm-col-icon-risk"><i class="fas fa-fire"></i></div>
+                            <div>
+                                <div class="rm-col-title">Risk Lovers</div>
+                                <div class="rm-col-subtitle">High volatility movers</div>
+                            </div>
+                        </div>
+                        <ol class="rm-list remarkables-list" id="risk-lovers-list">
                             {% if remarkables and remarkables.for_risk_lovers %}
                                 {% for item in remarkables.for_risk_lovers %}
                                 <li>
-                                    <a href="#" class="remarkable-symbol fw-bold" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
+                                    <span class="rm-rank">{{ loop.index }}</span>
+                                    <a href="#" class="remarkable-symbol" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
                                     <span class="rm-info-wrap">
                                         <span class="rm-info-icon">i</span>
                                         <span class="rm-tooltip">
@@ -1126,20 +1167,37 @@
                                             {% if item.match_type and item.match_type != 'strict' and item.match_type != 'cache_strict' %}<div class="rm-near-match">&#9888; Near match</div>{% endif %}
                                         </span>
                                     </span>
+                                    {% if item.trend_percent is not none %}
+                                        {% if item.trend_percent > 0 %}
+                                        <span class="rm-chg-pos">+{{ item.trend_percent }}%</span>
+                                        {% else %}
+                                        <span class="rm-chg-neg">{{ item.trend_percent }}%</span>
+                                        {% endif %}
+                                    {% endif %}
                                 </li>
                                 {% endfor %}
                             {% else %}
-                                <li class="text-muted">No candidate yet.</li>
+                                <li><span class="text-muted small">No candidate yet.</span></li>
                             {% endif %}
                         </ol>
+                        <div style="height:10px;"></div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="remarkables-title">Trending Stocks</div>
-                        <ol class="remarkables-list" id="no-pain-list">
+
+                    <!-- Trending Stocks -->
+                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
+                        <div class="rm-col-header">
+                            <div class="rm-col-icon rm-col-icon-trend"><i class="fas fa-chart-line"></i></div>
+                            <div>
+                                <div class="rm-col-title">Trending Stocks</div>
+                                <div class="rm-col-subtitle">Steady upward momentum</div>
+                            </div>
+                        </div>
+                        <ol class="rm-list remarkables-list" id="no-pain-list">
                             {% if remarkables and remarkables.no_pain_but_gain %}
                                 {% for item in remarkables.no_pain_but_gain %}
                                 <li>
-                                    <a href="#" class="remarkable-symbol fw-bold" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
+                                    <span class="rm-rank">{{ loop.index }}</span>
+                                    <a href="#" class="remarkable-symbol" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
                                     <span class="rm-info-wrap">
                                         <span class="rm-info-icon">i</span>
                                         <span class="rm-tooltip">
@@ -1148,70 +1206,111 @@
                                             {% if item.match_type and item.match_type != 'strict' and item.match_type != 'cache_strict' %}<div class="rm-near-match">&#9888; Near match</div>{% endif %}
                                         </span>
                                     </span>
+                                    {% if item.trend_percent is not none %}
+                                        {% if item.trend_percent > 0 %}
+                                        <span class="rm-chg-pos">+{{ item.trend_percent }}%</span>
+                                        {% else %}
+                                        <span class="rm-chg-neg">{{ item.trend_percent }}%</span>
+                                        {% endif %}
+                                    {% endif %}
                                 </li>
                                 {% endfor %}
                             {% else %}
-                                <li class="text-muted">No candidate yet.</li>
+                                <li><span class="text-muted small">No candidate yet.</span></li>
                             {% endif %}
                         </ol>
+                        <div style="height:10px;"></div>
                     </div>
+
+                    <!-- Top Dividend Stocks -->
+                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
+                        <div class="rm-col-header">
+                            <div class="rm-col-icon rm-col-icon-dividend"><i class="fas fa-hand-holding-usd"></i></div>
+                            <div>
+                                <div class="rm-col-title">Top Dividend Stocks</div>
+                                <div class="rm-col-subtitle">Highest yield payers</div>
+                            </div>
+                        </div>
+                        {% if dividend_stocks %}
+                        <ul class="rm-list">
+                            {% for item in dividend_stocks %}
+                            <li>
+                                <span class="rm-rank">{{ loop.index }}</span>
+                                <a href="#" class="remarkable-symbol nl-symbol-link" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
+                                <span class="rm-info-wrap">
+                                    <span class="rm-info-icon">i</span>
+                                    <span class="rm-tooltip">
+                                        <div class="rm-tooltip-row"><span class="rm-tooltip-key">Div. Yield</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.yield_pct) }}%</span></div>
+                                        <div class="rm-tooltip-row"><span class="rm-tooltip-key">Annual Div.</span><span class="rm-tooltip-val">${{ "%.2f"|format(item.annual_div) }}</span></div>
+                                        {% if item.price %}<div class="rm-tooltip-row"><span class="rm-tooltip-key">Price</span><span class="rm-tooltip-val">${{ "%.2f"|format(item.price) }}</span></div>{% endif %}
+                                    </span>
+                                </span>
+                                <span class="rm-yield-badge">{{ "%.1f"|format(item.yield_pct) }}%</span>
+                                {% if item.change_pct > 0 %}
+                                <span class="rm-chg-pos">+{{ "%.2f"|format(item.change_pct) }}%</span>
+                                {% elif item.change_pct < 0 %}
+                                <span class="rm-chg-neg">{{ "%.2f"|format(item.change_pct) }}%</span>
+                                {% else %}
+                                <span class="rm-chg-flat">—</span>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted small px-3 mt-2">Loading dividend data…</p>
+                        {% endif %}
+                        <div style="height:10px;"></div>
+                    </div>
+
+                    <!-- Undervalued Stocks -->
+                    <div class="col-md-3">
+                        <div class="rm-col-header">
+                            <div class="rm-col-icon rm-col-icon-undervalued"><i class="fas fa-tags"></i></div>
+                            <div>
+                                <div class="rm-col-title">Undervalued</div>
+                                <div class="rm-col-subtitle">Top FCF yield stocks</div>
+                            </div>
+                        </div>
+                        {% if undervalued_stocks %}
+                        <ul class="rm-list">
+                            {% for item in undervalued_stocks %}
+                            <li>
+                                <span class="rm-rank">{{ loop.index }}</span>
+                                <a href="#" class="remarkable-symbol nl-symbol-link" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
+                                <span class="rm-info-wrap">
+                                    <span class="rm-info-icon">i</span>
+                                    <span class="rm-tooltip">
+                                        <div class="rm-tooltip-row"><span class="rm-tooltip-key">FCF Yield</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.fcf_yield) }}%</span></div>
+                                        {% if item.pfcf %}<div class="rm-tooltip-row"><span class="rm-tooltip-key">P/FCF</span><span class="rm-tooltip-val">{{ item.pfcf }}×</span></div>{% endif %}
+                                        {% if item.price %}<div class="rm-tooltip-row"><span class="rm-tooltip-key">Price</span><span class="rm-tooltip-val">${{ "%.2f"|format(item.price) }}</span></div>{% endif %}
+                                    </span>
+                                </span>
+                                <span class="rm-fcf-badge">{{ "%.1f"|format(item.fcf_yield) }}%</span>
+                                {% if item.change_pct > 0 %}
+                                <span class="rm-chg-pos">+{{ "%.2f"|format(item.change_pct) }}%</span>
+                                {% elif item.change_pct < 0 %}
+                                <span class="rm-chg-neg">{{ "%.2f"|format(item.change_pct) }}%</span>
+                                {% else %}
+                                <span class="rm-chg-flat">—</span>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted small px-3 mt-2">Loading undervalued data…</p>
+                        {% endif %}
+                        <div style="height:10px;"></div>
+                    </div>
+
                 </div>
                 <div class="remarkables-meta" id="remarkables-meta">
+                    <i class="fas fa-satellite-dish me-1" style="font-size:0.65rem;"></i>
                     {% if remarkables and remarkables.scanned_symbols %}
                     scanned {{ remarkables.scanned_symbols }} / {{ remarkables.total_symbols }} symbols
                     {% else %}
                     scanning status unavailable
                     {% endif %}
                 </div>
-            </div>
-        </div>
-
-        <!-- New Listings Section -->
-        <div class="card remarkable-card mt-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-rocket"></i> New Listings <small class="text-muted ms-2" style="font-size:0.75rem;">last 10 days</small></span>
-            </div>
-            <div class="card-body p-0">
-                {% if new_listings %}
-                <div style="overflow-x:auto;">
-                    <table class="new-listings-table">
-                        <thead>
-                            <tr>
-                                <th>Symbol</th>
-                                <th>Name</th>
-                                <th>Listed</th>
-                                <th>Exchange</th>
-                                <th style="text-align:right;">Price</th>
-                                <th style="text-align:right;">Change</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in new_listings %}
-                            <tr>
-                                <td><a href="#" class="nl-symbol-link" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a></td>
-                                <td><span class="nl-name" title="{{ item.name }}">{{ item.name }}</span></td>
-                                <td><span class="nl-date">{{ item.ipo_date }}</span></td>
-                                <td><span class="nl-exchange">{{ item.exchange }}</span></td>
-                                <td style="text-align:right;">
-                                    {% if item.price %}${{ "%.2f"|format(item.price) }}{% else %}&mdash;{% endif %}
-                                </td>
-                                <td style="text-align:right;">
-                                    {% if item.change_pct > 0 %}
-                                    <span class="nl-chg-pos">+{{ "%.2f"|format(item.change_pct) }}%</span>
-                                    {% elif item.change_pct < 0 %}
-                                    <span class="nl-chg-neg">{{ "%.2f"|format(item.change_pct) }}%</span>
-                                    {% else %}
-                                    <span class="nl-chg-flat">0.00%</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-muted small p-3">No new listings found in the last 10 days, or data is temporarily unavailable.</div>
-                {% endif %}
             </div>
         </div>
 
@@ -1358,7 +1457,49 @@
                         </div>
                     </div>
 
-                    <!-- 4. Latest News -->
+                    <!-- 4. AI Portfolio Advisor — Premium -->
+                    <div class="pro-card mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-briefcase"></i> AI Portfolio Advisor</span>
+                            <span class="tier-badge tier-badge-premium">Premium</span>
+                        </div>
+                        <div id="advisor-container">
+                            {% if user_tier in ('premium', 'admin') %}
+                            <div class="pro-lock text-muted small" id="advisor-placeholder">
+                                Run a prediction to get portfolio advice.
+                            </div>
+                            {% else %}
+                            <div class="pro-lock">
+                                <i class="fas fa-lock"></i>
+                                <span>Available on Premium</span>
+                                <button class="btn btn-warning btn-sm" id="advisor-upgrade-btn">Upgrade to Premium</button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- 5. Earnings Summarizer — Premium -->
+                    <div class="pro-card mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-calendar-check"></i> Earnings Summarizer</span>
+                            <span class="tier-badge tier-badge-premium">Premium</span>
+                        </div>
+                        <div id="earnings-container">
+                            {% if user_tier in ('premium', 'admin') %}
+                            <div class="pro-lock text-muted small" id="earnings-placeholder">
+                                Run a prediction to generate an earnings summary.
+                            </div>
+                            {% else %}
+                            <div class="pro-lock">
+                                <i class="fas fa-lock"></i>
+                                <span>Available on Premium</span>
+                                <button class="btn btn-warning btn-sm" id="earnings-upgrade-btn">Upgrade to Premium</button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- 6. Latest News -->
                     <div class="card news-card flex-grow-1">
                         <div class="card-header">
                             <i class="fas fa-newspaper"></i> Latest News
@@ -1500,19 +1641,33 @@
 
             function renderRemarkableList($target, items, type) {
                 if (!items || !items.length) {
-                    $target.html('<li class="text-muted">No candidate yet.</li>');
+                    $target.html('<li><span class="text-muted small">No candidate yet.</span></li>');
                     return;
                 }
-                const html = items.slice(0, 5).map(item => {
-                    const sym = `<a href="#" class="remarkable-symbol fw-bold" data-symbol="${item.symbol}">${item.symbol}</a>`;
+                const html = items.slice(0, 5).map((item, idx) => {
+                    const trend = parseFloat(item.trend_percent) || 0;
+                    const trendBadge = trend > 0
+                        ? `<span class="rm-chg-pos">+${trend}%</span>`
+                        : `<span class="rm-chg-neg">${trend}%</span>`;
+                    const sym = `<a href="#" class="remarkable-symbol" data-symbol="${item.symbol}">${item.symbol}</a>`;
+                    const nearMatch = item.match_type && item.match_type !== 'strict' && item.match_type !== 'cache_strict';
+                    let tooltipRows = '';
                     if (type === 'risk') {
-                        const near = item.match_type && item.match_type !== 'strict' && item.match_type !== 'cache_strict' ? ' <span class="text-warning">(near match)</span>' : '';
-                        const downHits = (item.down_hits ?? item.loss_hits ?? 0);
-                        const upHits = (item.up_hits ?? item.gain_hits ?? 0);
-                        return `<li>${sym} <span class="text-muted">| trend ${item.trend_percent}% | prev-day LOW<=0.9x hits ${downHits} | prev-day HIGH>=1.20x hits ${upHits}</span>${near}</li>`;
+                        const downHits = item.down_hits ?? item.loss_hits ?? 0;
+                        const upHits = item.up_hits ?? item.gain_hits ?? 0;
+                        tooltipRows = `
+                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend</span><span class="rm-tooltip-val">${item.trend_percent}%</span></div>
+                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Low hits (&le;0.9&times;)</span><span class="rm-tooltip-val">${downHits}</span></div>
+                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">High hits (&ge;1.2&times;)</span><span class="rm-tooltip-val">${upHits}</span></div>
+                            ${nearMatch ? '<div class="rm-near-match">&#9888; Near match</div>' : ''}`;
+                    } else {
+                        tooltipRows = `
+                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend</span><span class="rm-tooltip-val">${item.trend_percent}%</span></div>
+                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Max daily drop</span><span class="rm-tooltip-val">${item.max_daily_drop_percent}%</span></div>
+                            ${nearMatch ? '<div class="rm-near-match">&#9888; Near match</div>' : ''}`;
                     }
-                    const near = item.match_type && item.match_type !== 'strict' && item.match_type !== 'cache_strict' ? ' <span class="text-warning">(near match)</span>' : '';
-                    return `<li>${sym} <span class="text-muted">| trend ${item.trend_percent}% | max drop ${item.max_daily_drop_percent}%</span>${near}</li>`;
+                    const infoIcon = `<span class="rm-info-wrap"><span class="rm-info-icon">i</span><span class="rm-tooltip">${tooltipRows}</span></span>`;
+                    return `<li><span class="rm-rank">${idx + 1}</span>${sym}${infoIcon}${trendBadge}</li>`;
                 }).join('');
                 $target.html(html);
             }
@@ -1963,6 +2118,10 @@
                             loadTradeThesis(currentSymbol);
                             loadPeers(currentSymbol);
                         }
+                        if (hasPremiumAccess) {
+                            loadPortfolioAdvice(currentSymbol);
+                            loadEarningsSummary(currentSymbol);
+                        }
                     },
                     error: function(xhr) {
                         $('.loading-spinner').removeClass('is-visible');
@@ -1977,7 +2136,9 @@
             });
 
             const proTiers = ['pro', 'premium', 'admin'];
+            const premiumTiers = ['premium', 'admin'];
             const hasProAccess = isLoggedIn && proTiers.includes(userTier);
+            const hasPremiumAccess = isLoggedIn && premiumTiers.includes(userTier);
             const watchlistTiers = proTiers;
             const hasWatchlistAccess = hasProAccess;
 
@@ -2117,6 +2278,101 @@
                     );
                 } catch (e) {
                     $('#peers-container').html('<div class="pro-lock text-muted small">Network error. Please try again.</div>');
+                }
+            }
+
+            async function loadPortfolioAdvice(sym) {
+                $('#advisor-container').html('<div class="pro-lock text-muted small"><i class="fas fa-spinner fa-spin me-1"></i> Generating portfolio advice…</div>');
+                try {
+                    const resp = await fetch('/api/portfolio-advisor', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ symbol: sym })
+                    });
+                    const data = await resp.json();
+                    if (!resp.ok || data.error) {
+                        $('#advisor-container').html('<div class="pro-lock text-muted small">' + escHtml(data.error || 'Could not load advice.') + '</div>');
+                        return;
+                    }
+                    const text = data.advice || '';
+                    const sections = [
+                        { key: 'POSITION SIZE',   cls: 'thesis-bull',    icon: 'fa-chart-pie' },
+                        { key: 'RISK PROFILE',    cls: 'thesis-bear',    icon: 'fa-exclamation-triangle' },
+                        { key: 'ENTRY STRATEGY',  cls: 'thesis-verdict', icon: 'fa-sign-in-alt' },
+                        { key: 'EXIT STRATEGY',   cls: 'thesis-verdict', icon: 'fa-sign-out-alt' },
+                    ];
+                    let html = '<div class="p-3">';
+                    const lines = text.split('\n').filter(l => l.trim());
+                    let current = null, body = [];
+                    function flushSection() {
+                        if (!current) return;
+                        const sec = sections.find(s => current.toUpperCase().includes(s.key));
+                        const cls = sec ? sec.cls : 'thesis-verdict';
+                        const icon = sec ? sec.icon : 'fa-info-circle';
+                        html += `<div class="thesis-section ${cls}">`;
+                        html += `<div class="thesis-label"><i class="fas ${icon} me-1"></i>${escHtml(current)}</div>`;
+                        html += `<div class="thesis-body">${escHtml(body.join(' '))}</div>`;
+                        html += `</div>`;
+                    }
+                    for (const line of lines) {
+                        const isHeader = sections.some(s => line.toUpperCase().includes(s.key));
+                        if (isHeader) { flushSection(); current = line.replace(/^\d+\.\s*/, ''); body = []; }
+                        else { body.push(line.trim()); }
+                    }
+                    flushSection();
+                    html += '</div>';
+                    $('#advisor-container').html(html);
+                } catch (e) {
+                    $('#advisor-container').html('<div class="pro-lock text-muted small">Network error. Please try again.</div>');
+                }
+            }
+
+            $('#advisor-upgrade-btn, #earnings-upgrade-btn').on('click', function() {
+                openUpgradeModal('Upgrade to Premium to unlock AI Portfolio Advisor and Earnings Summarizer.');
+            });
+
+            async function loadEarningsSummary(sym) {
+                $('#earnings-container').html('<div class="pro-lock text-muted small"><i class="fas fa-spinner fa-spin me-1"></i> Fetching earnings data…</div>');
+                try {
+                    const resp = await fetch('/api/earnings-summary', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ symbol: sym })
+                    });
+                    const data = await resp.json();
+                    if (!resp.ok || data.error) {
+                        $('#earnings-container').html('<div class="pro-lock text-muted small">' + escHtml(data.error || 'Could not load earnings summary.') + '</div>');
+                        return;
+                    }
+                    const text = data.summary || '';
+                    const sections = [
+                        { key: 'EARNINGS TREND',      cls: 'thesis-bull',    icon: 'fa-chart-bar' },
+                        { key: 'UPCOMING OUTLOOK',    cls: 'thesis-verdict', icon: 'fa-binoculars' },
+                        { key: 'INVESTOR TAKEAWAY',   cls: 'thesis-bear',    icon: 'fa-lightbulb' },
+                    ];
+                    let html = '<div class="p-3">';
+                    const lines = text.split('\n').filter(l => l.trim());
+                    let current = null, body = [];
+                    function flush() {
+                        if (!current) return;
+                        const sec = sections.find(s => current.toUpperCase().includes(s.key));
+                        const cls  = sec ? sec.cls  : 'thesis-verdict';
+                        const icon = sec ? sec.icon : 'fa-info-circle';
+                        html += `<div class="thesis-section ${cls}">`;
+                        html += `<div class="thesis-label"><i class="fas ${icon} me-1"></i>${escHtml(current)}</div>`;
+                        html += `<div class="thesis-body">${escHtml(body.join(' '))}</div>`;
+                        html += `</div>`;
+                    }
+                    for (const line of lines) {
+                        const isHeader = sections.some(s => line.toUpperCase().includes(s.key));
+                        if (isHeader) { flush(); current = line.replace(/^\d+\.\s*/, ''); body = []; }
+                        else { body.push(line.trim()); }
+                    }
+                    flush();
+                    html += '</div>';
+                    $('#earnings-container').html(html);
+                } catch (e) {
+                    $('#earnings-container').html('<div class="pro-lock text-muted small">Network error. Please try again.</div>');
                 }
             }
 
