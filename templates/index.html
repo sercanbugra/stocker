@@ -989,8 +989,8 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            flex: 0 1 420px;
-            min-width: 200px;
+            flex: 0 1 320px;
+            min-width: 180px;
         }
         .ticker-input-wrap {
             position: relative;
@@ -1387,14 +1387,55 @@
             flex: 1 1 auto;
             justify-content: center;
             white-space: nowrap;
-            transition: border-color 0.18s, background 0.18s;
+            transition: border-color 0.18s, background 0.18s, color 0.18s;
+            position: relative;
+            cursor: default;
         }
         .hero-feat-pill:hover {
-            border-color: rgba(79,142,247,0.4);
-            background: rgba(79,142,247,0.12);
+            border-color: rgba(79,142,247,0.45);
+            background: rgba(79,142,247,0.14);
             color: #c8d7ff;
         }
         .hero-feat-pill i { color: #4f8ef7; font-size: 0.68rem; }
+        .hero-pill-tip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0d1b3e;
+            border: 1px solid rgba(79,142,247,0.3);
+            border-radius: 10px;
+            padding: 9px 14px;
+            width: 200px;
+            font-size: 0.7rem;
+            font-weight: 400;
+            color: rgba(200,215,255,0.75);
+            line-height: 1.5;
+            text-align: center;
+            white-space: normal;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            z-index: 50;
+            pointer-events: none;
+        }
+        .hero-pill-tip::after {
+            content: "";
+            position: absolute;
+            top: 100%; left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: rgba(79,142,247,0.3);
+        }
+        .hero-pill-tip::before {
+            content: "";
+            position: absolute;
+            top: 100%; left: 50%;
+            transform: translateX(-50%) translateY(-1px);
+            border: 6px solid transparent;
+            border-top-color: #0d1b3e;
+            z-index: 1;
+        }
+        .hero-feat-pill:hover .hero-pill-tip { display: block; }
         .hero-tickers-row {
             display: flex;
             align-items: center;
@@ -1742,12 +1783,24 @@
                 <!-- Bottom: pills + tickers — spans full width -->
                 <div class="hero-bottom">
                     <div class="hero-features">
-                        <span class="hero-feat-pill"><i class="fas fa-brain"></i> Ensemble ML Forecast</span>
-                        <span class="hero-feat-pill"><i class="fas fa-wave-square"></i> Pattern Detection</span>
-                        <span class="hero-feat-pill"><i class="fas fa-newspaper"></i> News Sentiment</span>
-                        <span class="hero-feat-pill"><i class="fas fa-users"></i> Peer Comparison</span>
-                        <span class="hero-feat-pill"><i class="fas fa-bolt"></i> Remarkables Scanner</span>
-                        <span class="hero-feat-pill"><i class="fas fa-star"></i> Watchlist</span>
+                        <span class="hero-feat-pill"><i class="fas fa-brain"></i> Ensemble ML Forecast
+                            <span class="hero-pill-tip">Blends XGBoost, ExtraTrees &amp; RandomForest to generate a 30-day price forecast with confidence scoring.</span>
+                        </span>
+                        <span class="hero-feat-pill"><i class="fas fa-wave-square"></i> Pattern Detection
+                            <span class="hero-pill-tip">Automatically identifies chart patterns — head &amp; shoulders, triangles, flags, double tops, cup &amp; handle and more.</span>
+                        </span>
+                        <span class="hero-feat-pill"><i class="fas fa-newspaper"></i> News Sentiment
+                            <span class="hero-pill-tip">Scans the latest headlines and scores them with VADER sentiment analysis to gauge market mood around the stock.</span>
+                        </span>
+                        <span class="hero-feat-pill"><i class="fas fa-users"></i> Peer Comparison
+                            <span class="hero-pill-tip">Ranks the stock side-by-side with its closest industry peers across valuation, growth, margins and return metrics.</span>
+                        </span>
+                        <span class="hero-feat-pill"><i class="fas fa-bolt"></i> Remarkables Scanner
+                            <span class="hero-pill-tip">Daily scan of 4,400+ US, UK and Turkish symbols to surface top movers, trending stocks, high dividends and undervalued picks.</span>
+                        </span>
+                        <span class="hero-feat-pill"><i class="fas fa-star"></i> Watchlist
+                            <span class="hero-pill-tip">Save any analysed ticker to your personal watchlist for one-click reload — available on Pro and Premium plans.</span>
+                        </span>
                     </div>
                     <div class="hero-tickers-row">
                         <span class="hero-tickers-label">Try now &rarr;</span>
