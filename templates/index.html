@@ -128,91 +128,236 @@
         #predictions-table .text-danger {
             color: #ff8a8a !important;
         }
+        /* ── Analysis overlay ── */
         .loading-spinner {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(8, 12, 20, 0.55);
+            background: rgba(6, 10, 22, 0.82);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
         }
-        .loading-spinner.is-visible {
-            display: flex;
-        }
-        .stock-loader {
-            width: 200px;
-            height: 160px;
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.2);
-            position: relative;
-            display: grid;
-            place-items: center;
+        .loading-spinner.is-visible { display: flex; }
+
+        .ai-terminal {
+            width: min(480px, 94vw);
+            background: linear-gradient(160deg, #1a2540 0%, #111829 100%);
+            border: 1px solid rgba(100, 160, 255, 0.18);
+            border-radius: 20px;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04) inset;
             overflow: hidden;
+            animation: terminalIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
         }
-        .stock-loader .chart-lines {
-            position: absolute;
-            inset: 16px 20px 20px 20px;
-            border: 1px solid #d9e2ef;
-            border-radius: 8px;
+        @keyframes terminalIn {
+            from { opacity: 0; transform: scale(0.88) translateY(20px); }
+            to   { opacity: 1; transform: scale(1)    translateY(0);    }
         }
-        .stock-loader .chart-lines::before,
-        .stock-loader .chart-lines::after {
-            content: "";
-            position: absolute;
-            left: 10px;
-            right: 10px;
-            height: 2px;
-            background: linear-gradient(90deg, #0d6efd, #0b7285);
-            top: 55%;
-            transform: translateY(-50%);
-            animation: linePulse 1.4s ease-in-out infinite;
+
+        /* top bar */
+        .ai-terminal-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
         }
-        .stock-loader .chart-lines::after {
-            top: 35%;
-            opacity: 0.5;
-            animation-delay: 0.3s;
-        }
-        .magnifier {
-            position: absolute;
-            width: 70px;
-            height: 70px;
-            border: 4px solid #0d6efd;
+        .ai-terminal-dots span {
+            display: inline-block;
+            width: 10px; height: 10px;
             border-radius: 50%;
-            left: 40px;
-            top: 45px;
-            animation: magnifierSweep 1.4s ease-in-out infinite;
-            background: rgba(13,110,253,0.08);
+            margin-right: 5px;
         }
-        .magnifier::after {
-            content: "";
-            position: absolute;
-            width: 36px;
-            height: 6px;
-            background: #0d6efd;
-            right: -30px;
-            bottom: -6px;
-            transform: rotate(45deg);
+        .ai-terminal-dots span:nth-child(1) { background: #ff5f57; }
+        .ai-terminal-dots span:nth-child(2) { background: #ffbd2e; }
+        .ai-terminal-dots span:nth-child(3) { background: #28c840; }
+        .ai-terminal-title {
+            font-family: 'Courier New', monospace;
+            font-size: 0.72rem;
+            color: rgba(200,215,255,0.5);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            flex: 1;
+            text-align: center;
+        }
+        .ai-live-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: #28c840;
+            box-shadow: 0 0 6px #28c840;
+            animation: livePulse 1.2s ease-in-out infinite;
+        }
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        /* symbol hero */
+        .ai-symbol-hero {
+            padding: 22px 24px 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .ai-symbol-badge {
+            font-family: 'Courier New', monospace;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #e7ecff;
+            letter-spacing: 2px;
+            line-height: 1;
+        }
+        .ai-symbol-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .ai-symbol-tag {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #4f8ef7;
+            background: rgba(79,142,247,0.12);
+            border: 1px solid rgba(79,142,247,0.25);
             border-radius: 4px;
+            padding: 2px 8px;
+            width: fit-content;
         }
-        .loading-label {
-            position: absolute;
-            bottom: 12px;
-            font-size: 12px;
-            color: #223;
-            font-weight: 600;
+        .ai-symbol-subtitle {
+            font-size: 0.7rem;
+            color: rgba(200,215,255,0.4);
+            letter-spacing: 0.5px;
+        }
+
+        /* candlestick visual */
+        .ai-candles {
+            display: flex;
+            align-items: flex-end;
+            gap: 5px;
+            padding: 0 24px 16px;
+            height: 56px;
+        }
+        .ai-candle {
+            flex: 1;
+            border-radius: 3px 3px 0 0;
+            animation: candleGrow 0.6s ease-out both;
+            position: relative;
+        }
+        .ai-candle.up   { background: linear-gradient(180deg, #34d399, #10b981); }
+        .ai-candle.down { background: linear-gradient(180deg, #f87171, #ef4444); }
+        @keyframes candleGrow {
+            from { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
+            to   { transform: scaleY(1); transform-origin: bottom; opacity: 1; }
+        }
+
+        /* steps */
+        .ai-steps {
+            padding: 4px 24px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .ai-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 10px;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+        .ai-step.active  { background: rgba(79,142,247,0.08); }
+        .ai-step.done    { background: rgba(52,211,153,0.05); }
+        .ai-step-icon {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+        .ai-step.pending .ai-step-icon {
+            border: 1.5px solid rgba(255,255,255,0.12);
+            color: transparent;
+        }
+        .ai-step.active .ai-step-icon {
+            border: 1.5px solid #4f8ef7;
+            color: #4f8ef7;
+            animation: stepSpin 1s linear infinite;
+        }
+        .ai-step.done .ai-step-icon {
+            border: 1.5px solid #34d399;
+            background: rgba(52,211,153,0.15);
+            color: #34d399;
+        }
+        @keyframes stepSpin {
+            0%   { box-shadow: 0 0 0 0 rgba(79,142,247,0.4); }
+            50%  { box-shadow: 0 0 0 4px rgba(79,142,247,0); }
+            100% { box-shadow: 0 0 0 0 rgba(79,142,247,0);   }
+        }
+        .ai-step-label {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: rgba(200,215,255,0.5);
+            transition: color 0.3s;
+        }
+        .ai-step.active .ai-step-label  { color: #c8d7ff; }
+        .ai-step.done   .ai-step-label  { color: rgba(200,215,255,0.45); }
+        .ai-step-time {
+            margin-left: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            color: rgba(200,215,255,0.25);
+        }
+        .ai-step.done .ai-step-time { color: #34d399; }
+
+        /* status message */
+        .ai-status-row {
+            padding: 10px 24px 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ai-status-msg {
+            font-family: 'Courier New', monospace;
+            font-size: 0.72rem;
+            color: #4f8ef7;
+            min-height: 1.1em;
             letter-spacing: 0.3px;
         }
-        @keyframes magnifierSweep {
-            0% { transform: translateX(0) translateY(0); }
-            50% { transform: translateX(70px) translateY(-8px); }
-            100% { transform: translateX(0) translateY(0); }
+        .ai-cursor {
+            display: inline-block;
+            width: 7px; height: 13px;
+            background: #4f8ef7;
+            border-radius: 1px;
+            vertical-align: middle;
+            animation: cursorBlink 0.8s step-end infinite;
         }
-        @keyframes linePulse {
-            0% { transform: translateY(-50%) scaleX(0.6); opacity: 0.5; }
-            50% { transform: translateY(-50%) scaleX(1.0); opacity: 1; }
-            100% { transform: translateY(-50%) scaleX(0.6); opacity: 0.5; }
+        @keyframes cursorBlink {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0; }
+        }
+
+        /* progress bar */
+        .ai-progress-wrap {
+            padding: 10px 24px 20px;
+        }
+        .ai-progress-track {
+            height: 3px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .ai-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #4f8ef7, #7c5af7);
+            border-radius: 99px;
+            transition: width 1.8s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: 0 0 8px rgba(79,142,247,0.5);
         }
         .model-badge {
             margin-right: 5px;
@@ -1020,6 +1165,10 @@
 
             /* Prevent toolbar search from forcing horizontal scroll */
             .toolbar-search     { min-width: 120px; }
+
+            /* Analysis terminal on mobile */
+            .ai-symbol-badge    { font-size: 1.6rem; }
+            .ai-candles         { height: 44px; }
         }
 
         /* ── Touch feedback for interactive elements (no desktop effect) ── */
@@ -1145,12 +1294,71 @@
         </div>
     </div>
 
-    <!-- Loading Spinner -->
-    <div class="loading-spinner text-center">
-        <div class="stock-loader">
-            <div class="chart-lines"></div>
-            <div class="magnifier"></div>
-            <div class="loading-label">Analyzing market data...</div>
+    <!-- Analysis Overlay -->
+    <div class="loading-spinner">
+        <div class="ai-terminal">
+            <!-- title bar -->
+            <div class="ai-terminal-bar">
+                <div class="ai-terminal-dots">
+                    <span></span><span></span><span></span>
+                </div>
+                <div class="ai-terminal-title">stocker · ai analysis engine</div>
+                <div class="ai-live-dot"></div>
+            </div>
+
+            <!-- symbol hero -->
+            <div class="ai-symbol-hero">
+                <div class="ai-symbol-badge" id="loader-symbol">—</div>
+                <div class="ai-symbol-meta">
+                    <div class="ai-symbol-tag">LIVE ANALYSIS</div>
+                    <div class="ai-symbol-subtitle" id="loader-subtitle">Initialising...</div>
+                </div>
+            </div>
+
+            <!-- animated candlesticks -->
+            <div class="ai-candles" id="loader-candles"></div>
+
+            <!-- pipeline steps -->
+            <div class="ai-steps">
+                <div class="ai-step pending" id="step-0">
+                    <div class="ai-step-icon"><i class="fas fa-satellite-dish"></i></div>
+                    <div class="ai-step-label">Fetching OHLCV market data</div>
+                    <div class="ai-step-time" id="step-0-time"></div>
+                </div>
+                <div class="ai-step pending" id="step-1">
+                    <div class="ai-step-icon"><i class="fas fa-wave-square"></i></div>
+                    <div class="ai-step-label">Computing technical indicators</div>
+                    <div class="ai-step-time" id="step-1-time"></div>
+                </div>
+                <div class="ai-step pending" id="step-2">
+                    <div class="ai-step-icon"><i class="fas fa-brain"></i></div>
+                    <div class="ai-step-label">Training ensemble ML models</div>
+                    <div class="ai-step-time" id="step-2-time"></div>
+                </div>
+                <div class="ai-step pending" id="step-3">
+                    <div class="ai-step-icon"><i class="fas fa-newspaper"></i></div>
+                    <div class="ai-step-label">Scanning news &amp; sentiment</div>
+                    <div class="ai-step-time" id="step-3-time"></div>
+                </div>
+                <div class="ai-step pending" id="step-4">
+                    <div class="ai-step-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="ai-step-label">Generating forecast &amp; patterns</div>
+                    <div class="ai-step-time" id="step-4-time"></div>
+                </div>
+            </div>
+
+            <!-- status message -->
+            <div class="ai-status-row">
+                <div class="ai-status-msg" id="loader-msg">Initialising analysis pipeline</div>
+                <div class="ai-cursor"></div>
+            </div>
+
+            <!-- progress bar -->
+            <div class="ai-progress-wrap">
+                <div class="ai-progress-track">
+                    <div class="ai-progress-fill" id="loader-progress"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -2505,6 +2713,110 @@
                 `);
             }
 
+            /* ── Analysis terminal animation ── */
+            const _loaderMsgs = [
+                "Connecting to market data feeds",
+                "Downloading 1-year OHLCV history",
+                "Normalising price & volume series",
+                "Calculating RSI, MACD, Bollinger Bands",
+                "Engineering 40+ technical features",
+                "Fitting XGBoost regression model",
+                "Training ExtraTreesRegressor ensemble",
+                "Cross-validating RandomForest model",
+                "Blending model predictions",
+                "Scanning latest news headlines",
+                "Running VADER sentiment analysis",
+                "Detecting chart patterns",
+                "Projecting 30-day price forecast",
+                "Rendering interactive charts",
+            ];
+            const _candleHeights = [38,52,28,60,44,35,56,42,65,30,50,40,70,34,58];
+            const _candlePattern  = [1,0,1,1,0,1,0,1,1,0,1,1,0,1,1]; // 1=up 0=down
+            const _stepDelays     = [0, 2200, 5500, 9000, 12000]; // approx cumulative ms
+            const _stepProgress   = [18, 36, 62, 82, 96];
+
+            let _loaderTimer = null, _stepTimers = [];
+
+            function _resetSteps() {
+                for (let i = 0; i < 5; i++) {
+                    const el = document.getElementById('step-' + i);
+                    if (el) { el.className = 'ai-step pending'; }
+                    const t = document.getElementById('step-' + i + '-time');
+                    if (t) t.textContent = '';
+                }
+            }
+
+            function _buildCandles() {
+                const wrap = document.getElementById('loader-candles');
+                if (!wrap) return;
+                wrap.innerHTML = '';
+                _candleHeights.forEach((h, i) => {
+                    const c = document.createElement('div');
+                    c.className = 'ai-candle ' + (_candlePattern[i] ? 'up' : 'down');
+                    c.style.height = h + '%';
+                    c.style.animationDelay = (i * 55) + 'ms';
+                    wrap.appendChild(c);
+                });
+            }
+
+            function _startLoader(symbol) {
+                // Reset UI
+                _resetSteps();
+                _buildCandles();
+                document.getElementById('loader-symbol').textContent = symbol || '—';
+                document.getElementById('loader-subtitle').textContent = 'AI-powered deep analysis';
+                document.getElementById('loader-progress').style.width = '4%';
+                document.getElementById('loader-msg').textContent = 'Initialising analysis pipeline';
+
+                let msgIdx = 0;
+                _loaderTimer = setInterval(function() {
+                    msgIdx = (msgIdx + 1) % _loaderMsgs.length;
+                    const el = document.getElementById('loader-msg');
+                    if (el) el.textContent = _loaderMsgs[msgIdx];
+                }, 1800);
+
+                // Animate steps
+                const stepStart = Date.now();
+                _stepTimers = [];
+                for (let s = 0; s < 5; s++) {
+                    (function(idx) {
+                        const t1 = setTimeout(function() {
+                            // Mark previous as done
+                            if (idx > 0) {
+                                const prev = document.getElementById('step-' + (idx-1));
+                                if (prev) prev.className = 'ai-step done';
+                                const pt = document.getElementById('step-' + (idx-1) + '-time');
+                                if (pt) pt.textContent = '✓';
+                            }
+                            // Mark current as active
+                            const cur = document.getElementById('step-' + idx);
+                            if (cur) cur.className = 'ai-step active';
+                            // Advance progress bar
+                            const pb = document.getElementById('loader-progress');
+                            if (pb) pb.style.width = _stepProgress[idx] + '%';
+                        }, _stepDelays[idx]);
+                        _stepTimers.push(t1);
+                    })(s);
+                }
+            }
+
+            function _stopLoader() {
+                clearInterval(_loaderTimer);
+                _stepTimers.forEach(clearTimeout);
+                _stepTimers = [];
+                // Complete all steps visually
+                for (let i = 0; i < 5; i++) {
+                    const el = document.getElementById('step-' + i);
+                    if (el) el.className = 'ai-step done';
+                    const t = document.getElementById('step-' + i + '-time');
+                    if (t) t.textContent = '✓';
+                }
+                const pb = document.getElementById('loader-progress');
+                if (pb) pb.style.width = '100%';
+                const msg = document.getElementById('loader-msg');
+                if (msg) msg.textContent = 'Analysis complete';
+            }
+
             $('#predict-btn').click(function() {
                 const symbol = $('#stock-input').val().trim().toUpperCase();
                 if (!symbol) {
@@ -2512,6 +2824,7 @@
                     return;
                 }
 
+                _startLoader(symbol);
                 $('.loading-spinner').addClass('is-visible');
                 $('#results').hide();
 
@@ -2520,7 +2833,8 @@
                     method: 'POST',
                     data: { symbol: symbol },
                     success: function(response) {
-                        $('.loading-spinner').removeClass('is-visible');
+                        _stopLoader();
+                        setTimeout(function() { $('.loading-spinner').removeClass('is-visible'); }, 320);
                         $('#results').show();
                         if (response._meta) {
                             updateUsageDisplay(response._meta.used_today, response._meta.daily_limit);
@@ -2646,6 +2960,7 @@
                         }
                     },
                     error: function(xhr) {
+                        _stopLoader();
                         $('.loading-spinner').removeClass('is-visible');
                         const data = xhr.responseJSON || {};
                         if (xhr.status === 429 && data.upgrade_required) {
