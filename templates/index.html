@@ -2061,8 +2061,17 @@
             <div class="row g-3">
                 <div class="col-lg-8">
                     <div class="card">
-                        <div class="card-header">
-                            <i class="fas fa-chart-area"></i> Stock Price Chart
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-chart-area"></i> Stock Price Chart</span>
+                            {% if user %}
+                            <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch" style="display:none; padding:5px 12px; font-size:0.75rem;">
+                                <i class="fas fa-star"></i><span> Save</span>
+                            </button>
+                            {% else %}
+                            <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch tb-btn-locked" style="display:none; padding:5px 12px; font-size:0.75rem;">
+                                <i class="fas fa-star"></i><span> Save</span>
+                            </button>
+                            {% endif %}
                         </div>
                         <div class="card-body">
                             <div id="chart"></div>
@@ -2137,17 +2146,8 @@
                 <div class="col-lg-4 d-flex flex-column">
                     <!-- 1. Prediction Results -->
                     <div class="card predictions-card mb-3">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-calculator"></i> Prediction Results</span>
-                            {% if user %}
-                            <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch" style="display:none; padding:5px 12px; font-size:0.75rem;">
-                                <i class="fas fa-star"></i><span> Save</span>
-                            </button>
-                            {% else %}
-                            <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch tb-btn-locked" style="display:none; padding:5px 12px; font-size:0.75rem;">
-                                <i class="fas fa-star"></i><span> Save</span>
-                            </button>
-                            {% endif %}
+                        <div class="card-header">
+                            <i class="fas fa-calculator"></i> Prediction Results
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
@@ -2270,7 +2270,7 @@
         <div class="card watchlist-card mt-3">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="fas fa-star"></i> Watchlist</span>
-                <small class="text-muted">click a symbol to load its analysis</small>
+                <small class="text-muted">Click the Save button to add any symbol to your watchlist</small>
             </div>
             <div class="card-body p-2">
                 <div class="row row-cols-3 row-cols-md-5 row-cols-lg-8 g-2" id="watchlist-body">
