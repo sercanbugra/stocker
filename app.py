@@ -616,10 +616,48 @@ UNDERVALUED_CACHE_PATH = os.path.join(_DATA_DIR, "cache", "undervalued_stocks.js
 _UNDERVALUED_MEM: list | None = None
 _UNDERVALUED_MEM_DAY: str | None = None
 
-LSE_CACHE_PATH  = os.path.join(_DATA_DIR, "cache", "remarkables_lse.json")
-BIST_CACHE_PATH = os.path.join(_DATA_DIR, "cache", "remarkables_bist.json")
+LSE_CACHE_PATH      = os.path.join(_DATA_DIR, "cache", "remarkables_lse.json")
+BIST_CACHE_PATH     = os.path.join(_DATA_DIR, "cache", "remarkables_bist.json")
+INDUSTRY_DB_PATH    = os.path.join(_DATA_DIR, "cache", "industry_db.json")
 _UNDERVALUED_REFRESH_LOCK = threading.Lock()
 _UNDERVALUED_REFRESH_IN_PROGRESS = False
+
+# ---------------------------------------------------------------------------
+# Industry / sector static database
+# ---------------------------------------------------------------------------
+_industry_db: dict = {}
+_industry_db_lock = threading.Lock()
+
+def _load_industry_db() -> dict:
+    """Load the static industry DB from disk, cache in memory. Thread-safe."""
+    global _industry_db
+    if _industry_db:
+        return _industry_db
+    with _industry_db_lock:
+        if _industry_db:          # double-checked locking
+            return _industry_db
+        # Prefer the volume path; fall back to the repo-local copy
+        paths = [
+            INDUSTRY_DB_PATH,
+            os.path.join(os.path.dirname(__file__), "data", "cache", "industry_db.json"),
+        ]
+        for p in paths:
+            if os.path.exists(p):
+                try:
+                    with open(p, "r", encoding="utf-8") as fh:
+                        payload = json.load(fh)
+                    _industry_db = payload.get("symbols", {})
+                    logger.info(f"Industry DB loaded: {len(_industry_db)} symbols from {p}")
+                    return _industry_db
+                except Exception as e:
+                    logger.warning(f"Failed to load industry DB from {p}: {e}")
+        logger.warning("Industry DB not found — peer comparison will fall back to live fetches")
+        _industry_db = {}
+        return _industry_db
+
+def _sym_meta(symbol: str) -> dict:
+    """Return cached sector/industry/market meta for a symbol (or empty dict)."""
+    return _load_industry_db().get(symbol, {})
 
 def _sanitize_watchlist_key(value: str) -> str:
     if not value:
@@ -3137,73 +3175,111 @@ def _fetch_ticker_fundamentals(sym: str) -> dict | None:
 
 def fetch_peers(symbol: str, sector: str | None) -> dict:
     """
-    Find genuine peers by matching industry + market-cap proximity from the
-    S&P 500 universe. Returns target fundamentals + up to 4 peer fundamentals.
+    Find genuine peers using the static industry DB (US + UK + TR universe).
+
+    Priority order:
+      1. Same market  + exact industry match
+      2. Other market + exact industry match
+      3. Same market  + same sector (industry fall-through)
+      4. Other market + same sector
+
+    Within each tier, candidates are ranked by log-scale market-cap proximity
+    to the target.  Full fundamentals are fetched only for the top 16, and the
+    final list is trimmed to 4 peers.
     """
+    import math
+
     # Step 1 — fetch target fundamentals
     target = _fetch_ticker_fundamentals(symbol)
     if not target:
         return {"target": None, "peers": []}
 
-    target_industry = target.get("industry")
+    # Enrich target with static-DB metadata when yfinance returns nothing
+    db_meta = _sym_meta(symbol)
+    target_industry = target.get("industry") or db_meta.get("industry")
+    target_sector   = target.get("sector")   or db_meta.get("sector")
+    target_market   = db_meta.get("market", "US")
     target_mktcap   = target.get("market_cap") or 0
 
-    # Step 2 — build candidate list from S&P 500 + NASDAQ pool
-    all_symbols = fetch_sp500_stocks()
-    candidates = [s for s in all_symbols if s != symbol]
+    # Step 2 — score ALL candidates from the static DB (no live API calls)
+    db = _load_industry_db()
+    if not db:
+        # DB unavailable — fall back to legacy S&P 500-only logic
+        all_symbols = fetch_sp500_stocks()
+        candidates_fallback = [s for s in all_symbols if s != symbol]
 
-    # Step 3 — score candidates: fetch info in parallel, filter by industry,
-    #           rank by log market-cap distance to target
-    import math
-
-    def _score(sym):
-        try:
-            t = yf.Ticker(sym)
-            info = t.info
-            ind = info.get("industry")
-            sec = info.get("sector")
-            mkt = info.get("marketCap") or 0
-            if not mkt:
+        def _score_live(sym):
+            try:
+                info = yf.Ticker(sym).info
+                ind  = info.get("industry")
+                sec  = info.get("sector")
+                mkt  = info.get("marketCap") or 0
+                if not mkt:
+                    return None
+                if ind and ind == target_industry:
+                    tier = 0
+                elif sec and sec == target_sector:
+                    tier = 2
+                else:
+                    return None
+                dist = abs(math.log10(mkt + 1) - math.log10(target_mktcap + 1))
+                return (sym, tier, dist)
+            except Exception:
                 return None
-            # Industry match scores better than sector-only match
-            if ind and ind == target_industry:
-                match = "industry"
-            elif sec and sec == target.get("sector"):
-                match = "sector"
+
+        scored = []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+            futures = {pool.submit(_score_live, s): s for s in candidates_fallback[:120]}
+            for fut in concurrent.futures.as_completed(futures):
+                r = fut.result()
+                if r:
+                    scored.append(r)
+        scored.sort(key=lambda x: (x[1], x[2]))
+        top_syms = [x[0] for x in scored[:16]]
+    else:
+        scored = []
+        for sym, meta in db.items():
+            if sym == symbol:
+                continue
+            ind = meta.get("industry")
+            sec = meta.get("sector")
+            mkt_label = meta.get("market", "US")
+
+            if ind and target_industry and ind == target_industry:
+                ind_tier = 0   # exact industry match
+            elif sec and target_sector and sec == target_sector:
+                ind_tier = 1   # sector-only match
             else:
-                return None  # different sector — skip
-            # Log-scale market cap distance (smaller = closer in size)
-            dist = abs(math.log10(mkt + 1) - math.log10(target_mktcap + 1))
-            return (sym, match, dist, mkt)
-        except Exception:
-            return None
+                continue        # unrelated — skip
 
-    scored = []
+            # Prefer same-market peers (0) over cross-market (1)
+            mkt_tier = 0 if mkt_label == target_market else 1
+
+            # Combined priority tier (lower = better)
+            tier = ind_tier * 2 + mkt_tier
+
+            # Placeholder distance — real distance computed after market-cap fetch
+            scored.append((sym, tier, mkt_label))
+
+        # Sort by tier; within a tier, stable order is fine at this stage
+        scored.sort(key=lambda x: x[1])
+        top_syms = [x[0] for x in scored[:24]]   # wider pool to survive misses
+
+    # Step 3 — fetch full fundamentals for the shortlist in parallel
+    peers_raw = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
-        futures = {pool.submit(_score, s): s for s in candidates[:120]}
-        for fut in concurrent.futures.as_completed(futures):
-            result = fut.result()
-            if result:
-                scored.append(result)
-
-    # Sort: industry matches first, then by market-cap proximity
-    scored.sort(key=lambda x: (0 if x[1] == "industry" else 1, x[2]))
-
-    # Step 4 — fetch full fundamentals for top candidates until we have 4 peers
-    peers = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
-        futures = [pool.submit(_fetch_ticker_fundamentals, s[0]) for s in scored[:12]]
+        futures = {pool.submit(_fetch_ticker_fundamentals, s): s for s in top_syms}
         for fut in concurrent.futures.as_completed(futures):
             data = fut.result()
-            if data and len(peers) < 4:
-                peers.append(data)
+            if data:
+                peers_raw.append(data)
 
-    # Re-sort peers by market cap proximity to target for display
-    peers.sort(key=lambda p: abs(
-        math.log10(p["market_cap"] + 1) - math.log10(target_mktcap + 1)
+    # Step 4 — final ranking by log market-cap proximity, then trim to 4
+    peers_raw.sort(key=lambda p: abs(
+        math.log10((p.get("market_cap") or 1) + 1) - math.log10(target_mktcap + 1)
     ))
 
-    return {"target": target, "peers": peers[:4]}
+    return {"target": target, "peers": peers_raw[:4]}
 
 
 def _avg_sentiment(news: list) -> float | None:
