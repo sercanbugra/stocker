@@ -506,6 +506,24 @@
         /* keep old names for JS compat */
         .remarkables-list { list-style: none; padding: 0; margin: 0; }
         .remarkables-title { display: none; }
+        /* Column header labels row */
+        .rm-col-labels {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 3px 14px 4px;
+            font-size: 0.62rem;
+            font-weight: 600;
+            color: var(--panel-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            border-bottom: 1px solid var(--panel-border);
+            margin-bottom: 2px;
+        }
+        .rm-col-labels .rm-lbl-rank   { width: 14px; flex-shrink: 0; }
+        .rm-col-labels .rm-lbl-ticker { flex: 1; }
+        .rm-col-labels .rm-lbl-info   { width: 19px; flex-shrink: 0; }
+        .rm-col-labels .rm-lbl-val    { white-space: nowrap; font-size: 0.62rem; }
         .rm-info-wrap {
             position: relative;
             display: inline-flex;
@@ -970,6 +988,22 @@
             .toolbar-search { flex: 1 1 100%; }
             .toolbar-actions { margin-left: 0; }
         }
+        /* Market section headers */
+        .rm-market-section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px 8px;
+            background: rgba(255,255,255,0.02);
+        }
+        .rm-market-flag-lg { font-size: 1.2rem; line-height: 1; }
+        .rm-market-section-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--panel-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
@@ -1199,6 +1233,12 @@
                 </small>
             </div>
             <div class="card-body p-0">
+
+                <!-- US Market header -->
+                <div class="rm-market-section-header">
+                    <span class="rm-market-flag-lg">🇺🇸</span>
+                    <span class="rm-market-section-title">US Markets &mdash; S&amp;P 500 / NASDAQ</span>
+                </div>
                 <div class="row g-0" style="border-bottom:1px solid var(--panel-border);">
 
                     <!-- Risk Lovers -->
@@ -1209,6 +1249,12 @@
                                 <div class="rm-col-title">Risk Lovers</div>
                                 <div class="rm-col-subtitle">High volatility movers</div>
                             </div>
+                        </div>
+                        <div class="rm-col-labels">
+                            <span class="rm-lbl-rank">#</span>
+                            <span class="rm-lbl-ticker">Ticker</span>
+                            <span class="rm-lbl-info"></span>
+                            <span class="rm-lbl-val">Change (%)</span>
                         </div>
                         <ol class="rm-list remarkables-list" id="risk-lovers-list">
                             {% if remarkables and remarkables.for_risk_lovers %}
@@ -1249,6 +1295,12 @@
                                 <div class="rm-col-subtitle">Steady upward momentum</div>
                             </div>
                         </div>
+                        <div class="rm-col-labels">
+                            <span class="rm-lbl-rank">#</span>
+                            <span class="rm-lbl-ticker">Ticker</span>
+                            <span class="rm-lbl-info"></span>
+                            <span class="rm-lbl-val">Change (%)</span>
+                        </div>
                         <ol class="rm-list remarkables-list" id="no-pain-list">
                             {% if remarkables and remarkables.no_pain_but_gain %}
                                 {% for item in remarkables.no_pain_but_gain %}
@@ -1288,6 +1340,12 @@
                             </div>
                         </div>
                         {% if dividend_stocks %}
+                        <div class="rm-col-labels">
+                            <span class="rm-lbl-rank">#</span>
+                            <span class="rm-lbl-ticker">Ticker</span>
+                            <span class="rm-lbl-info"></span>
+                            <span class="rm-lbl-val">Yield (%)</span>
+                        </div>
                         <ul class="rm-list">
                             {% for item in dividend_stocks %}
                             <li>
@@ -1321,6 +1379,13 @@
                             </div>
                         </div>
                         {% if undervalued_stocks %}
+                        <div class="rm-col-labels">
+                            <span class="rm-lbl-rank">#</span>
+                            <span class="rm-lbl-ticker">Ticker</span>
+                            <span class="rm-lbl-info"></span>
+                            <span class="rm-lbl-val">FCF Yield</span>
+                            <span class="rm-lbl-val">Price</span>
+                        </div>
                         <ul class="rm-list">
                             {% for item in undervalued_stocks %}
                             <li>
@@ -1346,6 +1411,359 @@
                     </div>
 
                 </div>
+
+                <!-- UK Market — FTSE 100 -->
+                <div class="rm-market-section-header" style="border-top:1px solid var(--panel-border);">
+                    <span class="rm-market-flag-lg">🇬🇧</span>
+                    <span class="rm-market-section-title">UK Markets &mdash; FTSE 100</span>
+                </div>
+                <div class="row g-0" style="border-bottom:1px solid var(--panel-border);">
+
+                    <!-- LSE Risk Lovers -->
+                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
+                        <div class="rm-col-header">
+                            <div class="rm-col-icon rm-col-icon-risk"><i class="fas fa-fire"></i></div>
+                            <div>
+                                <div class="rm-col-title">Risk Lovers</div>
+                                <div class="rm-col-subtitle">High volatility movers</div>
+                            </div>
+                        </div>
+                        <div class="rm-col-labels">
+                            <span class="rm-lbl-rank">#</span>
+                            <span class="rm-lbl-ticker">Ticker</span>
+                            <span class="rm-lbl-info"></span>
+                            <span class="rm-lbl-val">Change (%)</span>
+                        </div>
+                        <ol class="rm-list">
+                            {% if lse_data and lse_data.for_risk_lovers %}
+                                {% for item in lse_data.for_risk_lovers %}
+                                <li>
+                                    <span class="rm-rank">{{ loop.index }}</span>
+                                    <a href="#" class="remarkable-symbol" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.L','') }}</a>
+                                    <span class="rm-info-wrap">
+                                        <span class="rm-info-icon">i</span>
+                                        <span class="rm-tooltip">
+                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend (3M)</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
+                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Low hits</span><span class="rm-tooltip-val">{{ item.down_hits }}</span></div>
+                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">High hits</span><span class="rm-tooltip-val">{{ item.up_hits }}</span></div>
+                                        </span>
+                                    </span>
+                                    {% set d = item.day_change_pct if item.day_change_pct is defined else none %}
+                                    {% if d is not none %}
+                                        {% if d > 0 %}<span class="rm-chg-pos">+{{ d }}%</span>
+                                        {% elif d < 0 %}<span class="rm-chg-neg">{{ d }}%</span>
+                                        {% else %}<span class="rm-chg-flat">0.00%</span>{% endif %}
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            {% else %}
+                                <li><span class="text-muted small">Loading…</span></li>
+                            {% endif %}
+                        </ol>
+                        <div style="height:10px;"></div>
+                    </div>
+
+                    <!-- LSE Trending Stocks -->
+                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
+                        <div class="rm-col-header">
+                            <div class="rm-col-icon rm-col-icon-trend"><i class="fas fa-chart-line"></i></div>
+                            <div>
+                                <div class="rm-col-title">Trending Stocks</div>
+                                <div class="rm-col-subtitle">Steady upward momentum</div>
+                            </div>
+                        </div>
+                        <div class="rm-col-labels">
+                            <span class="rm-lbl-rank">#</span>
+                            <span class="rm-lbl-ticker">Ticker</span>
+                            <span class="rm-lbl-info"></span>
+                            <span class="rm-lbl-val">Change (%)</span>
+                        </div>
+                        <ol class="rm-list">
+                            {% if lse_data and lse_data.no_pain_but_gain %}
+                                {% for item in lse_data.no_pain_but_gain %}
+                                <li>
+                                    <span class="rm-rank">{{ loop.index }}</span>
+                                    <a href="#" class="remarkable-symbol" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.L','') }}</a>
+                                    <span class="rm-info-wrap">
+                                        <span class="rm-info-icon">i</span>
+                                        <span class="rm-tooltip">
+                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend (6M)</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
+                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Max daily drop</span><span class="rm-tooltip-val">{{ item.max_daily_drop_percent }}%</span></div>
+                                        </span>
+                                    </span>
+                                    {% set d = item.day_change_pct if item.day_change_pct is defined else none %}
+                                    {% if d is not none %}
+                                        {% if d > 0 %}<span class="rm-chg-pos">+{{ d }}%</span>
+                                        {% elif d < 0 %}<span class="rm-chg-neg">{{ d }}%</span>
+                                        {% else %}<span class="rm-chg-flat">0.00%</span>{% endif %}
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            {% else %}
+                                <li><span class="text-muted small">Loading…</span></li>
+                            {% endif %}
+                        </ol>
+                        <div style="height:10px;"></div>
+                    </div>
+
+                    <!-- LSE Dividend -->
+                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
+                        <div class="rm-col-header">
+                            <div class="rm-col-icon rm-col-icon-dividend"><i class="fas fa-hand-holding-usd"></i></div>
+                            <div>
+                                <div class="rm-col-title">Top Dividend Stocks</div>
+                                <div class="rm-col-subtitle">Highest yield payers</div>
+                            </div>
+                        </div>
+                        {% if lse_data and lse_data.top_dividend %}
+                        <div class="rm-col-labels">
+                            <span class="rm-lbl-rank">#</span>
+                            <span class="rm-lbl-ticker">Ticker</span>
+                            <span class="rm-lbl-info"></span>
+                            <span class="rm-lbl-val">Yield (%)</span>
+                        </div>
+                        <ul class="rm-list">
+                            {% for item in lse_data.top_dividend %}
+                            <li>
+                                <span class="rm-rank">{{ loop.index }}</span>
+                                <a href="#" class="remarkable-symbol nl-symbol-link" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.L','') }}</a>
+                                <span class="rm-info-wrap">
+                                    <span class="rm-info-icon">i</span>
+                                    <span class="rm-tooltip">
+                                        <div class="rm-tooltip-row"><span class="rm-tooltip-key">Div. Yield</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.yield_pct) }}%</span></div>
+                                        <div class="rm-tooltip-row"><span class="rm-tooltip-key">Annual Div.</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.annual_div) }}</span></div>
+                                        {% if item.price %}<div class="rm-tooltip-row"><span class="rm-tooltip-key">Price</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.price) }}</span></div>{% endif %}
+                                    </span>
+                                </span>
+                                <span class="rm-yield-badge">{{ "%.1f"|format(item.yield_pct) }}%</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted small px-3 mt-2">Loading…</p>
+                        {% endif %}
+                        <div style="height:10px;"></div>
+                    </div>
+
+                    <!-- LSE Undervalued -->
+                    <div class="col-md-3">
+                        <div class="rm-col-header">
+                            <div class="rm-col-icon rm-col-icon-undervalued"><i class="fas fa-tags"></i></div>
+                            <div>
+                                <div class="rm-col-title">Undervalued</div>
+                                <div class="rm-col-subtitle">Top FCF yield stocks</div>
+                            </div>
+                        </div>
+                        {% if lse_data and lse_data.undervalued %}
+                        <div class="rm-col-labels">
+                            <span class="rm-lbl-rank">#</span>
+                            <span class="rm-lbl-ticker">Ticker</span>
+                            <span class="rm-lbl-info"></span>
+                            <span class="rm-lbl-val">FCF Yield</span>
+                            <span class="rm-lbl-val">Price</span>
+                        </div>
+                        <ul class="rm-list">
+                            {% for item in lse_data.undervalued %}
+                            <li>
+                                <span class="rm-rank">{{ loop.index }}</span>
+                                <a href="#" class="remarkable-symbol nl-symbol-link" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.L','') }}</a>
+                                <span class="rm-info-wrap">
+                                    <span class="rm-info-icon">i</span>
+                                    <span class="rm-tooltip">
+                                        <div class="rm-tooltip-row"><span class="rm-tooltip-key">FCF Yield</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.fcf_yield) }}%</span></div>
+                                        {% if item.pfcf %}<div class="rm-tooltip-row"><span class="rm-tooltip-key">P/FCF</span><span class="rm-tooltip-val">{{ item.pfcf }}×</span></div>{% endif %}
+                                        {% if item.price %}<div class="rm-tooltip-row"><span class="rm-tooltip-key">Price</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.price) }}</span></div>{% endif %}
+                                    </span>
+                                </span>
+                                <span class="rm-fcf-badge">{{ "%.1f"|format(item.fcf_yield) }}%</span>
+                                {% if item.price %}<span class="rm-chg-flat">{{ "%.2f"|format(item.price) }}</span>{% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted small px-3 mt-2">Loading…</p>
+                        {% endif %}
+                        <div style="height:10px;"></div>
+                    </div>
+
+                </div>
+
+                <!-- Turkish Market — BIST -->
+                <div class="rm-market-section-header" style="border-top:1px solid var(--panel-border);">
+                    <span class="rm-market-flag-lg">🇹🇷</span>
+                    <span class="rm-market-section-title">Turkish Markets &mdash; BIST</span>
+                </div>
+                <div class="row g-0" style="border-bottom:1px solid var(--panel-border);">
+
+                    <!-- BIST Risk Lovers -->
+                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
+                        <div class="rm-col-header">
+                            <div class="rm-col-icon rm-col-icon-risk"><i class="fas fa-fire"></i></div>
+                            <div>
+                                <div class="rm-col-title">Risk Lovers</div>
+                                <div class="rm-col-subtitle">High volatility movers</div>
+                            </div>
+                        </div>
+                        <div class="rm-col-labels">
+                            <span class="rm-lbl-rank">#</span>
+                            <span class="rm-lbl-ticker">Ticker</span>
+                            <span class="rm-lbl-info"></span>
+                            <span class="rm-lbl-val">Change (%)</span>
+                        </div>
+                        <ol class="rm-list">
+                            {% if bist_data and bist_data.for_risk_lovers %}
+                                {% for item in bist_data.for_risk_lovers %}
+                                <li>
+                                    <span class="rm-rank">{{ loop.index }}</span>
+                                    <a href="#" class="remarkable-symbol" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.IS','') }}</a>
+                                    <span class="rm-info-wrap">
+                                        <span class="rm-info-icon">i</span>
+                                        <span class="rm-tooltip">
+                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend (3M)</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
+                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Low hits</span><span class="rm-tooltip-val">{{ item.down_hits }}</span></div>
+                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">High hits</span><span class="rm-tooltip-val">{{ item.up_hits }}</span></div>
+                                        </span>
+                                    </span>
+                                    {% set d = item.day_change_pct if item.day_change_pct is defined else none %}
+                                    {% if d is not none %}
+                                        {% if d > 0 %}<span class="rm-chg-pos">+{{ d }}%</span>
+                                        {% elif d < 0 %}<span class="rm-chg-neg">{{ d }}%</span>
+                                        {% else %}<span class="rm-chg-flat">0.00%</span>{% endif %}
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            {% else %}
+                                <li><span class="text-muted small">Loading…</span></li>
+                            {% endif %}
+                        </ol>
+                        <div style="height:10px;"></div>
+                    </div>
+
+                    <!-- BIST Trending Stocks -->
+                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
+                        <div class="rm-col-header">
+                            <div class="rm-col-icon rm-col-icon-trend"><i class="fas fa-chart-line"></i></div>
+                            <div>
+                                <div class="rm-col-title">Trending Stocks</div>
+                                <div class="rm-col-subtitle">Steady upward momentum</div>
+                            </div>
+                        </div>
+                        <div class="rm-col-labels">
+                            <span class="rm-lbl-rank">#</span>
+                            <span class="rm-lbl-ticker">Ticker</span>
+                            <span class="rm-lbl-info"></span>
+                            <span class="rm-lbl-val">Change (%)</span>
+                        </div>
+                        <ol class="rm-list">
+                            {% if bist_data and bist_data.no_pain_but_gain %}
+                                {% for item in bist_data.no_pain_but_gain %}
+                                <li>
+                                    <span class="rm-rank">{{ loop.index }}</span>
+                                    <a href="#" class="remarkable-symbol" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.IS','') }}</a>
+                                    <span class="rm-info-wrap">
+                                        <span class="rm-info-icon">i</span>
+                                        <span class="rm-tooltip">
+                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend (6M)</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
+                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Max daily drop</span><span class="rm-tooltip-val">{{ item.max_daily_drop_percent }}%</span></div>
+                                        </span>
+                                    </span>
+                                    {% set d = item.day_change_pct if item.day_change_pct is defined else none %}
+                                    {% if d is not none %}
+                                        {% if d > 0 %}<span class="rm-chg-pos">+{{ d }}%</span>
+                                        {% elif d < 0 %}<span class="rm-chg-neg">{{ d }}%</span>
+                                        {% else %}<span class="rm-chg-flat">0.00%</span>{% endif %}
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            {% else %}
+                                <li><span class="text-muted small">Loading…</span></li>
+                            {% endif %}
+                        </ol>
+                        <div style="height:10px;"></div>
+                    </div>
+
+                    <!-- BIST Dividend -->
+                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
+                        <div class="rm-col-header">
+                            <div class="rm-col-icon rm-col-icon-dividend"><i class="fas fa-hand-holding-usd"></i></div>
+                            <div>
+                                <div class="rm-col-title">Top Dividend Stocks</div>
+                                <div class="rm-col-subtitle">Highest yield payers</div>
+                            </div>
+                        </div>
+                        {% if bist_data and bist_data.top_dividend %}
+                        <div class="rm-col-labels">
+                            <span class="rm-lbl-rank">#</span>
+                            <span class="rm-lbl-ticker">Ticker</span>
+                            <span class="rm-lbl-info"></span>
+                            <span class="rm-lbl-val">Yield (%)</span>
+                        </div>
+                        <ul class="rm-list">
+                            {% for item in bist_data.top_dividend %}
+                            <li>
+                                <span class="rm-rank">{{ loop.index }}</span>
+                                <a href="#" class="remarkable-symbol nl-symbol-link" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.IS','') }}</a>
+                                <span class="rm-info-wrap">
+                                    <span class="rm-info-icon">i</span>
+                                    <span class="rm-tooltip">
+                                        <div class="rm-tooltip-row"><span class="rm-tooltip-key">Div. Yield</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.yield_pct) }}%</span></div>
+                                        <div class="rm-tooltip-row"><span class="rm-tooltip-key">Annual Div.</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.annual_div) }}</span></div>
+                                        {% if item.price %}<div class="rm-tooltip-row"><span class="rm-tooltip-key">Price</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.price) }}</span></div>{% endif %}
+                                    </span>
+                                </span>
+                                <span class="rm-yield-badge">{{ "%.1f"|format(item.yield_pct) }}%</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted small px-3 mt-2">Loading…</p>
+                        {% endif %}
+                        <div style="height:10px;"></div>
+                    </div>
+
+                    <!-- BIST Undervalued -->
+                    <div class="col-md-3">
+                        <div class="rm-col-header">
+                            <div class="rm-col-icon rm-col-icon-undervalued"><i class="fas fa-tags"></i></div>
+                            <div>
+                                <div class="rm-col-title">Undervalued</div>
+                                <div class="rm-col-subtitle">Top FCF yield stocks</div>
+                            </div>
+                        </div>
+                        {% if bist_data and bist_data.undervalued %}
+                        <div class="rm-col-labels">
+                            <span class="rm-lbl-rank">#</span>
+                            <span class="rm-lbl-ticker">Ticker</span>
+                            <span class="rm-lbl-info"></span>
+                            <span class="rm-lbl-val">FCF Yield</span>
+                            <span class="rm-lbl-val">Price</span>
+                        </div>
+                        <ul class="rm-list">
+                            {% for item in bist_data.undervalued %}
+                            <li>
+                                <span class="rm-rank">{{ loop.index }}</span>
+                                <a href="#" class="remarkable-symbol nl-symbol-link" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.IS','') }}</a>
+                                <span class="rm-info-wrap">
+                                    <span class="rm-info-icon">i</span>
+                                    <span class="rm-tooltip">
+                                        <div class="rm-tooltip-row"><span class="rm-tooltip-key">FCF Yield</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.fcf_yield) }}%</span></div>
+                                        {% if item.pfcf %}<div class="rm-tooltip-row"><span class="rm-tooltip-key">P/FCF</span><span class="rm-tooltip-val">{{ item.pfcf }}×</span></div>{% endif %}
+                                        {% if item.price %}<div class="rm-tooltip-row"><span class="rm-tooltip-key">Price</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.price) }}</span></div>{% endif %}
+                                    </span>
+                                </span>
+                                <span class="rm-fcf-badge">{{ "%.1f"|format(item.fcf_yield) }}%</span>
+                                {% if item.price %}<span class="rm-chg-flat">{{ "%.2f"|format(item.price) }}</span>{% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted small px-3 mt-2">Loading…</p>
+                        {% endif %}
+                        <div style="height:10px;"></div>
+                    </div>
+
+                </div>
+
                 <div class="remarkables-meta" id="remarkables-meta">
                     <i class="fas fa-satellite-dish me-1" style="font-size:0.65rem;"></i>
                     {% if remarkables and remarkables.scanned_symbols %}

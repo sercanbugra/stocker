@@ -59,7 +59,7 @@ SMTP_HOST     = os.getenv("SMTP_HOST", "")
 SMTP_PORT     = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER     = os.getenv("SMTP_USER", "info@gultechs.net")
 SMTP_PASS     = os.getenv("SMTP_PASS", "")
-SITE_BASE_URL = os.getenv("SITE_BASE_URL", "https://stocker-2xbjqq.fly.dev")
+SITE_BASE_URL = os.getenv("SITE_BASE_URL", "https://stocker.gultechs.net")
 
 def _send_welcome_email(to_email: str) -> None:
     """Send a welcome email in a background thread; never raises."""
@@ -615,6 +615,9 @@ _DIVIDEND_MEM_DAY: str | None = None
 UNDERVALUED_CACHE_PATH = os.path.join(_DATA_DIR, "cache", "undervalued_stocks.json")
 _UNDERVALUED_MEM: list | None = None
 _UNDERVALUED_MEM_DAY: str | None = None
+
+LSE_CACHE_PATH  = os.path.join(_DATA_DIR, "cache", "remarkables_lse.json")
+BIST_CACHE_PATH = os.path.join(_DATA_DIR, "cache", "remarkables_bist.json")
 _UNDERVALUED_REFRESH_LOCK = threading.Lock()
 _UNDERVALUED_REFRESH_IN_PROGRESS = False
 
@@ -740,6 +743,63 @@ def fetch_nasdaq_symbols():
             continue
         symbols.append(symbol)
     return sorted(set(symbols))
+
+def fetch_ftse100_symbols():
+    """Return FTSE 100 tickers with .L suffix for Yahoo Finance."""
+    try:
+        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Safari/537.36"}
+        resp = requests.get("https://en.wikipedia.org/wiki/FTSE_100_Index", headers=headers, timeout=10)
+        resp.raise_for_status()
+        tables = pd.read_html(resp.text)
+        for df in tables:
+            cols = [str(c).lower() for c in df.columns]
+            if any("ticker" in c or "epic" in c or "symbol" in c for c in cols):
+                col = next(c for c in df.columns if any(k in str(c).lower() for k in ("ticker","epic","symbol")))
+                symbols = [str(s).strip().upper() + ".L" for s in df[col].dropna() if str(s).strip()]
+                if len(symbols) >= 50:
+                    return symbols
+    except Exception as e:
+        logger.warning(f"FTSE 100 Wikipedia fetch failed: {e}")
+    # Hardcoded fallback — top FTSE 100 constituents
+    return [
+        "HSBA.L","AZN.L","SHEL.L","ULVR.L","BP.L","RIO.L","GSK.L","BATS.L",
+        "DGE.L","BHP.L","LLOY.L","BARC.L","NG.L","VOD.L","REL.L","NWG.L",
+        "LSEG.L","ANTO.L","III.L","WPP.L","IMB.L","STAN.L","JD.L","EXPN.L",
+        "AAL.L","FLTR.L","SGRO.L","TSCO.L","MELI.L","MKS.L","PHNX.L","LAND.L",
+        "SSE.L","BWY.L","CNA.L","PRU.L","MNG.L","BDEV.L","SMDS.L","INF.L",
+        "HWDN.L","CPG.L","RKT.L","FRAS.L","WTB.L","AUTO.L","HIK.L","SPX.L",
+        "MNDI.L","GFS.L"
+    ]
+
+def fetch_bist_symbols():
+    """Return BIST 50 tickers with .IS suffix for Yahoo Finance."""
+    try:
+        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Safari/537.36"}
+        resp = requests.get("https://en.wikipedia.org/wiki/BIST_100", headers=headers, timeout=10)
+        resp.raise_for_status()
+        tables = pd.read_html(resp.text)
+        for df in tables:
+            cols = [str(c).lower() for c in df.columns]
+            if any("ticker" in c or "symbol" in c or "code" in c for c in cols):
+                col = next(c for c in df.columns if any(k in str(c).lower() for k in ("ticker","symbol","code")))
+                symbols = [str(s).strip().upper() + ".IS" for s in df[col].dropna()
+                           if str(s).strip() and not str(s).strip().endswith(".IS")]
+                if len(symbols) >= 20:
+                    return symbols
+    except Exception as e:
+        logger.warning(f"BIST Wikipedia fetch failed: {e}")
+    # Hardcoded fallback — top BIST constituents
+    return [
+        "THYAO.IS","GARAN.IS","EREGL.IS","AKBNK.IS","SAHOL.IS","SISE.IS",
+        "KCHOL.IS","ISCTR.IS","TOASO.IS","ARCLK.IS","TUPRS.IS","BIMAS.IS",
+        "FROTO.IS","PGSUS.IS","PETKM.IS","SASA.IS","KRDMD.IS","VESTL.IS",
+        "TAVHL.IS","EKGYO.IS","TCELL.IS","TTKOM.IS","DOHOL.IS","ENKAI.IS",
+        "ASELS.IS","CIMSA.IS","OTKAR.IS","KOZAL.IS","GUBRF.IS","HEKTS.IS",
+        "YKBNK.IS","VAKBN.IS","HALKB.IS","SKBNK.IS","ALARK.IS","AGHOL.IS",
+        "MGROS.IS","ULKER.IS","CCOLA.IS","AEFES.IS","SOKM.IS","BRSAN.IS",
+        "INDES.IS","ISGYO.IS","SNGYO.IS","KLGYO.IS","DOAS.IS","LOGO.IS",
+        "NETAS.IS","KARSN.IS"
+    ]
 
 def _extract_close_from_batch(df_batch: pd.DataFrame, symbol: str):
     if df_batch is None or df_batch.empty:
@@ -1124,6 +1184,119 @@ def _compute_remarkables_from_local_cache():
         item.pop("_miss_points", None)
     steady_near = sorted(steady_near, key=lambda x: x["score"], reverse=True)
     return risk_strict, steady_strict, risk_near, steady_near
+
+
+def _compute_risk_trending_for_market(symbols: list) -> dict:
+    """Generic risk-lovers / trending scanner for any symbol list (LSE, BIST, etc.)."""
+    risk_candidates = []
+    steady_candidates = []
+    risk_near = []
+    scanned = 0
+    rate_limit_hits = 0
+    batch_size = 25
+
+    yf_logger = logging.getLogger("yfinance")
+    prev_level = yf_logger.level
+    yf_logger.setLevel(logging.CRITICAL)
+
+    for idx in range(0, len(symbols), batch_size):
+        batch = symbols[idx: idx + batch_size]
+        try:
+            data = yf.download(
+                tickers=" ".join(batch),
+                period="6mo",
+                interval="1d",
+                group_by="ticker",
+                auto_adjust=True,
+                progress=False,
+                threads=False
+            )
+        except Exception as exc:
+            if _is_rate_limit_error(exc):
+                rate_limit_hits += 1
+                if rate_limit_hits >= 2:
+                    break
+                time.sleep(2)
+                continue
+            continue
+
+        for sym in batch:
+            close_6m = _extract_close_from_batch(data, sym)
+            high_6m  = _extract_field_from_batch(data, sym, "High")
+            low_6m   = _extract_field_from_batch(data, sym, "Low")
+            scanned += 1
+            if close_6m.empty or len(close_6m) < 60:
+                continue
+            if float(close_6m.median()) < 0.05:   # filter extreme penny stocks
+                continue
+
+            trend_6m   = _trend_percent(close_6m)
+            daily_loss = close_6m.pct_change().dropna()
+            max_drop   = abs(float(daily_loss.min() * 100.0)) if not daily_loss.empty and daily_loss.min() < 0 else 0.0
+            day_chg    = round(float((close_6m.iloc[-1] - close_6m.iloc[-2]) / close_6m.iloc[-2] * 100), 2) if len(close_6m) >= 2 else 0.0
+
+            if trend_6m >= 10.0 and (daily_loss >= -0.09).all():
+                steady_candidates.append({
+                    "symbol": sym, "trend_percent": round(trend_6m, 2),
+                    "max_daily_drop_percent": round(max_drop, 2),
+                    "day_change_pct": day_chg, "score": trend_6m - max_drop,
+                    "match_type": "strict"
+                })
+
+            close_3m = close_6m.tail(63)
+            high_3m  = high_6m.tail(63)
+            low_3m   = low_6m.tail(63)
+            if close_3m.empty or len(close_3m) < 40:
+                continue
+            trend_3m = _trend_percent(close_3m)
+            up_hits, down_hits = _prevday_highlow_hits(close_3m, high_3m, low_3m, up_mult=1.15, down_mult=0.95)
+            if trend_3m >= 10.0 and down_hits >= 2 and up_hits >= 2:
+                risk_candidates.append({
+                    "symbol": sym, "trend_percent": round(trend_3m, 2),
+                    "loss_hits": down_hits, "gain_hits": up_hits,
+                    "down_hits": down_hits, "up_hits": up_hits,
+                    "day_change_pct": day_chg,
+                    "score": trend_3m + up_hits * 8 + down_hits * 8,
+                    "match_type": "strict"
+                })
+            else:
+                trend_gap   = max(0.0, 10.0 - trend_3m)
+                down_gap    = max(0, 2 - down_hits)
+                up_gap      = max(0, 2 - up_hits)
+                miss_points = (trend_gap / 5.0) + down_gap + up_gap
+                if trend_3m >= 10.0 or up_hits >= 5 or down_hits >= 2:
+                    risk_near.append({
+                        "symbol": sym, "trend_percent": round(trend_3m, 2),
+                        "loss_hits": down_hits, "gain_hits": up_hits,
+                        "down_hits": down_hits, "up_hits": up_hits,
+                        "day_change_pct": day_chg,
+                        "score": trend_3m + up_hits * 4 + down_hits * 4 - miss_points * 5,
+                        "match_type": "near_match", "_miss_points": miss_points
+                    })
+
+    yf_logger.setLevel(prev_level)
+
+    risk_sorted   = sorted(risk_candidates,  key=lambda x: x["score"], reverse=True)[:5]
+    steady_sorted = sorted(steady_candidates, key=lambda x: x["score"], reverse=True)
+    risk_near_sorted = sorted(risk_near, key=lambda x: (x.get("_miss_points", 9999), -x.get("trend_percent", 0)))
+
+    risk_syms = {x["symbol"] for x in risk_sorted}
+    steady_sorted = [x for x in steady_sorted if x["symbol"] not in risk_syms][:5]
+
+    # Fill with near-matches only if strict list is non-empty; if nothing at all, return empty.
+    if 0 < len(risk_sorted) < 5:
+        used = {x["symbol"] for x in risk_sorted}
+        for item in risk_near_sorted:
+            if item["symbol"] in used:
+                continue
+            item.pop("_miss_points", None)
+            risk_sorted.append(item)
+            used.add(item["symbol"])
+            if len(risk_sorted) >= 5:
+                break
+
+    return {"for_risk_lovers": risk_sorted, "no_pain_but_gain": steady_sorted}
+
 
 def _refresh_remarkables_worker():
     global REMARKABLES_REFRESH_IN_PROGRESS, REMARKABLES_MEMORY_CACHE, REMARKABLES_MEMORY_DAY
@@ -2320,6 +2493,36 @@ _UNDERVALUED_CANDIDATES = [
     "F", "GM", "TSLA", "VZ", "T", "CMCSA", "CHTR", "NFLX",
 ]
 
+_LSE_DIVIDEND_CANDIDATES = [
+    "BATS.L","IMB.L","LGEN.L","AVIVA.L","VOD.L","BHP.L","RIO.L","ULVR.L",
+    "DGE.L","GSK.L","AZN.L","BP.L","SHEL.L","HSBA.L","BARC.L","LLOY.L",
+    "NWG.L","MNG.L","PHNX.L","SLA.L","ADM.L","LAND.L","BLND.L","SGE.L",
+    "NG.L","SSE.L","BWY.L","CNA.L","PRU.L","III.L",
+]
+
+_LSE_UNDERVALUED_CANDIDATES = [
+    "HSBA.L","AZN.L","SHEL.L","ULVR.L","BP.L","RIO.L","GSK.L","BATS.L",
+    "DGE.L","BHP.L","LLOY.L","BARC.L","NG.L","VOD.L","REL.L","NWG.L",
+    "LSEG.L","III.L","WPP.L","IMB.L","STAN.L","EXPN.L","AAL.L","FLTR.L",
+    "TSCO.L","PRU.L","MNG.L","SSE.L","CNA.L","AVIVA.L","LGEN.L","RKT.L",
+]
+
+_BIST_DIVIDEND_CANDIDATES = [
+    "THYAO.IS","EREGL.IS","TOASO.IS","FROTO.IS","SASA.IS","KRDMD.IS",
+    "VESTL.IS","TAVHL.IS","BIMAS.IS","MGROS.IS","TUPRS.IS","ENKAI.IS",
+    "KCHOL.IS","SAHOL.IS","AKBNK.IS","GARAN.IS","ISCTR.IS","YKBNK.IS",
+    "VAKBN.IS","HALKB.IS","TCELL.IS","TTKOM.IS","CCOLA.IS","AEFES.IS",
+    "ULKER.IS","ARCLK.IS","ASELS.IS","OTKAR.IS","KOZAL.IS","DOHOL.IS",
+]
+
+_BIST_UNDERVALUED_CANDIDATES = [
+    "THYAO.IS","GARAN.IS","EREGL.IS","AKBNK.IS","SAHOL.IS","SISE.IS",
+    "KCHOL.IS","ISCTR.IS","TOASO.IS","ARCLK.IS","TUPRS.IS","BIMAS.IS",
+    "FROTO.IS","PGSUS.IS","PETKM.IS","SASA.IS","KRDMD.IS","VESTL.IS",
+    "TAVHL.IS","EKGYO.IS","TCELL.IS","TTKOM.IS","DOHOL.IS","ENKAI.IS",
+    "ASELS.IS","OTKAR.IS","KOZAL.IS","GUBRF.IS","YKBNK.IS","VAKBN.IS",
+]
+
 def fetch_top_undervalued_stocks(max_results: int = 5) -> list:
     """Return top undervalued stocks by FCF yield, cached daily."""
     global _UNDERVALUED_MEM, _UNDERVALUED_MEM_DAY
@@ -2436,6 +2639,193 @@ def _fetch_undervalued_stocks_live(max_results: int = 5) -> list:
     return results[:max_results]
 
 
+def _fetch_dividend_for_symbols(symbols: list, max_results: int = 5) -> list:
+    """Same as _fetch_dividend_stocks_live but accepts any symbol list."""
+    session_req, crumb = _get_yahoo_crumb()
+    if not crumb:
+        return []
+
+    def _fetch_one(sym):
+        try:
+            url = (f"https://query2.finance.yahoo.com/v10/finance/quoteSummary/{sym}"
+                   f"?modules=summaryDetail,price&crumb={crumb}")
+            resp = session_req.get(url, headers={"User-Agent": _USER_AGENT}, timeout=8)
+            if not resp.ok:
+                return None
+            result = (resp.json().get("quoteSummary", {}).get("result") or [{}])[0]
+            sd = result.get("summaryDetail", {})
+            pr = result.get("price", {})
+            div_yield = float((sd.get("dividendYield") or {}).get("raw", 0) or 0)
+            div_rate  = float((sd.get("dividendRate")  or {}).get("raw", 0) or 0)
+            price     = float((pr.get("regularMarketPrice") or {}).get("raw", 0) or 0)
+            if div_yield <= 0:
+                return None
+            return {
+                "symbol":     sym,
+                "yield_pct":  round(div_yield * 100, 2),
+                "annual_div": round(div_rate, 2),
+                "price":      round(price, 2) if price else None,
+            }
+        except Exception:
+            return None
+
+    results = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as pool:
+        for data in concurrent.futures.as_completed({pool.submit(_fetch_one, s): s for s in symbols}):
+            r = data.result()
+            if r:
+                results.append(r)
+    results.sort(key=lambda x: x["yield_pct"], reverse=True)
+    return results[:max_results]
+
+
+def _fetch_undervalued_for_symbols(symbols: list, max_results: int = 5) -> list:
+    """Same as _fetch_undervalued_stocks_live but accepts any symbol list."""
+    session_req, crumb = _get_yahoo_crumb()
+    if not crumb:
+        return []
+
+    def _fetch_one(sym):
+        try:
+            url = (f"https://query2.finance.yahoo.com/v10/finance/quoteSummary/{sym}"
+                   f"?modules=financialData,price,defaultKeyStatistics&crumb={crumb}")
+            resp = session_req.get(url, headers={"User-Agent": _USER_AGENT}, timeout=8)
+            if not resp.ok:
+                return None
+            result = (resp.json().get("quoteSummary", {}).get("result") or [{}])[0]
+            fd = result.get("financialData", {})
+            pr = result.get("price", {})
+            ks = result.get("defaultKeyStatistics", {})
+            fcf   = float((fd.get("freeCashflow") or {}).get("raw", 0) or 0)
+            mcap  = float((pr.get("marketCap")    or {}).get("raw", 0) or 0)
+            price = float((pr.get("regularMarketPrice") or {}).get("raw", 0) or 0)
+            pfcf  = float((ks.get("priceToFreeCashflows") or {}).get("raw", 0) or 0)
+            if fcf <= 0 or mcap <= 0:
+                return None
+            fcf_yield = round(fcf / mcap * 100, 2)
+            if fcf_yield < 1.0:
+                return None
+            return {
+                "symbol":    sym,
+                "fcf_yield": fcf_yield,
+                "pfcf":      round(pfcf, 1) if pfcf > 0 else None,
+                "price":     round(price, 2) if price else None,
+            }
+        except Exception:
+            return None
+
+    results = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as pool:
+        for data in concurrent.futures.as_completed({pool.submit(_fetch_one, s): s for s in symbols}):
+            r = data.result()
+            if r:
+                results.append(r)
+    results.sort(key=lambda x: x["fcf_yield"], reverse=True)
+    return results[:max_results]
+
+
+# ---------------------------------------------------------------------------
+# Full market data (Risk + Trending + Dividend + Undervalued) for LSE / BIST
+# ---------------------------------------------------------------------------
+_FULL_MARKET_MEM:  dict = {}
+_FULL_MARKET_LOCK = threading.Lock()
+_FULL_MARKET_REFRESHING: set = set()
+
+
+def _compute_full_market(market_key: str) -> dict:
+    if market_key == "lse":
+        rt_symbols  = fetch_ftse100_symbols()
+        div_symbols = _LSE_DIVIDEND_CANDIDATES
+        uv_symbols  = _LSE_UNDERVALUED_CANDIDATES
+    else:  # bist
+        rt_symbols  = fetch_bist_symbols()
+        div_symbols = _BIST_DIVIDEND_CANDIDATES
+        uv_symbols  = _BIST_UNDERVALUED_CANDIDATES
+
+    rt  = _compute_risk_trending_for_market(rt_symbols)
+    div = _fetch_dividend_for_symbols(div_symbols)
+    uv  = _fetch_undervalued_for_symbols(uv_symbols)
+
+    return {
+        "updated_at":       datetime.now(timezone.utc).isoformat(),
+        "market":           market_key,
+        "for_risk_lovers":  rt["for_risk_lovers"],
+        "no_pain_but_gain": rt["no_pain_but_gain"],
+        "top_dividend":     div,
+        "undervalued":      uv,
+    }
+
+
+def _full_market_cache_is_today(payload: dict | None) -> bool:
+    if not payload:
+        return False
+    try:
+        ts = datetime.fromisoformat(payload["updated_at"])
+        if ts.tzinfo is None:
+            ts = ts.replace(tzinfo=timezone.utc)
+        return ts.date() == datetime.now(timezone.utc).date()
+    except Exception:
+        return False
+
+
+def _full_market_cache_path(market_key: str) -> str:
+    return LSE_CACHE_PATH if market_key == "lse" else BIST_CACHE_PATH
+
+
+def _full_market_refresh_worker(market_key: str) -> None:
+    global _FULL_MARKET_MEM
+    try:
+        payload = _compute_full_market(market_key)
+        path = _full_market_cache_path(market_key)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(payload, f)
+        with _FULL_MARKET_LOCK:
+            _FULL_MARKET_MEM[market_key] = payload
+        logger.info("Full market data refreshed for %s", market_key)
+    except Exception as exc:
+        logger.warning("Full market refresh failed for %s: %s", market_key, exc)
+    finally:
+        with _FULL_MARKET_LOCK:
+            _FULL_MARKET_REFRESHING.discard(market_key)
+
+
+def get_full_market_data(market_key: str) -> dict:
+    """Return today's 4-list market data for 'lse' or 'bist'. Background refresh when stale."""
+    global _FULL_MARKET_MEM
+
+    # Memory hit
+    mem = _FULL_MARKET_MEM.get(market_key)
+    if _full_market_cache_is_today(mem):
+        return mem
+
+    # File cache
+    path = _full_market_cache_path(market_key)
+    cached = None
+    try:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                cached = json.load(f)
+            if _full_market_cache_is_today(cached):
+                with _FULL_MARKET_LOCK:
+                    _FULL_MARKET_MEM[market_key] = cached
+                return cached
+    except Exception:
+        cached = None
+
+    # Stale or missing — background refresh
+    with _FULL_MARKET_LOCK:
+        already = market_key in _FULL_MARKET_REFRESHING
+        if not already:
+            _FULL_MARKET_REFRESHING.add(market_key)
+    if not already:
+        threading.Thread(target=_full_market_refresh_worker, args=(market_key,), daemon=True).start()
+
+    empty = {"market": market_key, "for_risk_lovers": [], "no_pain_but_gain": [],
+             "top_dividend": [], "undervalued": [], "updated_at": None}
+    return mem or cached or empty
+
+
 @app.route('/')
 def home():
     stocks = fetch_sp500_stocks()
@@ -2466,6 +2856,8 @@ def home():
         user = {"email": user_email}
     user_tier = _get_user_tier(user_email) if user_email else "free"
     subscribed = request.args.get("subscribed") == "1"
+    lse_data  = get_full_market_data("lse")
+    bist_data = get_full_market_data("bist")
     return render_template(
         'index.html',
         stocks=stocks,
@@ -2478,12 +2870,16 @@ def home():
         subscribed=subscribed,
         stripe_enabled=bool(stripe.api_key),
         free_daily_limit=FREE_DAILY_LIMIT,
+        lse_data=lse_data,
+        bist_data=bist_data,
     )
 
 @app.route('/api/remarkables', methods=['GET'])
 def remarkables_api():
     refresh = request.args.get('refresh') == '1'
     payload = get_remarkables(force_refresh=refresh)
+    payload["lse_data"]  = get_full_market_data("lse")
+    payload["bist_data"] = get_full_market_data("bist")
     return jsonify(payload)
 
 @app.route("/logout")
