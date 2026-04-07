@@ -7,6 +7,9 @@ import time
 import re
 import threading
 import concurrent.futures
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 import numpy as np
 import pandas as pd
 import yfinance as yf
@@ -50,6 +53,205 @@ stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PRO_PRICE_ID = os.getenv("STRIPE_PRO_PRICE_ID", "")
 STRIPE_PREMIUM_PRICE_ID = os.getenv("STRIPE_PREMIUM_PRICE_ID", "")
+
+# Email (SMTP)
+SMTP_HOST     = os.getenv("SMTP_HOST", "")
+SMTP_PORT     = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER     = os.getenv("SMTP_USER", "info@gultechs.net")
+SMTP_PASS     = os.getenv("SMTP_PASS", "")
+SITE_BASE_URL = os.getenv("SITE_BASE_URL", "https://stocker-2xbjqq.fly.dev")
+
+def _send_welcome_email(to_email: str) -> None:
+    """Send a welcome email in a background thread; never raises."""
+    if not SMTP_HOST or not SMTP_PASS:
+        logger.warning("SMTP not configured — welcome email skipped for %s", to_email)
+        return
+
+    def _send():
+        logo_url = f"{SITE_BASE_URL}/static/stocker_logo.png"
+        site_url = SITE_BASE_URL
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Welcome to Stocker</title>
+</head>
+<body style="margin:0;padding:0;background:#0f172a;font-family:'Helvetica Neue',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;padding:40px 0;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+      <!-- Header / Logo -->
+      <tr>
+        <td align="center" style="background:#1b2a57;border-radius:16px 16px 0 0;padding:32px 40px 24px;">
+          <img src="{logo_url}" alt="Stocker" width="160"
+               style="display:block;max-width:160px;height:auto;margin:0 auto 16px;"/>
+          <h1 style="margin:0;color:#e7ecff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">
+            Welcome to Stocker!
+          </h1>
+          <p style="margin:8px 0 0;color:#8a9fd4;font-size:14px;">
+            Your AI-powered stock analysis platform
+          </p>
+        </td>
+      </tr>
+
+      <!-- Body -->
+      <tr>
+        <td style="background:#1e2f66;padding:32px 40px;">
+          <p style="margin:0 0 20px;color:#c8d4f0;font-size:15px;line-height:1.7;">
+            Hi there,
+          </p>
+          <p style="margin:0 0 20px;color:#c8d4f0;font-size:15px;line-height:1.7;">
+            Thank you for creating your account. Stocker gives you real-time stock predictions,
+            technical pattern detection, sentiment analysis, and much more — all in one place.
+          </p>
+
+          <!-- Free tier summary -->
+          <p style="margin:0 0 12px;color:#e7ecff;font-size:15px;font-weight:600;">
+            Your free account includes:
+          </p>
+          <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:28px;">
+            <tr><td style="padding:5px 0;color:#8a9fd4;font-size:14px;">
+              ✓ &nbsp;3 stock analyses per day
+            </td></tr>
+            <tr><td style="padding:5px 0;color:#8a9fd4;font-size:14px;">
+              ✓ &nbsp;ML price predictions (XGBoost + RandomForest ensemble)
+            </td></tr>
+            <tr><td style="padding:5px 0;color:#8a9fd4;font-size:14px;">
+              ✓ &nbsp;Technical pattern detection &amp; charts
+            </td></tr>
+            <tr><td style="padding:5px 0;color:#8a9fd4;font-size:14px;">
+              ✓ &nbsp;News sentiment analysis
+            </td></tr>
+            <tr><td style="padding:5px 0;color:#8a9fd4;font-size:14px;">
+              ✓ &nbsp;Remarkables — daily notable movers across S&amp;P 500 &amp; NASDAQ
+            </td></tr>
+          </table>
+
+          <!-- PRO card -->
+          <table cellpadding="0" cellspacing="0" width="100%"
+                 style="background:#1b2a57;border:1px solid rgba(79,142,247,0.35);border-radius:12px;margin-bottom:16px;">
+            <tr>
+              <td style="padding:20px 24px;">
+                <p style="margin:0 0 4px;">
+                  <span style="background:#4f8ef7;color:#fff;font-size:11px;font-weight:700;
+                               padding:3px 10px;border-radius:20px;letter-spacing:0.5px;">PRO</span>
+                </p>
+                <h3 style="margin:10px 0 12px;color:#e7ecff;font-size:16px;font-weight:700;">
+                  Unlock deeper intelligence
+                </h3>
+                <table cellpadding="0" cellspacing="0">
+                  <tr><td style="padding:4px 0;color:#c8d4f0;font-size:14px;">
+                    🤖 &nbsp;<strong style="color:#e7ecff;">AI Trade Thesis</strong>
+                    — a structured bull/bear analysis written by AI for every stock you analyse
+                  </td></tr>
+                  <tr><td style="padding:4px 0;color:#c8d4f0;font-size:14px;">
+                    📊 &nbsp;<strong style="color:#e7ecff;">Peer Comparison</strong>
+                    — side-by-side fundamental &amp; valuation metrics vs sector peers
+                  </td></tr>
+                  <tr><td style="padding:4px 0;color:#c8d4f0;font-size:14px;">
+                    ⭐ &nbsp;<strong style="color:#e7ecff;">Watchlist</strong>
+                    — save and monitor your favourite tickers
+                  </td></tr>
+                  <tr><td style="padding:4px 0;color:#c8d4f0;font-size:14px;">
+                    ♾️ &nbsp;<strong style="color:#e7ecff;">Unlimited analyses</strong>
+                    — no daily cap
+                  </td></tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <!-- PREMIUM card -->
+          <table cellpadding="0" cellspacing="0" width="100%"
+                 style="background:#1b2a57;border:1px solid rgba(255,193,7,0.4);border-radius:12px;margin-bottom:28px;">
+            <tr>
+              <td style="padding:20px 24px;">
+                <p style="margin:0 0 4px;">
+                  <span style="background:#ffc107;color:#1b2a57;font-size:11px;font-weight:700;
+                               padding:3px 10px;border-radius:20px;letter-spacing:0.5px;">PREMIUM</span>
+                </p>
+                <h3 style="margin:10px 0 12px;color:#e7ecff;font-size:16px;font-weight:700;">
+                  Everything in Pro, plus:
+                </h3>
+                <table cellpadding="0" cellspacing="0">
+                  <tr><td style="padding:4px 0;color:#c8d4f0;font-size:14px;">
+                    💼 &nbsp;<strong style="color:#e7ecff;">AI Portfolio Advisor</strong>
+                    — get personalised portfolio allocation advice based on the analysed stock
+                  </td></tr>
+                  <tr><td style="padding:4px 0;color:#c8d4f0;font-size:14px;">
+                    📅 &nbsp;<strong style="color:#e7ecff;">Earnings Summarizer</strong>
+                    — instant AI summaries of the latest earnings report, guidance &amp; surprises
+                  </td></tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <!-- CTA -->
+          <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:28px;">
+            <tr><td align="center">
+              <a href="{site_url}"
+                 style="display:inline-block;background:#4f8ef7;color:#fff;text-decoration:none;
+                        font-size:15px;font-weight:600;padding:14px 36px;border-radius:10px;">
+                Start Analysing Stocks →
+              </a>
+            </td></tr>
+          </table>
+
+          <p style="margin:0;color:#4a5a8a;font-size:13px;line-height:1.6;">
+            Have questions? Reply to this email or visit
+            <a href="{site_url}" style="color:#4f8ef7;text-decoration:none;">{site_url}</a>
+          </p>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td align="center"
+            style="background:#131f44;border-radius:0 0 16px 16px;padding:20px 40px;">
+          <p style="margin:0;color:#3a4a6a;font-size:12px;">
+            © 2025 Stocker · Gultechs · info@gultechs.net
+          </p>
+          <p style="margin:6px 0 0;color:#3a4a6a;font-size:11px;">
+            You received this because you registered at {site_url}
+          </p>
+        </td>
+      </tr>
+
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>"""
+
+        plain = (
+            f"Welcome to Stocker!\n\n"
+            f"Thank you for registering. Visit {site_url} to start analysing stocks.\n\n"
+            f"PRO features: AI Trade Thesis, Peer Comparison, Watchlist, Unlimited analyses.\n"
+            f"PREMIUM features: AI Portfolio Advisor, Earnings Summarizer.\n\n"
+            f"Questions? Email info@gultechs.net\n"
+        )
+
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = "Welcome to Stocker — your AI stock analysis platform"
+        msg["From"]    = f"Stocker <{SMTP_USER}>"
+        msg["To"]      = to_email
+        msg.attach(MIMEText(plain, "plain"))
+        msg.attach(MIMEText(html, "html"))
+
+        try:
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+                server.ehlo()
+                server.starttls()
+                server.login(SMTP_USER, SMTP_PASS)
+                server.sendmail(SMTP_USER, to_email, msg.as_string())
+            logger.info("Welcome email sent to %s", to_email)
+        except Exception as exc:
+            logger.warning("Welcome email failed for %s: %s", to_email, exc)
+
+    threading.Thread(target=_send, daemon=True).start()
 
 # Subscription tiers
 TIER_RANK = {"free": 0, "pro": 1, "premium": 2, "admin": 99}
@@ -2246,8 +2448,15 @@ def home():
             resp = google.get("/oauth2/v2/userinfo")
             if resp.ok:
                 user = resp.json()
-                if user.get("email"):
-                    session["user_email"] = user.get("email")
+                g_email = user.get("email")
+                if g_email:
+                    session["user_email"] = g_email
+                    # First-time Google OAuth user — create record & send welcome email
+                    users = _load_users()
+                    if g_email not in users:
+                        users[g_email] = {"tier": "free"}
+                        _save_users(users)
+                        _send_welcome_email(g_email)
         except TokenExpiredError:
             if google_bp and google_bp.token:
                 del google_bp.token
@@ -2319,6 +2528,7 @@ def register_email():
     users[email] = {"password_hash": generate_password_hash(password), "tier": "free"}
     _save_users(users)
     session["user_email"] = email
+    _send_welcome_email(email)
     return jsonify({"ok": True, "tier": "free"})
 
 @app.route("/api/watchlist", methods=["GET", "POST"])

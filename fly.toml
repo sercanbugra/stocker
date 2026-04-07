@@ -10,6 +10,10 @@ primary_region = 'ams'
 
 [env]
   PERSISTENT_DATA_DIR = "/data"
+  SMTP_HOST           = "mail.privateemail.com"
+  SMTP_PORT           = "587"
+  SMTP_USER           = "info@gultechs.net"
+  SITE_BASE_URL       = "https://stocker-2xbjqq.fly.dev"
 
 [http_service]
   internal_port = 8080

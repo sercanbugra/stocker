@@ -589,6 +589,60 @@
         }
         .usage-counter.warning { color: #f7c04f; }
         /* Upgrade modal */
+        /* Sample preview modal */
+        .sample-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.82);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1400;
+        }
+        .sample-modal.is-visible { display: flex; }
+        .sample-modal-inner {
+            position: relative;
+            max-width: min(900px, 96vw);
+            max-height: 90vh;
+        }
+        .sample-modal-inner img {
+            display: block;
+            max-width: 100%;
+            max-height: 88vh;
+            border-radius: 12px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+        }
+        .sample-modal-close {
+            position: absolute;
+            top: -14px;
+            right: -14px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--parliament-blue-soft);
+            border: 1px solid var(--panel-border);
+            color: var(--panel-text);
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sample-modal-close:hover { opacity: 0.8; }
+        .sample-link {
+            font-size: 0.75rem;
+            color: var(--panel-muted);
+            text-decoration: none;
+            border-bottom: 1px dashed var(--panel-muted);
+            cursor: pointer;
+            background: none;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            padding: 0;
+        }
+        .sample-link:hover { color: var(--panel-text); }
+
         .upgrade-modal {
             position: fixed;
             inset: 0;
@@ -1420,6 +1474,7 @@
                                 <i class="fas fa-lock"></i>
                                 <span>Available on Pro &amp; Premium</span>
                                 <button class="btn btn-primary btn-sm" id="thesis-upgrade-btn">Upgrade to Pro</button>
+                                <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='AI_Trade_Thesis.png') }}', 'AI Trade Thesis')">see sample</button>
                             </div>
                             {% endif %}
                         </div>
@@ -1441,6 +1496,7 @@
                                 <i class="fas fa-lock"></i>
                                 <span>Available on Pro &amp; Premium</span>
                                 <button class="btn btn-primary btn-sm" id="peers-upgrade-btn">Upgrade to Pro</button>
+                                <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='Peer_Comparison.png') }}', 'Peer Comparison')">see sample</button>
                             </div>
                             {% endif %}
                         </div>
@@ -1462,6 +1518,7 @@
                                 <i class="fas fa-lock"></i>
                                 <span>Available on Premium</span>
                                 <button class="btn btn-warning btn-sm" id="advisor-upgrade-btn">Upgrade to Premium</button>
+                                <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='AI_Portfolio_Adviser.png') }}', 'AI Portfolio Advisor')">see sample</button>
                             </div>
                             {% endif %}
                         </div>
@@ -1483,6 +1540,7 @@
                                 <i class="fas fa-lock"></i>
                                 <span>Available on Premium</span>
                                 <button class="btn btn-warning btn-sm" id="earnings-upgrade-btn">Upgrade to Premium</button>
+                                <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='Earning_Summarizer.png') }}', 'Earnings Summarizer')">see sample</button>
                             </div>
                             {% endif %}
                         </div>
@@ -2434,6 +2492,37 @@
             });
 
         });
+
+        // Sample preview modal
+        function openSampleModal(src, title) {
+            const modal = document.getElementById('sample-modal');
+            const img   = document.getElementById('sample-modal-img');
+            img.src = src;
+            img.alt = title;
+            modal.classList.add('is-visible');
+        }
+        function closeSampleModal() {
+            const modal = document.getElementById('sample-modal');
+            modal.classList.remove('is-visible');
+            document.getElementById('sample-modal-img').src = '';
+        }
+        document.getElementById('sample-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeSampleModal();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeSampleModal();
+        });
+
     </script>
+
+    <!-- Sample preview modal -->
+    <div class="sample-modal" id="sample-modal" aria-modal="true" role="dialog">
+        <div class="sample-modal-inner">
+            <button class="sample-modal-close" onclick="closeSampleModal()" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="sample-modal-img" src="" alt="">
+        </div>
+    </div>
 </body>
 </html>
