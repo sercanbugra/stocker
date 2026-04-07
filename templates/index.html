@@ -693,6 +693,10 @@
             border-bottom: 1px solid rgba(79,142,247,0.25);
             border-radius: 16px 16px 0 0;
             color: var(--panel-text);
+            padding: 0.75rem 1rem;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            min-height: 3rem;
         }
         .pro-lock {
             display: flex;
@@ -1530,6 +1534,28 @@
                 $('.theme-dot').removeClass('active');
                 $(`.theme-dot[data-theme="${theme}"]`).addClass('active');
                 try { localStorage.setItem(THEME_KEY, theme); } catch(_) {}
+                // Re-apply chart colors to all rendered Plotly charts
+                ['chart', 'pattern-chart', 'pattern-chart-48h', 'rsi-chart'].forEach(function(id) {
+                    const el = document.getElementById(id);
+                    if (!el || !el._fullLayout) return;
+                    const chartText = getCssVar('--panel-text') || '#e7ecff';
+                    const paperBg   = getCssVar('--parliament-blue-soft') || '#24346a';
+                    const plotBg    = getCssVar('--parliament-blue') || '#1b2a57';
+                    const gridColor = 'rgba(255,255,255,0.1)';
+                    const zeroColor = 'rgba(255,255,255,0.2)';
+                    Plotly.relayout(el, {
+                        paper_bgcolor: paperBg,
+                        plot_bgcolor:  plotBg,
+                        'font.color':  chartText,
+                        'xaxis.gridcolor':    gridColor,
+                        'xaxis.zerolinecolor': zeroColor,
+                        'xaxis.color':        chartText,
+                        'yaxis.gridcolor':    gridColor,
+                        'yaxis.zerolinecolor': zeroColor,
+                        'yaxis.color':        chartText,
+                        'legend.font.color':  chartText
+                    });
+                });
             }
             // Restore saved theme on load
             try {

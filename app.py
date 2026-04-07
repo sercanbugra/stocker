@@ -53,8 +53,8 @@ STRIPE_PREMIUM_PRICE_ID = os.getenv("STRIPE_PREMIUM_PRICE_ID", "")
 
 # Subscription tiers
 TIER_RANK = {"free": 0, "pro": 1, "premium": 2, "admin": 99}
-FREE_DAILY_LIMIT = 5
-ANON_DAILY_LIMIT = 3
+FREE_DAILY_LIMIT = 3
+ANON_DAILY_LIMIT = 1
 
 # Accounts that are always treated as admin regardless of users.json
 ADMIN_EMAILS = {"sercan.bugra@gmail.com"}
@@ -318,10 +318,34 @@ def _load_users() -> dict:
         return users
     return {}
 
+_BACKUP_DIR = os.path.join(_DATA_DIR, "backups")
+_BACKUP_KEEP = 14  # number of rolling backups to retain
+
 def _save_users(users: dict) -> None:
     os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
-    with open(USERS_FILE, "w", encoding="utf-8") as f:
-        json.dump(users, f)
+    # Atomic write: write to temp file then rename to avoid corruption
+    tmp = USERS_FILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(users, f, indent=2)
+    os.replace(tmp, USERS_FILE)
+    # Rolling backup
+    try:
+        os.makedirs(_BACKUP_DIR, exist_ok=True)
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        backup_path = os.path.join(_BACKUP_DIR, f"users_{stamp}.json")
+        with open(backup_path, "w", encoding="utf-8") as f:
+            json.dump(users, f, indent=2)
+        # Prune old backups — keep newest _BACKUP_KEEP files
+        backups = sorted(
+            [p for p in os.listdir(_BACKUP_DIR) if p.startswith("users_") and p.endswith(".json")]
+        )
+        for old in backups[:-_BACKUP_KEEP]:
+            try:
+                os.remove(os.path.join(_BACKUP_DIR, old))
+            except OSError:
+                pass
+    except Exception:
+        pass  # backup failure must never block a save
 
 def _get_user_tier(email: str) -> str:
     if not email:
