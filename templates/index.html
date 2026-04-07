@@ -1153,6 +1153,53 @@
             letter-spacing: 0.5px;
         }
 
+        /* ── Market picker ── */
+        .rm-picker-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 18px 12px;
+            border-bottom: 1px solid var(--panel-border);
+            flex-wrap: wrap;
+        }
+        .rm-picker-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--panel-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            white-space: nowrap;
+            margin-right: 4px;
+        }
+        .rm-mkt-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 13px;
+            border-radius: 999px;
+            border: 1.5px solid rgba(255,255,255,0.13);
+            background: rgba(255,255,255,0.04);
+            color: var(--panel-muted);
+            font-size: 0.76rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.18s, background 0.18s, color 0.18s;
+            user-select: none;
+        }
+        .rm-mkt-chip:hover { border-color: rgba(255,255,255,0.28); color: var(--panel-text); }
+        .rm-mkt-chip.active {
+            border-color: #4f8ef7;
+            background: rgba(79,142,247,0.14);
+            color: #c8d7ff;
+        }
+        .rm-mkt-chip .rm-chip-flag { font-size: 1rem; line-height: 1; }
+        .rm-no-market-msg {
+            padding: 32px 24px;
+            text-align: center;
+            color: var(--panel-muted);
+            font-size: 0.82rem;
+        }
+
         /* ── Mobile-only: touch targets + chart height ── */
         @media (max-width: 767px) {
             /* Hit ≥44px touch target on main input & buttons */
@@ -1456,9 +1503,29 @@
                     {% if remarkables and remarkables.updated_at %}updated {{ remarkables.updated_at }}{% else %}not ready{% endif %}
                 </small>
             </div>
+
+            <!-- Market picker -->
+            <div class="rm-picker-wrap">
+                <span class="rm-picker-label">Show market:</span>
+                <button class="rm-mkt-chip" data-market="us">
+                    <span class="rm-chip-flag">🇺🇸</span> US &mdash; S&amp;P 500
+                </button>
+                <button class="rm-mkt-chip" data-market="uk">
+                    <span class="rm-chip-flag">🇬🇧</span> UK &mdash; FTSE 100
+                </button>
+                <button class="rm-mkt-chip" data-market="tr">
+                    <span class="rm-chip-flag">🇹🇷</span> Turkey &mdash; BIST
+                </button>
+            </div>
+
+            <div class="rm-no-market-msg" id="rm-no-selection" style="display:none;">
+                <i class="fas fa-globe me-2"></i>Select one or more markets above to see Remarkables.
+            </div>
+
             <div class="card-body p-0">
 
-                <!-- US Market header -->
+                <!-- US Market section -->
+                <div id="rm-section-us" style="display:none;">
                 <div class="rm-market-section-header">
                     <span class="rm-market-flag-lg">🇺🇸</span>
                     <span class="rm-market-section-title">US Markets &mdash; S&amp;P 500 / NASDAQ</span>
@@ -1636,7 +1703,10 @@
 
                 </div>
 
-                <!-- UK Market — FTSE 100 -->
+                </div><!-- /rm-section-us -->
+
+                <!-- UK Market section -->
+                <div id="rm-section-uk" style="display:none;">
                 <div class="rm-market-section-header" style="border-top:1px solid var(--panel-border);">
                     <span class="rm-market-flag-lg">🇬🇧</span>
                     <span class="rm-market-section-title">UK Markets &mdash; FTSE 100</span>
@@ -1810,7 +1880,10 @@
 
                 </div>
 
-                <!-- Turkish Market — BIST -->
+                </div><!-- /rm-section-uk -->
+
+                <!-- Turkish Market section -->
+                <div id="rm-section-tr" style="display:none;">
                 <div class="rm-market-section-header" style="border-top:1px solid var(--panel-border);">
                     <span class="rm-market-flag-lg">🇹🇷</span>
                     <span class="rm-market-section-title">Turkish Markets &mdash; BIST</span>
@@ -1983,6 +2056,7 @@
                     </div>
 
                 </div>
+                </div><!-- /rm-section-tr -->
 
                 <div class="remarkables-meta" id="remarkables-meta">
                     <i class="fas fa-satellite-dish me-1" style="font-size:0.65rem;"></i>
@@ -2485,6 +2559,57 @@
 
             renderWatchlist();
             loadRemarkables();
+
+            /* ── Market picker ── */
+            (function() {
+                const LS_KEY = 'stocker_rm_markets';
+                const ALL    = ['us', 'uk', 'tr'];
+
+                function load() {
+                    try {
+                        const saved = JSON.parse(localStorage.getItem(LS_KEY));
+                        if (Array.isArray(saved) && saved.length) return saved;
+                    } catch (_) {}
+                    return ['us'];   // default: US only
+                }
+
+                function save(arr) {
+                    localStorage.setItem(LS_KEY, JSON.stringify(arr));
+                }
+
+                function apply(selected) {
+                    // Update chips
+                    document.querySelectorAll('.rm-mkt-chip').forEach(function(btn) {
+                        btn.classList.toggle('active', selected.includes(btn.dataset.market));
+                    });
+                    // Show/hide sections
+                    ALL.forEach(function(m) {
+                        const sec = document.getElementById('rm-section-' + m);
+                        if (sec) sec.style.display = selected.includes(m) ? '' : 'none';
+                    });
+                    // Empty-state message
+                    const noSel = document.getElementById('rm-no-selection');
+                    if (noSel) noSel.style.display = selected.length === 0 ? '' : 'none';
+                }
+
+                // Init
+                let selected = load();
+                apply(selected);
+
+                // Chip click: toggle on/off (multi-select)
+                document.querySelectorAll('.rm-mkt-chip').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        const m = btn.dataset.market;
+                        if (selected.includes(m)) {
+                            selected = selected.filter(function(x) { return x !== m; });
+                        } else {
+                            selected = selected.concat(m);
+                        }
+                        save(selected);
+                        apply(selected);
+                    });
+                });
+            })();
 
             function closeAuthModal() {
                 $authModal.removeClass('is-visible').attr('aria-hidden', 'true');
