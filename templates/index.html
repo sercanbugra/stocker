@@ -1385,10 +1385,6 @@
             <!-- Action buttons -->
             <div class="toolbar-actions">
                 {% if user %}
-                    <!-- Watchlist -->
-                    <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch">
-                        <i class="fas fa-star"></i><span>Watchlist</span>
-                    </button>
                     <!-- Tier / Billing / Upgrade -->
                     {% if user_tier == 'admin' %}
                     <span class="tb-btn tb-btn-admin" style="cursor:default;">
@@ -1408,9 +1404,6 @@
                         <i class="fas fa-sign-out-alt"></i><span>Sign out</span>
                     </a>
                 {% else %}
-                    <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch tb-btn-locked">
-                        <i class="fas fa-star"></i><span>Watchlist</span>
-                    </button>
                     <button id="upgrade-trigger-anon" type="button" class="tb-btn tb-btn-upgrade">
                         <i class="fas fa-bolt"></i><span>Pricing</span>
                     </button>
@@ -2091,8 +2084,17 @@
                 <div class="col-lg-4 d-flex flex-column">
                     <!-- 1. Prediction Results -->
                     <div class="card predictions-card mb-3">
-                        <div class="card-header">
-                            <i class="fas fa-calculator"></i> Prediction Results
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-calculator"></i> Prediction Results</span>
+                            {% if user %}
+                            <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch" style="display:none; padding:5px 12px; font-size:0.75rem;">
+                                <i class="fas fa-star"></i><span> Save</span>
+                            </button>
+                            {% else %}
+                            <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch tb-btn-locked" style="display:none; padding:5px 12px; font-size:0.75rem;">
+                                <i class="fas fa-star"></i><span> Save</span>
+                            </button>
+                            {% endif %}
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
@@ -2827,6 +2829,7 @@
                 _startLoader(symbol);
                 $('.loading-spinner').addClass('is-visible');
                 $('#results').hide();
+                $('#add-watchlist').hide();
 
                 $.ajax({
                     url: '/predict',
@@ -2836,6 +2839,7 @@
                         _stopLoader();
                         setTimeout(function() { $('.loading-spinner').removeClass('is-visible'); }, 320);
                         $('#results').show();
+                        $('#add-watchlist').fadeIn(300);
                         if (response._meta) {
                             updateUsageDisplay(response._meta.used_today, response._meta.daily_limit);
                         }
