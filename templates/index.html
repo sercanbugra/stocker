@@ -864,7 +864,7 @@
             border: 1px solid var(--panel-border);
             border-radius: 8px;
             color: var(--panel-text);
-            font-size: 0.85rem;
+            font-size: 1rem; /* ≥16px prevents iOS auto-zoom on focus */
             outline: none;
             transition: border-color 0.2s;
         }
@@ -1004,6 +1004,26 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
+        /* ── Mobile-only: touch targets + chart height ── */
+        @media (max-width: 767px) {
+            /* Hit ≥44px touch target on main input & buttons */
+            .ticker-input       { padding: 11px 10px 11px 32px; }
+            .btn-predict        { padding: 11px 18px; }
+            .tb-btn             { padding: 10px 13px; }
+
+            /* Shrink the main chart so it doesn't eat the whole screen */
+            #chart              { height: 320px; }
+
+            /* Prevent toolbar search from forcing horizontal scroll */
+            .toolbar-search     { min-width: 120px; }
+        }
+
+        /* ── Touch feedback for interactive elements (no desktop effect) ── */
+        .remarkable-symbol:active,
+        .rm-list li:active      { background: rgba(255,255,255,0.06); }
+        .theme-dot:active       { border-color: rgba(255,255,255,0.6) !important; transform: scale(1.15); }
+        .tb-btn:active          { opacity: 0.75; }
     </style>
 </head>
 <body>
@@ -2504,22 +2524,22 @@
                         }
 
                         const chartData = typeof response.chart === 'string' ? JSON.parse(response.chart) : response.chart;
-                        Plotly.newPlot('chart', chartData.data, applyChartTheme(chartData.layout, chartData.data.length));
+                        Plotly.newPlot('chart', chartData.data, applyChartTheme(chartData.layout, chartData.data.length), {responsive:true});
                         if (response.pattern_chart) {
                             const patternData = typeof response.pattern_chart === 'string' ? JSON.parse(response.pattern_chart) : response.pattern_chart;
-                            Plotly.newPlot('pattern-chart', patternData.data, applyChartTheme(patternData.layout, patternData.data.length));
+                            Plotly.newPlot('pattern-chart', patternData.data, applyChartTheme(patternData.layout, patternData.data.length), {responsive:true});
                         } else {
                             $('#pattern-chart').html('<div class="text-muted">Pattern chart unavailable for this response.</div>');
                         }
                         if (response.pattern_chart_48h) {
                             const pattern48Data = typeof response.pattern_chart_48h === 'string' ? JSON.parse(response.pattern_chart_48h) : response.pattern_chart_48h;
-                            Plotly.newPlot('pattern-chart-48h', pattern48Data.data, applyChartTheme(pattern48Data.layout, pattern48Data.data.length));
+                            Plotly.newPlot('pattern-chart-48h', pattern48Data.data, applyChartTheme(pattern48Data.layout, pattern48Data.data.length), {responsive:true});
                         } else {
                             $('#pattern-chart-48h').html('<div class="text-muted">48h pattern chart unavailable for this response.</div>');
                         }
                         if (response.rsi_chart) {
                             const rsiData = typeof response.rsi_chart === 'string' ? JSON.parse(response.rsi_chart) : response.rsi_chart;
-                            Plotly.newPlot('rsi-chart', rsiData.data, applyChartTheme(rsiData.layout, rsiData.data.length));
+                            Plotly.newPlot('rsi-chart', rsiData.data, applyChartTheme(rsiData.layout, rsiData.data.length), {responsive:true});
                         } else {
                             $('#rsi-chart').html('<div class="text-muted">RSI chart unavailable for this response.</div>');
                         }
