@@ -2570,7 +2570,7 @@
                         const saved = JSON.parse(localStorage.getItem(LS_KEY));
                         if (Array.isArray(saved) && saved.length) return saved;
                     } catch (_) {}
-                    return ['us'];   // default: US only
+                    return [];   // default: none selected
                 }
 
                 function save(arr) {
