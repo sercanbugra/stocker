@@ -687,12 +687,18 @@ def _compute_remarkables():
             daily_loss = close_6m.pct_change().dropna()
             max_daily_drop = abs(float(daily_loss.min() * 100.0)) if not daily_loss.empty and daily_loss.min() < 0 else 0.0
 
+            # Last-day change %
+            day_chg = 0.0
+            if len(close_6m) >= 2:
+                day_chg = round(float((close_6m.iloc[-1] - close_6m.iloc[-2]) / close_6m.iloc[-2] * 100), 2)
+
             # No Pain But Gain: +10% in 6M, and no daily drop >9%
             if trend_6m >= 10.0 and (daily_loss >= -0.09).all():
                 steady_candidates.append({
                     "symbol": sym,
                     "trend_percent": round(trend_6m, 2),
                     "max_daily_drop_percent": round(max_daily_drop, 2),
+                    "day_change_pct": day_chg,
                     "score": trend_6m - max_daily_drop,
                     "match_type": "strict"
                 })
@@ -705,10 +711,6 @@ def _compute_remarkables():
                 continue
             trend_3m = _trend_percent(close_3m)
             up_hits, down_hits = _prevday_highlow_hits(close_3m, high_3m, low_3m, up_mult=1.20, down_mult=0.9)
-            # For Risk Lovers:
-            # - trend >= +15% (3M)
-            # - >=2 days where today's LOW <= 90% of previous day's CLOSE
-            # - >=3 days where today's HIGH >= 120% of previous day's CLOSE
             if trend_3m >= 15.0 and down_hits >= 2 and up_hits >= 3:
                 risk_candidates.append({
                     "symbol": sym,
@@ -717,6 +719,7 @@ def _compute_remarkables():
                     "gain_hits": up_hits,
                     "down_hits": down_hits,
                     "up_hits": up_hits,
+                    "day_change_pct": day_chg,
                     "score": (trend_3m + up_hits * 8 + down_hits * 8),
                     "match_type": "strict"
                 })
@@ -734,6 +737,7 @@ def _compute_remarkables():
                         "gain_hits": up_hits,
                         "down_hits": down_hits,
                         "up_hits": up_hits,
+                        "day_change_pct": day_chg,
                         "score": (trend_3m + up_hits * 4 + down_hits * 4 - miss_points * 5),
                         "match_type": "near_match",
                         "_miss_points": miss_points
@@ -821,11 +825,13 @@ def _compute_remarkables_from_local_cache():
             trend_6m = _trend_percent(s6)
             daily = s6.pct_change().dropna()
             max_drop = abs(float(daily.min() * 100.0)) if not daily.empty and daily.min() < 0 else 0.0
+            day_chg = round(float((s6.iloc[-1] - s6.iloc[-2]) / s6.iloc[-2] * 100), 2) if len(s6) >= 2 else 0.0
             if trend_6m >= 10.0 and (daily >= -0.09).all():
                 steady_strict.append({
                     "symbol": symbol,
                     "trend_percent": round(trend_6m, 2),
                     "max_daily_drop_percent": round(max_drop, 2),
+                    "day_change_pct": day_chg,
                     "score": trend_6m - max_drop,
                     "match_type": "cache_strict"
                 })
@@ -834,6 +840,7 @@ def _compute_remarkables_from_local_cache():
                     "symbol": symbol,
                     "trend_percent": round(trend_6m, 2),
                     "max_daily_drop_percent": round(max_drop, 2),
+                    "day_change_pct": day_chg,
                     "score": trend_6m - max_drop,
                     "match_type": "cache_near_match"
                 })
@@ -857,6 +864,7 @@ def _compute_remarkables_from_local_cache():
                     "gain_hits": up_hits,
                     "down_hits": down_hits,
                     "up_hits": up_hits,
+                    "day_change_pct": day_chg,
                     "score": (trend_3m + up_hits * 8 + down_hits * 8),
                     "match_type": "cache_strict"
                 })
@@ -873,6 +881,7 @@ def _compute_remarkables_from_local_cache():
                         "gain_hits": up_hits,
                         "down_hits": down_hits,
                         "up_hits": up_hits,
+                        "day_change_pct": day_chg,
                         "score": (trend_3m + up_hits * 4 + down_hits * 4 - miss_points * 5),
                         "match_type": "cache_near_match",
                         "_miss_points": miss_points
