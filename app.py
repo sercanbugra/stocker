@@ -2938,6 +2938,20 @@ def home():
     subscribed = request.args.get("subscribed") == "1"
     lse_data  = get_full_market_data("lse")
     bist_data = get_full_market_data("bist")
+
+    # Build autocomplete list from industry DB (symbol + name + market)
+    db = _load_industry_db()
+    autocomplete_symbols = [
+        {"s": sym, "n": meta.get("name") or sym, "m": meta.get("market", "US")}
+        for sym, meta in db.items()
+        if meta.get("name")
+    ]
+    # Also include any S&P 500 symbols not in the DB
+    db_keys = set(db.keys())
+    for sym in stocks:
+        if sym not in db_keys:
+            autocomplete_symbols.append({"s": sym, "n": sym, "m": "US"})
+
     return render_template(
         'index.html',
         stocks=stocks,
@@ -2952,6 +2966,7 @@ def home():
         free_daily_limit=FREE_DAILY_LIMIT,
         lse_data=lse_data,
         bist_data=bist_data,
+        autocomplete_symbols=autocomplete_symbols,
     )
 
 @app.route('/api/remarkables', methods=['GET'])
