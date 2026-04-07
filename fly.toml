@@ -13,7 +13,7 @@ primary_region = 'ams'
   SMTP_HOST           = "mail.privateemail.com"
   SMTP_PORT           = "587"
   SMTP_USER           = "info@gultechs.net"
-  SITE_BASE_URL       = "https://stocker-2xbjqq.fly.dev"
+  SITE_BASE_URL       = "https://stocker.gultechs.net"
 
 [http_service]
   internal_port = 8080
