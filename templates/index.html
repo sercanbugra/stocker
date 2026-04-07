@@ -1223,6 +1223,161 @@
         .rm-list li:active      { background: rgba(255,255,255,0.06); }
         .theme-dot:active       { border-color: rgba(255,255,255,0.6) !important; transform: scale(1.15); }
         .tb-btn:active          { opacity: 0.75; }
+
+        /* ── Hero banner ── */
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(30,46,90,0.95) 0%, rgba(20,32,68,0.98) 100%);
+            border: 1px solid rgba(79,142,247,0.2);
+            border-radius: 20px;
+            padding: 28px 32px 22px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+            animation: heroBannerIn 0.5s cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @keyframes heroBannerIn {
+            from { opacity: 0; transform: translateY(-12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .hero-banner::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 80% 50%, rgba(79,142,247,0.07) 0%, transparent 65%);
+            pointer-events: none;
+        }
+        .hero-dismiss {
+            position: absolute;
+            top: 14px; right: 16px;
+            background: none; border: none;
+            color: rgba(200,215,255,0.3);
+            font-size: 1rem; cursor: pointer;
+            line-height: 1; padding: 4px;
+            transition: color 0.2s;
+        }
+        .hero-dismiss:hover { color: rgba(200,215,255,0.7); }
+        .hero-eyebrow {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #4f8ef7;
+            margin-bottom: 6px;
+        }
+        .hero-headline {
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: #e7ecff;
+            line-height: 1.25;
+            margin-bottom: 6px;
+        }
+        .hero-headline span { color: #4f8ef7; }
+        .hero-sub {
+            font-size: 0.82rem;
+            color: rgba(200,215,255,0.55);
+            margin-bottom: 18px;
+            max-width: 540px;
+        }
+        .hero-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .hero-feat-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            font-size: 0.73rem;
+            font-weight: 600;
+            color: rgba(200,215,255,0.75);
+        }
+        .hero-feat-pill i { color: #4f8ef7; font-size: 0.7rem; }
+        .hero-tickers-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(200,215,255,0.35);
+            margin-bottom: 8px;
+        }
+        .hero-tickers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+        .hero-ticker-btn {
+            padding: 6px 14px;
+            border-radius: 10px;
+            border: 1.5px solid rgba(79,142,247,0.3);
+            background: rgba(79,142,247,0.08);
+            color: #9ec3ff;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: border-color 0.18s, background 0.18s, transform 0.15s;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.5px;
+        }
+        .hero-ticker-btn:hover {
+            border-color: #4f8ef7;
+            background: rgba(79,142,247,0.18);
+            color: #c8d7ff;
+            transform: translateY(-1px);
+        }
+        .hero-ticker-btn:active { transform: translateY(0); }
+
+        /* ── Search pulse (first-visit guide) ── */
+        .search-pulse-ring {
+            position: absolute;
+            inset: -5px;
+            border-radius: 14px;
+            border: 2px solid #4f8ef7;
+            pointer-events: none;
+            animation: searchPulseRing 1.8s ease-out infinite;
+            opacity: 0;
+        }
+        @keyframes searchPulseRing {
+            0%   { opacity: 0.9; transform: scale(1); }
+            100% { opacity: 0;   transform: scale(1.12); }
+        }
+        .search-guide-arrow {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4f8ef7;
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 6px;
+            white-space: nowrap;
+            pointer-events: none;
+            animation: arrowBob 1.4s ease-in-out infinite;
+            z-index: 10;
+        }
+        .search-guide-arrow::before {
+            content: "";
+            position: absolute;
+            bottom: 100%; left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-bottom-color: #4f8ef7;
+        }
+        @keyframes arrowBob {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50%       { transform: translateX(-50%) translateY(3px); }
+        }
+        @media (max-width: 767px) {
+            .hero-banner     { padding: 20px 18px 16px; }
+            .hero-headline   { font-size: 1.15rem; }
+            .search-guide-arrow { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -1419,11 +1574,13 @@
             </a>
 
             <!-- Ticker input + Predict -->
-            <div class="toolbar-search">
-                <div class="ticker-input-wrap">
+            <div class="toolbar-search" style="position:relative;">
+                <div class="ticker-input-wrap" style="position:relative;">
                     <i class="fas fa-search ticker-search-icon"></i>
                     <input id="stock-input" type="text" class="ticker-input" placeholder="Ticker symbol (e.g. AAPL)" autocomplete="off" />
+                    <div class="search-pulse-ring" id="search-pulse-ring"></div>
                 </div>
+                <div class="search-guide-arrow" id="search-guide-arrow">▼ Enter a ticker to start</div>
                 <button id="predict-btn" class="btn-predict">
                     <i class="fas fa-chart-line"></i> Analyse
                 </button>
@@ -1474,6 +1631,34 @@
             {% endif %}
         </div>
 
+
+        <!-- Hero Banner — hidden after dismiss, shown only on first visit -->
+        <div class="hero-banner" id="hero-banner">
+            <button class="hero-dismiss" id="hero-dismiss" aria-label="Dismiss"><i class="fas fa-times"></i></button>
+
+            <div class="hero-eyebrow"><i class="fas fa-satellite-dish me-1"></i> AI-Powered Market Intelligence</div>
+            <div class="hero-headline">Your edge in the market,<br>driven by <span>machine learning</span>.</div>
+            <div class="hero-sub">Analyse any stock with AI predictions, technical patterns, sentiment scoring, and peer comparisons — in seconds.</div>
+
+            <div class="hero-features">
+                <span class="hero-feat-pill"><i class="fas fa-brain"></i> Ensemble ML Forecast</span>
+                <span class="hero-feat-pill"><i class="fas fa-wave-square"></i> Chart Pattern Detection</span>
+                <span class="hero-feat-pill"><i class="fas fa-newspaper"></i> News Sentiment</span>
+                <span class="hero-feat-pill"><i class="fas fa-users"></i> Peer Comparison</span>
+                <span class="hero-feat-pill"><i class="fas fa-bolt"></i> Remarkables Scanner</span>
+            </div>
+
+            <div class="hero-tickers-label">Try a popular stock &rarr;</div>
+            <div class="hero-tickers">
+                <button class="hero-ticker-btn" data-ticker="AAPL">AAPL</button>
+                <button class="hero-ticker-btn" data-ticker="TSLA">TSLA</button>
+                <button class="hero-ticker-btn" data-ticker="NVDA">NVDA</button>
+                <button class="hero-ticker-btn" data-ticker="MSFT">MSFT</button>
+                <button class="hero-ticker-btn" data-ticker="AMZN">AMZN</button>
+                <button class="hero-ticker-btn" data-ticker="BP.L">BP.L</button>
+                <button class="hero-ticker-btn" data-ticker="THYAO.IS">THYAO.IS</button>
+            </div>
+        </div>
 
         <div class="card remarkable-card mt-3">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -2567,6 +2752,67 @@
 
             renderWatchlist();
             loadRemarkables();
+
+            /* ── Hero banner ── */
+            (function() {
+                const HERO_KEY = 'stocker_hero_dismissed';
+                const banner   = document.getElementById('hero-banner');
+                const dismiss  = document.getElementById('hero-dismiss');
+                if (!banner) return;
+
+                // Hide if already dismissed
+                if (localStorage.getItem(HERO_KEY)) {
+                    banner.style.display = 'none';
+                }
+
+                // Dismiss button
+                dismiss && dismiss.addEventListener('click', function() {
+                    banner.style.transition = 'opacity 0.3s, transform 0.3s';
+                    banner.style.opacity    = '0';
+                    banner.style.transform  = 'translateY(-8px)';
+                    setTimeout(function() { banner.style.display = 'none'; }, 300);
+                    localStorage.setItem(HERO_KEY, '1');
+                });
+
+                // Quick-launch ticker chips
+                document.querySelectorAll('.hero-ticker-btn').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        const ticker = btn.dataset.ticker;
+                        $('#stock-input').val(ticker);
+                        // hide banner
+                        banner.style.transition = 'opacity 0.25s';
+                        banner.style.opacity    = '0';
+                        setTimeout(function() { banner.style.display = 'none'; }, 250);
+                        localStorage.setItem(HERO_KEY, '1');
+                        // trigger analysis
+                        $('#predict-btn').click();
+                    });
+                });
+            })();
+
+            /* ── Search pulse guide (first-visit only) ── */
+            (function() {
+                const PULSE_KEY = 'stocker_search_guided';
+                const ring      = document.getElementById('search-pulse-ring');
+                const arrow     = document.getElementById('search-guide-arrow');
+                const input     = document.getElementById('stock-input');
+
+                function hideGuide() {
+                    if (ring)  ring.style.display  = 'none';
+                    if (arrow) arrow.style.display = 'none';
+                    localStorage.setItem(PULSE_KEY, '1');
+                }
+
+                if (localStorage.getItem(PULSE_KEY)) {
+                    hideGuide();
+                    return;
+                }
+
+                // Hide once user starts typing or clicks predict
+                input && input.addEventListener('input', hideGuide, { once: true });
+                document.getElementById('predict-btn') &&
+                    document.getElementById('predict-btn').addEventListener('click', hideGuide, { once: true });
+            })();
 
             /* ── Market picker ── */
             (function() {
