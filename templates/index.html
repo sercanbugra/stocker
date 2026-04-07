@@ -1435,7 +1435,7 @@
                             <span class="rm-lbl-val">Change (%)</span>
                         </div>
                         <ol class="rm-list">
-                            {% if lse_data and lse_data.for_risk_lovers %}
+                            {% if lse_data and lse_data.for_risk_lovers is defined %}
                                 {% for item in lse_data.for_risk_lovers %}
                                 <li>
                                     <span class="rm-rank">{{ loop.index }}</span>
@@ -1456,8 +1456,6 @@
                                     {% endif %}
                                 </li>
                                 {% endfor %}
-                            {% else %}
-                                <li><span class="text-muted small">Loading…</span></li>
                             {% endif %}
                         </ol>
                         <div style="height:10px;"></div>
@@ -1611,7 +1609,7 @@
                             <span class="rm-lbl-val">Change (%)</span>
                         </div>
                         <ol class="rm-list">
-                            {% if bist_data and bist_data.for_risk_lovers %}
+                            {% if bist_data and bist_data.for_risk_lovers is defined %}
                                 {% for item in bist_data.for_risk_lovers %}
                                 <li>
                                     <span class="rm-rank">{{ loop.index }}</span>
@@ -1632,8 +1630,6 @@
                                     {% endif %}
                                 </li>
                                 {% endfor %}
-                            {% else %}
-                                <li><span class="text-muted small">Loading…</span></li>
                             {% endif %}
                         </ol>
                         <div style="height:10px;"></div>
@@ -1766,8 +1762,16 @@
 
                 <div class="remarkables-meta" id="remarkables-meta">
                     <i class="fas fa-satellite-dish me-1" style="font-size:0.65rem;"></i>
-                    {% if remarkables and remarkables.scanned_symbols %}
-                    scanned {{ remarkables.scanned_symbols }} / {{ remarkables.total_symbols }} symbols
+                    {% set us_scanned = remarkables.scanned_symbols if remarkables and remarkables.scanned_symbols else 0 %}
+                    {% set us_total   = remarkables.total_symbols   if remarkables and remarkables.total_symbols   else 0 %}
+                    {% set lse_scanned = lse_data.scanned_symbols if lse_data and lse_data.scanned_symbols else 0 %}
+                    {% set lse_total   = lse_data.total_symbols   if lse_data and lse_data.total_symbols   else 0 %}
+                    {% set bist_scanned = bist_data.scanned_symbols if bist_data and bist_data.scanned_symbols else 0 %}
+                    {% set bist_total   = bist_data.total_symbols   if bist_data and bist_data.total_symbols   else 0 %}
+                    {% set total_scanned = us_scanned + lse_scanned + bist_scanned %}
+                    {% set total_total   = us_total   + lse_total   + bist_total   %}
+                    {% if total_scanned %}
+                    scanned {{ total_scanned }} / {{ total_total }} symbols
                     {% else %}
                     scanning status unavailable
                     {% endif %}
@@ -2175,7 +2179,13 @@
                         $remarkablesUpdated.text(`updated ${payload.updated_at}`);
                     }
                     if (payload.scanned_symbols !== undefined) {
-                        $remarkablesMeta.text(`scanned ${payload.scanned_symbols} / ${payload.total_symbols} symbols`);
+                        const lseScanned  = (payload.lse_data  || {}).scanned_symbols || 0;
+                        const bistScanned = (payload.bist_data || {}).scanned_symbols || 0;
+                        const lseTotal    = (payload.lse_data  || {}).total_symbols   || 0;
+                        const bistTotal   = (payload.bist_data || {}).total_symbols   || 0;
+                        const totalScanned = payload.scanned_symbols + lseScanned + bistScanned;
+                        const totalSymbols = payload.total_symbols   + lseTotal   + bistTotal;
+                        $remarkablesMeta.text(`scanned ${totalScanned} / ${totalSymbols} symbols`);
                     }
                 } catch (e) {
                     // keep server-rendered fallback content
