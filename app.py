@@ -750,25 +750,33 @@ def fetch_ftse100_symbols():
         headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Safari/537.36"}
         resp = requests.get("https://en.wikipedia.org/wiki/FTSE_100_Index", headers=headers, timeout=10)
         resp.raise_for_status()
-        tables = pd.read_html(resp.text)
+        tables = pd.read_html(StringIO(resp.text))
         for df in tables:
             cols = [str(c).lower() for c in df.columns]
             if any("ticker" in c or "epic" in c or "symbol" in c for c in cols):
                 col = next(c for c in df.columns if any(k in str(c).lower() for k in ("ticker","epic","symbol")))
-                symbols = [str(s).strip().upper() + ".L" for s in df[col].dropna() if str(s).strip()]
+                symbols = [str(s).strip().upper() + ".L" for s in df[col].dropna()
+                           if str(s).strip() and re.fullmatch(r"[A-Z0-9]{1,5}", str(s).strip().upper())]
                 if len(symbols) >= 50:
+                    logger.info(f"Fetched {len(symbols)} FTSE 100 symbols from Wikipedia")
                     return symbols
     except Exception as e:
         logger.warning(f"FTSE 100 Wikipedia fetch failed: {e}")
-    # Hardcoded fallback — top FTSE 100 constituents
+    # Hardcoded fallback — full FTSE 100 constituents
     return [
-        "HSBA.L","AZN.L","SHEL.L","ULVR.L","BP.L","RIO.L","GSK.L","BATS.L",
-        "DGE.L","BHP.L","LLOY.L","BARC.L","NG.L","VOD.L","REL.L","NWG.L",
-        "LSEG.L","ANTO.L","III.L","WPP.L","IMB.L","STAN.L","JD.L","EXPN.L",
-        "AAL.L","FLTR.L","SGRO.L","TSCO.L","MELI.L","MKS.L","PHNX.L","LAND.L",
-        "SSE.L","BWY.L","CNA.L","PRU.L","MNG.L","BDEV.L","SMDS.L","INF.L",
-        "HWDN.L","CPG.L","RKT.L","FRAS.L","WTB.L","AUTO.L","HIK.L","SPX.L",
-        "MNDI.L","GFS.L"
+        "AHT.L","AAL.L","ABDN.L","ABF.L","ADM.L","AV.L","AZN.L","AUTO.L",
+        "BA.L","BARC.L","BATS.L","BEZ.L","BKG.L","BME.L","BNZL.L","BP.L",
+        "BRBY.L","BHP.L","CCH.L","CNA.L","CPG.L","CRDA.L","DCC.L","DGE.L",
+        "DPLM.L","EZJ.L","ENT.L","EXPN.L","FCIT.L","FRAS.L","FRES.L","GAW.L",
+        "GLEN.L","GSK.L","HALEON.L","HLMA.L","HLN.L","HSBA.L","HSX.L","HIK.L",
+        "HWDN.L","IAG.L","IHG.L","III.L","IMB.L","INF.L","ITRK.L","JD.L",
+        "KGF.L","LAND.L","LGEN.L","LLOY.L","LSEG.L","MKS.L","MNG.L","MNDI.L",
+        "MRO.L","NG.L","NWG.L","NXT.L","OCDO.L","PCG.L","PHNX.L","PRU.L",
+        "PSH.L","PSN.L","PSON.L","REL.L","RIO.L","RKT.L","RMV.L","RR.L",
+        "RS1.L","SGE.L","SBRY.L","SDR.L","SGRO.L","SHEL.L","SKG.L","SKY.L",
+        "SLA.L","SMDS.L","SMIN.L","SMT.L","SN.L","SPX.L","SSE.L","STAN.L",
+        "STJ.L","SVT.L","TSCO.L","TW.L","ULVR.L","UU.L","VOD.L","WPP.L",
+        "WTB.L","WDS.L"
     ]
 
 def fetch_bist_symbols():
@@ -777,28 +785,38 @@ def fetch_bist_symbols():
         headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Safari/537.36"}
         resp = requests.get("https://en.wikipedia.org/wiki/BIST_100", headers=headers, timeout=10)
         resp.raise_for_status()
-        tables = pd.read_html(resp.text)
+        tables = pd.read_html(StringIO(resp.text))
         for df in tables:
             cols = [str(c).lower() for c in df.columns]
             if any("ticker" in c or "symbol" in c or "code" in c for c in cols):
                 col = next(c for c in df.columns if any(k in str(c).lower() for k in ("ticker","symbol","code")))
                 symbols = [str(s).strip().upper() + ".IS" for s in df[col].dropna()
-                           if str(s).strip() and not str(s).strip().endswith(".IS")]
-                if len(symbols) >= 20:
+                           if str(s).strip() and not str(s).strip().endswith(".IS")
+                           and re.fullmatch(r"[A-Z0-9]{2,6}", str(s).strip().upper())]
+                if len(symbols) >= 50:
+                    logger.info(f"Fetched {len(symbols)} BIST symbols from Wikipedia")
                     return symbols
     except Exception as e:
         logger.warning(f"BIST Wikipedia fetch failed: {e}")
-    # Hardcoded fallback — top BIST constituents
+    # Hardcoded fallback — full BIST 100 constituents
     return [
-        "THYAO.IS","GARAN.IS","EREGL.IS","AKBNK.IS","SAHOL.IS","SISE.IS",
-        "KCHOL.IS","ISCTR.IS","TOASO.IS","ARCLK.IS","TUPRS.IS","BIMAS.IS",
-        "FROTO.IS","PGSUS.IS","PETKM.IS","SASA.IS","KRDMD.IS","VESTL.IS",
-        "TAVHL.IS","EKGYO.IS","TCELL.IS","TTKOM.IS","DOHOL.IS","ENKAI.IS",
-        "ASELS.IS","CIMSA.IS","OTKAR.IS","KOZAL.IS","GUBRF.IS","HEKTS.IS",
-        "YKBNK.IS","VAKBN.IS","HALKB.IS","SKBNK.IS","ALARK.IS","AGHOL.IS",
-        "MGROS.IS","ULKER.IS","CCOLA.IS","AEFES.IS","SOKM.IS","BRSAN.IS",
-        "INDES.IS","ISGYO.IS","SNGYO.IS","KLGYO.IS","DOAS.IS","LOGO.IS",
-        "NETAS.IS","KARSN.IS"
+        "ACSEL.IS","ADEL.IS","AEFES.IS","AGESA.IS","AGHOL.IS","AHGAZ.IS",
+        "AKBNK.IS","AKCNS.IS","AKFEN.IS","AKGRT.IS","AKSA.IS","AKSEN.IS",
+        "ALARK.IS","ALBRK.IS","ALCAR.IS","ALFAS.IS","ALKIM.IS","ANSGR.IS",
+        "ARCLK.IS","ARDYZ.IS","ARSAN.IS","ASELS.IS","ASUZU.IS","AYGAZ.IS",
+        "BAGFS.IS","BANVT.IS","BIMAS.IS","BIOEN.IS","BRISA.IS","BRSAN.IS",
+        "BRYAT.IS","BUCIM.IS","CCOLA.IS","CIMSA.IS","CLEBI.IS","CMENT.IS",
+        "DOAS.IS","DOHOL.IS","ECILC.IS","EGEEN.IS","EKGYO.IS","ENKAI.IS",
+        "EREGL.IS","EUPWR.IS","FENER.IS","FROTO.IS","GARAN.IS","GESAN.IS",
+        "GUBRF.IS","GWIND.IS","HALKB.IS","HEKTS.IS","HURGZ.IS","INDES.IS",
+        "IPEKE.IS","ISCTR.IS","ISGYO.IS","ISMEN.IS","KARSN.IS","KCHOL.IS",
+        "KLGYO.IS","KLNMA.IS","KONTR.IS","KONYA.IS","KOZAA.IS","KOZAL.IS",
+        "KRDMD.IS","LOGO.IS","MAVI.IS","MGROS.IS","MIATK.IS","NETAS.IS",
+        "ODAS.IS","OTKAR.IS","OYAKC.IS","PETKM.IS","PGSUS.IS","POLHO.IS",
+        "SAHOL.IS","SASA.IS","SISE.IS","SKBNK.IS","SNGYO.IS","SOKM.IS",
+        "TABGD.IS","TAVHL.IS","TCELL.IS","THYAO.IS","TKFEN.IS","TOASO.IS",
+        "TSKB.IS","TTKOM.IS","TTRAK.IS","TUPRS.IS","TURSG.IS","ULKER.IS",
+        "VAKBN.IS","VESTL.IS","YKBNK.IS","YYLGD.IS"
     ]
 
 def _extract_close_from_batch(df_batch: pd.DataFrame, symbol: str):
@@ -1295,7 +1313,12 @@ def _compute_risk_trending_for_market(symbols: list) -> dict:
             if len(risk_sorted) >= 5:
                 break
 
-    return {"for_risk_lovers": risk_sorted, "no_pain_but_gain": steady_sorted}
+    return {
+        "for_risk_lovers":  risk_sorted,
+        "no_pain_but_gain": steady_sorted,
+        "scanned":          scanned,
+        "total":            len(symbols),
+    }
 
 
 def _refresh_remarkables_worker():
@@ -2753,6 +2776,8 @@ def _compute_full_market(market_key: str) -> dict:
         "no_pain_but_gain": rt["no_pain_but_gain"],
         "top_dividend":     div,
         "undervalued":      uv,
+        "scanned_symbols":  rt.get("scanned", 0),
+        "total_symbols":    rt.get("total", 0),
     }
 
 
@@ -2790,9 +2815,26 @@ def _full_market_refresh_worker(market_key: str) -> None:
             _FULL_MARKET_REFRESHING.discard(market_key)
 
 
-def get_full_market_data(market_key: str) -> dict:
+def get_full_market_data(market_key: str, force_refresh: bool = False) -> dict:
     """Return today's 4-list market data for 'lse' or 'bist'. Background refresh when stale."""
     global _FULL_MARKET_MEM
+
+    empty = {"market": market_key, "for_risk_lovers": [], "no_pain_but_gain": [],
+             "top_dividend": [], "undervalued": [], "updated_at": None}
+
+    if force_refresh:
+        try:
+            payload = _compute_full_market(market_key)
+            path = _full_market_cache_path(market_key)
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(payload, f)
+            with _FULL_MARKET_LOCK:
+                _FULL_MARKET_MEM[market_key] = payload
+            return payload
+        except Exception as exc:
+            logger.warning("Force refresh failed for %s: %s", market_key, exc)
+            return _FULL_MARKET_MEM.get(market_key) or empty
 
     # Memory hit
     mem = _FULL_MARKET_MEM.get(market_key)
@@ -2821,8 +2863,6 @@ def get_full_market_data(market_key: str) -> dict:
     if not already:
         threading.Thread(target=_full_market_refresh_worker, args=(market_key,), daemon=True).start()
 
-    empty = {"market": market_key, "for_risk_lovers": [], "no_pain_but_gain": [],
-             "top_dividend": [], "undervalued": [], "updated_at": None}
     return mem or cached or empty
 
 
@@ -2878,8 +2918,8 @@ def home():
 def remarkables_api():
     refresh = request.args.get('refresh') == '1'
     payload = get_remarkables(force_refresh=refresh)
-    payload["lse_data"]  = get_full_market_data("lse")
-    payload["bist_data"] = get_full_market_data("bist")
+    payload["lse_data"]  = get_full_market_data("lse",  force_refresh=refresh)
+    payload["bist_data"] = get_full_market_data("bist", force_refresh=refresh)
     return jsonify(payload)
 
 @app.route("/logout")
