@@ -1161,18 +1161,17 @@
                                     <span class="rm-info-wrap">
                                         <span class="rm-info-icon">i</span>
                                         <span class="rm-tooltip">
-                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
+                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend (3M)</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
                                             <div class="rm-tooltip-row"><span class="rm-tooltip-key">Low hits (&le;0.9×)</span><span class="rm-tooltip-val">{{ item.down_hits or item.loss_hits }}</span></div>
                                             <div class="rm-tooltip-row"><span class="rm-tooltip-key">High hits (&ge;1.2×)</span><span class="rm-tooltip-val">{{ item.up_hits or item.gain_hits }}</span></div>
                                             {% if item.match_type and item.match_type != 'strict' and item.match_type != 'cache_strict' %}<div class="rm-near-match">&#9888; Near match</div>{% endif %}
                                         </span>
                                     </span>
-                                    {% if item.trend_percent is not none %}
-                                        {% if item.trend_percent > 0 %}
-                                        <span class="rm-chg-pos">+{{ item.trend_percent }}%</span>
-                                        {% else %}
-                                        <span class="rm-chg-neg">{{ item.trend_percent }}%</span>
-                                        {% endif %}
+                                    {% set d = item.day_change_pct if item.day_change_pct is defined else none %}
+                                    {% if d is not none %}
+                                        {% if d > 0 %}<span class="rm-chg-pos">+{{ d }}%</span>
+                                        {% elif d < 0 %}<span class="rm-chg-neg">{{ d }}%</span>
+                                        {% else %}<span class="rm-chg-flat">0.00%</span>{% endif %}
                                     {% endif %}
                                 </li>
                                 {% endfor %}
@@ -1201,17 +1200,16 @@
                                     <span class="rm-info-wrap">
                                         <span class="rm-info-icon">i</span>
                                         <span class="rm-tooltip">
-                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
+                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend (6M)</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
                                             <div class="rm-tooltip-row"><span class="rm-tooltip-key">Max daily drop</span><span class="rm-tooltip-val">{{ item.max_daily_drop_percent }}%</span></div>
                                             {% if item.match_type and item.match_type != 'strict' and item.match_type != 'cache_strict' %}<div class="rm-near-match">&#9888; Near match</div>{% endif %}
                                         </span>
                                     </span>
-                                    {% if item.trend_percent is not none %}
-                                        {% if item.trend_percent > 0 %}
-                                        <span class="rm-chg-pos">+{{ item.trend_percent }}%</span>
-                                        {% else %}
-                                        <span class="rm-chg-neg">{{ item.trend_percent }}%</span>
-                                        {% endif %}
+                                    {% set d = item.day_change_pct if item.day_change_pct is defined else none %}
+                                    {% if d is not none %}
+                                        {% if d > 0 %}<span class="rm-chg-pos">+{{ d }}%</span>
+                                        {% elif d < 0 %}<span class="rm-chg-neg">{{ d }}%</span>
+                                        {% else %}<span class="rm-chg-flat">0.00%</span>{% endif %}
                                     {% endif %}
                                 </li>
                                 {% endfor %}
@@ -1246,13 +1244,6 @@
                                     </span>
                                 </span>
                                 <span class="rm-yield-badge">{{ "%.1f"|format(item.yield_pct) }}%</span>
-                                {% if item.change_pct > 0 %}
-                                <span class="rm-chg-pos">+{{ "%.2f"|format(item.change_pct) }}%</span>
-                                {% elif item.change_pct < 0 %}
-                                <span class="rm-chg-neg">{{ "%.2f"|format(item.change_pct) }}%</span>
-                                {% else %}
-                                <span class="rm-chg-flat">—</span>
-                                {% endif %}
                             </li>
                             {% endfor %}
                         </ul>
@@ -1286,13 +1277,7 @@
                                     </span>
                                 </span>
                                 <span class="rm-fcf-badge">{{ "%.1f"|format(item.fcf_yield) }}%</span>
-                                {% if item.change_pct > 0 %}
-                                <span class="rm-chg-pos">+{{ "%.2f"|format(item.change_pct) }}%</span>
-                                {% elif item.change_pct < 0 %}
-                                <span class="rm-chg-neg">{{ "%.2f"|format(item.change_pct) }}%</span>
-                                {% else %}
-                                <span class="rm-chg-flat">—</span>
-                                {% endif %}
+                                {% if item.price %}<span class="rm-chg-flat">${{ "%.2f"|format(item.price) }}</span>{% endif %}
                             </li>
                             {% endfor %}
                         </ul>
@@ -1645,10 +1630,12 @@
                     return;
                 }
                 const html = items.slice(0, 5).map((item, idx) => {
-                    const trend = parseFloat(item.trend_percent) || 0;
-                    const trendBadge = trend > 0
-                        ? `<span class="rm-chg-pos">+${trend}%</span>`
-                        : `<span class="rm-chg-neg">${trend}%</span>`;
+                    const dayChg = item.day_change_pct != null ? parseFloat(item.day_change_pct) : null;
+                    const trendBadge = dayChg == null ? '' : dayChg > 0
+                        ? `<span class="rm-chg-pos">+${dayChg.toFixed(2)}%</span>`
+                        : dayChg < 0
+                        ? `<span class="rm-chg-neg">${dayChg.toFixed(2)}%</span>`
+                        : `<span class="rm-chg-flat">0.00%</span>`;
                     const sym = `<a href="#" class="remarkable-symbol" data-symbol="${item.symbol}">${item.symbol}</a>`;
                     const nearMatch = item.match_type && item.match_type !== 'strict' && item.match_type !== 'cache_strict';
                     let tooltipRows = '';
@@ -1656,13 +1643,13 @@
                         const downHits = item.down_hits ?? item.loss_hits ?? 0;
                         const upHits = item.up_hits ?? item.gain_hits ?? 0;
                         tooltipRows = `
-                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend</span><span class="rm-tooltip-val">${item.trend_percent}%</span></div>
+                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend (3M)</span><span class="rm-tooltip-val">${item.trend_percent}%</span></div>
                             <div class="rm-tooltip-row"><span class="rm-tooltip-key">Low hits (&le;0.9&times;)</span><span class="rm-tooltip-val">${downHits}</span></div>
                             <div class="rm-tooltip-row"><span class="rm-tooltip-key">High hits (&ge;1.2&times;)</span><span class="rm-tooltip-val">${upHits}</span></div>
                             ${nearMatch ? '<div class="rm-near-match">&#9888; Near match</div>' : ''}`;
                     } else {
                         tooltipRows = `
-                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend</span><span class="rm-tooltip-val">${item.trend_percent}%</span></div>
+                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend (6M)</span><span class="rm-tooltip-val">${item.trend_percent}%</span></div>
                             <div class="rm-tooltip-row"><span class="rm-tooltip-key">Max daily drop</span><span class="rm-tooltip-val">${item.max_daily_drop_percent}%</span></div>
                             ${nearMatch ? '<div class="rm-near-match">&#9888; Near match</div>' : ''}`;
                     }
