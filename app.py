@@ -8,6 +8,8 @@ import re
 import threading
 import concurrent.futures
 import smtplib
+import urllib.parse
+import xml.etree.ElementTree as ET
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import numpy as np
@@ -3327,45 +3329,137 @@ def _parse_yf_news_item(n: dict) -> dict | None:
     }
 
 
+def _google_news_rss(query: str, limit: int = 5) -> list:
+    """Fetch news from Google News RSS for a free-text query. Returns parsed items."""
+    try:
+        url = (
+            "https://news.google.com/rss/search"
+            f"?q={urllib.parse.quote(query)}&hl=en&gl=US&ceid=US:en"
+        )
+        resp = requests.get(url, timeout=8, headers={"User-Agent": _USER_AGENT})
+        if not resp.ok:
+            return []
+        root = ET.fromstring(resp.text)
+        items = []
+        for item in root.findall(".//item"):
+            title = item.findtext("title") or ""
+            link  = item.findtext("link")  or ""
+            pub   = item.findtext("pubDate") or ""
+            src   = item.findtext("source") or ""
+            if not title or not link:
+                continue
+            # Strip " - Source Name" appended by Google to titles
+            title = re.sub(r"\s+-\s+[^-]{3,60}$", "", title).strip()
+            items.append({
+                "title":     title,
+                "link":      link,
+                "publisher": src,
+                "published": pub,
+                "sentiment": _sentiment_score(title),
+            })
+            if len(items) >= limit:
+                break
+        return items
+    except Exception as e:
+        logger.warning(f"Google News RSS failed for '{query}': {e}")
+        return []
+
+
+def _company_search_query(symbol: str, stock_obj) -> str | None:
+    """
+    Build a Google News search query from the company name.
+    Returns None if we can't determine a clean name.
+    """
+    try:
+        info = (stock_obj.info if stock_obj is not None else {}) or {}
+        name = info.get("shortName") or info.get("longName") or ""
+        # Remove exchange suffixes and noise: "$0.25", "PLC", "ORD ...", "AO", "A.S." etc.
+        name = re.sub(r"\s+\$[\d.]+.*$",    "", name, flags=re.IGNORECASE)
+        name = re.sub(r"\s+ORD\b.*$",       "", name, flags=re.IGNORECASE)
+        name = re.sub(r"\s+(PLC|INC\.?|CORP\.?|LTD\.?|AO|AS|A\.S\.)(\s.*)?$",
+                      "", name, flags=re.IGNORECASE)
+        name = name.strip()
+        if len(name) >= 2:          # allow short names like "BP"
+            return f"{name} stock"
+    except Exception:
+        pass
+    return None
+
+
 def fetch_news(stock_obj, symbol, limit=5):
     items = []
+    # Symbols with a dot suffix are international (TR = .IS, UK = .L)
+    is_international = bool(re.search(r"\.(IS|L)$", symbol, re.IGNORECASE))
 
-    # --- Primary: yfinance ---
-    if stock_obj is not None:
-        try:
-            raw = stock_obj.news or []
-            for n in raw:
-                parsed = _parse_yf_news_item(n)
-                if parsed:
-                    items.append(parsed)
-                if len(items) >= limit:
-                    break
-        except Exception as e:
-            logger.warning(f"YF news fetch failed for {symbol}: {e}")
+    # ── International stocks (TR / UK) ───────────────────────────────────
+    # yfinance .news for these symbols often returns generic, unrelated
+    # articles (e.g. "Middle Eastern Dividend Stocks" for GARAN.IS).
+    # Use Google News RSS as primary; fall back to yfinance only as top-up.
+    if is_international:
+        query = _company_search_query(symbol, stock_obj)
+        if query:
+            items = _google_news_rss(query, limit=limit)
+            if items:
+                logger.info(f"Google News RSS: {len(items)} items for {symbol}")
 
-    # --- Fallback: Yahoo Finance search API ---
-    if len(items) < limit:
-        try:
-            url = (
-                f"https://query2.finance.yahoo.com/v1/finance/search"
-                f"?q={symbol}&newsCount={limit}&enableFuzzyQuery=false"
-            )
-            resp = requests.get(url, timeout=8, headers={"User-Agent": _USER_AGENT})
-            if resp.ok:
-                for n in (resp.json().get('news') or []):
+        # Top-up with yfinance if Google News came up short
+        if len(items) < limit and stock_obj is not None:
+            try:
+                raw = stock_obj.news or []
+                for n in raw:
                     parsed = _parse_yf_news_item(n)
                     if parsed:
                         items.append(parsed)
                     if len(items) >= limit:
                         break
-        except Exception as e:
-            logger.warning(f"YF search news fetch failed for {symbol}: {e}")
+            except Exception as e:
+                logger.warning(f"YF news top-up failed for {symbol}: {e}")
 
-    # --- Dedupe by title ---
+    # ── US (and other) stocks ─────────────────────────────────────────────
+    else:
+        # Primary: yfinance
+        if stock_obj is not None:
+            try:
+                raw = stock_obj.news or []
+                for n in raw:
+                    parsed = _parse_yf_news_item(n)
+                    if parsed:
+                        items.append(parsed)
+                    if len(items) >= limit:
+                        break
+            except Exception as e:
+                logger.warning(f"YF news fetch failed for {symbol}: {e}")
+
+        # Fallback 1: Yahoo Finance search API
+        if len(items) < limit:
+            try:
+                url = (
+                    f"https://query2.finance.yahoo.com/v1/finance/search"
+                    f"?q={symbol}&newsCount={limit}&enableFuzzyQuery=false"
+                )
+                resp = requests.get(url, timeout=8, headers={"User-Agent": _USER_AGENT})
+                if resp.ok:
+                    for n in (resp.json().get("news") or []):
+                        parsed = _parse_yf_news_item(n)
+                        if parsed:
+                            items.append(parsed)
+                        if len(items) >= limit:
+                            break
+            except Exception as e:
+                logger.warning(f"YF search news fetch failed for {symbol}: {e}")
+
+        # Fallback 2: Google News RSS
+        if len(items) < limit:
+            query = _company_search_query(symbol, stock_obj)
+            if query:
+                gn = _google_news_rss(query, limit=limit - len(items))
+                items.extend(gn)
+
+    # ── Dedupe by title ───────────────────────────────────────────────────
     seen: set = set()
     deduped = []
     for it in items:
-        t = it.get('title')
+        t = it.get("title")
         if t and t not in seen:
             seen.add(t)
             deduped.append(it)
