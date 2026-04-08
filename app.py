@@ -2906,6 +2906,21 @@ def get_full_market_data(market_key: str, force_refresh: bool = False) -> dict:
     return mem or cached or empty
 
 
+@app.route('/sitemap.xml')
+def sitemap():
+    from flask import send_from_directory
+    return send_from_directory('static', 'sitemap.xml', mimetype='application/xml')
+
+
+@app.route('/robots.txt')
+def robots():
+    from flask import Response
+    return Response(
+        "User-agent: *\nAllow: /\nSitemap: https://stocker.gultechs.net/sitemap.xml\n",
+        mimetype='text/plain'
+    )
+
+
 @app.route('/')
 def home():
     stocks = fetch_sp500_stocks()
