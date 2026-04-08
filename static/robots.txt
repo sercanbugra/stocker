@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://stocker.gultechs.net/sitemap.xml

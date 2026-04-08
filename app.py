@@ -2914,11 +2914,8 @@ def sitemap():
 
 @app.route('/robots.txt')
 def robots():
-    from flask import Response
-    return Response(
-        "User-agent: *\nAllow: /\nSitemap: https://stocker.gultechs.net/sitemap.xml\n",
-        mimetype='text/plain'
-    )
+    from flask import send_from_directory
+    return send_from_directory('static', 'robots.txt')
 
 
 @app.route('/')
