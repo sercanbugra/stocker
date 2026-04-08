@@ -7,6 +7,108 @@
     <link rel="icon" type="image/x-icon"  href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='favicon-192.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+
+    <!-- ── SEO: Core meta ── -->
+    <meta name="description" content="Stocker — AI-powered stock prediction and analysis. Get ML-based price forecasts, technical pattern detection, sentiment analysis, analyst insights, and watchlist tracking for any stock.">
+    <meta name="keywords" content="stock prediction, stock analysis, AI stock forecast, technical analysis, stock pattern detection, stock sentiment, S&P 500, NASDAQ, stock market AI">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Stocker">
+    <link rel="canonical" href="https://stocker.gultechs.net/">
+
+    <!-- ── SEO: Open Graph ── -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Stocker">
+    <meta property="og:title" content="Stocker — AI Stock Prediction & Analysis">
+    <meta property="og:description" content="AI-powered stock prediction and analysis. ML-based price forecasts, technical pattern detection, sentiment analysis, and analyst insights for any stock.">
+    <meta property="og:url" content="https://stocker.gultechs.net/">
+    <meta property="og:image" content="https://stocker.gultechs.net/static/stocker_logo.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="en_US">
+
+    <!-- ── SEO: Twitter Card ── -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Stocker — AI Stock Prediction & Analysis">
+    <meta name="twitter:description" content="AI-powered stock prediction and analysis. ML-based price forecasts, technical pattern detection, sentiment analysis, and analyst insights for any stock.">
+    <meta name="twitter:image" content="https://stocker.gultechs.net/static/stocker_logo.png">
+
+    <!-- ── Structured Data: WebApplication ── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Stocker",
+      "url": "https://stocker.gultechs.net/",
+      "description": "AI-powered stock prediction and analysis tool. Get ML-based price forecasts, technical pattern detection, sentiment analysis, analyst insights, and watchlist tracking for any stock.",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "All",
+      "browserRequirements": "Requires JavaScript",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Free",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro",
+          "priceCurrency": "USD"
+        },
+        {
+          "@type": "Offer",
+          "name": "Premium",
+          "priceCurrency": "USD"
+        }
+      ],
+      "featureList": [
+        "AI-powered stock price forecasting",
+        "Technical pattern detection",
+        "Sentiment analysis from news",
+        "Analyst upgrade/downgrade insights",
+        "Watchlist tracking",
+        "S&P 500 and NASDAQ notable movers"
+      ],
+      "screenshot": "https://stocker.gultechs.net/static/stocker_logo.png",
+      "provider": {
+        "@type": "Organization",
+        "name": "Stocker",
+        "url": "https://stocker.gultechs.net/"
+      }
+    }
+    </script>
+
+    <!-- ── Structured Data: WebSite with SearchAction ── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Stocker",
+      "url": "https://stocker.gultechs.net/",
+      "description": "AI-powered stock prediction and analysis",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://stocker.gultechs.net/?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- ── Structured Data: Organization ── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Stocker",
+      "url": "https://stocker.gultechs.net/",
+      "logo": "https://stocker.gultechs.net/static/stocker_logo.png",
+      "sameAs": []
+    }
+    </script>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
