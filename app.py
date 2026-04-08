@@ -94,20 +94,20 @@ def _send_welcome_email(to_email: str) -> None:
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Welcome to Stocker</title>
 </head>
-<body style="margin:0;padding:0;background:#0f172a;font-family:'Helvetica Neue',Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;padding:40px 0;">
+<body style="margin:0;padding:0;background:#051520;font-family:'Helvetica Neue',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#051520;padding:40px 0;">
   <tr><td align="center">
     <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
       <!-- Header / Logo -->
       <tr>
-        <td align="center" style="background:#1b2a57;border-radius:16px 16px 0 0;padding:32px 40px 24px;">
-          <img src="{logo_url}" alt="Stocker" width="160"
-               style="display:block;max-width:160px;height:auto;margin:0 auto 16px;"/>
-          <h1 style="margin:0;color:#e7ecff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">
+        <td align="center" style="background:#0a2535;border:1px solid rgba(0,200,232,0.25);border-bottom:none;border-radius:16px 16px 0 0;padding:32px 40px 24px;">
+          <img src="{logo_url}" alt="Stocker" width="180"
+               style="display:block;max-width:180px;height:auto;margin:0 auto 20px;"/>
+          <h1 style="margin:0;color:#c8eeff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">
             Welcome to Stocker!
           </h1>
-          <p style="margin:8px 0 0;color:#8a9fd4;font-size:14px;">
+          <p style="margin:8px 0 0;color:rgba(200,238,255,0.55);font-size:14px;">
             Your AI-powered stock analysis platform
           </p>
         </td>
@@ -115,64 +115,64 @@ def _send_welcome_email(to_email: str) -> None:
 
       <!-- Body -->
       <tr>
-        <td style="background:#1e2f66;padding:32px 40px;">
-          <p style="margin:0 0 20px;color:#c8d4f0;font-size:15px;line-height:1.7;">
+        <td style="background:#0d3048;border-left:1px solid rgba(0,200,232,0.25);border-right:1px solid rgba(0,200,232,0.25);padding:32px 40px;">
+          <p style="margin:0 0 20px;color:#c8eeff;font-size:15px;line-height:1.7;">
             Hi there,
           </p>
-          <p style="margin:0 0 20px;color:#c8d4f0;font-size:15px;line-height:1.7;">
-            Thank you for creating your account. Stocker gives you real-time stock predictions,
+          <p style="margin:0 0 20px;color:rgba(200,238,255,0.75);font-size:15px;line-height:1.7;">
+            Thank you for creating your account. Stocker gives you ML-based stock predictions,
             technical pattern detection, sentiment analysis, and much more — all in one place.
           </p>
 
           <!-- Free tier summary -->
-          <p style="margin:0 0 12px;color:#e7ecff;font-size:15px;font-weight:600;">
+          <p style="margin:0 0 12px;color:#c8eeff;font-size:15px;font-weight:600;">
             Your free account includes:
           </p>
           <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:28px;">
-            <tr><td style="padding:5px 0;color:#8a9fd4;font-size:14px;">
+            <tr><td style="padding:5px 0;color:rgba(200,238,255,0.6);font-size:14px;">
               ✓ &nbsp;3 stock analyses per day
             </td></tr>
-            <tr><td style="padding:5px 0;color:#8a9fd4;font-size:14px;">
+            <tr><td style="padding:5px 0;color:rgba(200,238,255,0.6);font-size:14px;">
               ✓ &nbsp;ML price predictions (XGBoost + RandomForest ensemble)
             </td></tr>
-            <tr><td style="padding:5px 0;color:#8a9fd4;font-size:14px;">
+            <tr><td style="padding:5px 0;color:rgba(200,238,255,0.6);font-size:14px;">
               ✓ &nbsp;Technical pattern detection &amp; charts
             </td></tr>
-            <tr><td style="padding:5px 0;color:#8a9fd4;font-size:14px;">
+            <tr><td style="padding:5px 0;color:rgba(200,238,255,0.6);font-size:14px;">
               ✓ &nbsp;News sentiment analysis
             </td></tr>
-            <tr><td style="padding:5px 0;color:#8a9fd4;font-size:14px;">
+            <tr><td style="padding:5px 0;color:rgba(200,238,255,0.6);font-size:14px;">
               ✓ &nbsp;Remarkables — daily notable movers across S&amp;P 500 &amp; NASDAQ
             </td></tr>
           </table>
 
           <!-- PRO card -->
           <table cellpadding="0" cellspacing="0" width="100%"
-                 style="background:#1b2a57;border:1px solid rgba(79,142,247,0.35);border-radius:12px;margin-bottom:16px;">
+                 style="background:#0a2535;border:1px solid rgba(0,200,232,0.3);border-radius:12px;margin-bottom:16px;">
             <tr>
               <td style="padding:20px 24px;">
                 <p style="margin:0 0 4px;">
-                  <span style="background:#4f8ef7;color:#fff;font-size:11px;font-weight:700;
-                               padding:3px 10px;border-radius:20px;letter-spacing:0.5px;">PRO</span>
+                  <span style="background:#00c8e8;color:#051520;font-size:11px;font-weight:700;
+                               padding:3px 10px;border-radius:20px;letter-spacing:0.5px;">PRO · £3.99/mo</span>
                 </p>
-                <h3 style="margin:10px 0 12px;color:#e7ecff;font-size:16px;font-weight:700;">
+                <h3 style="margin:10px 0 12px;color:#c8eeff;font-size:16px;font-weight:700;">
                   Unlock deeper intelligence
                 </h3>
                 <table cellpadding="0" cellspacing="0">
-                  <tr><td style="padding:4px 0;color:#c8d4f0;font-size:14px;">
-                    🤖 &nbsp;<strong style="color:#e7ecff;">AI Trade Thesis</strong>
+                  <tr><td style="padding:4px 0;color:rgba(200,238,255,0.7);font-size:14px;">
+                    🤖 &nbsp;<strong style="color:#c8eeff;">AI Trade Thesis</strong>
                     — a structured bull/bear analysis written by AI for every stock you analyse
                   </td></tr>
-                  <tr><td style="padding:4px 0;color:#c8d4f0;font-size:14px;">
-                    📊 &nbsp;<strong style="color:#e7ecff;">Peer Comparison</strong>
+                  <tr><td style="padding:4px 0;color:rgba(200,238,255,0.7);font-size:14px;">
+                    📊 &nbsp;<strong style="color:#c8eeff;">Peer Comparison</strong>
                     — side-by-side fundamental &amp; valuation metrics vs sector peers
                   </td></tr>
-                  <tr><td style="padding:4px 0;color:#c8d4f0;font-size:14px;">
-                    ⭐ &nbsp;<strong style="color:#e7ecff;">Watchlist</strong>
+                  <tr><td style="padding:4px 0;color:rgba(200,238,255,0.7);font-size:14px;">
+                    ⭐ &nbsp;<strong style="color:#c8eeff;">Watchlist</strong>
                     — save and monitor your favourite tickers
                   </td></tr>
-                  <tr><td style="padding:4px 0;color:#c8d4f0;font-size:14px;">
-                    ♾️ &nbsp;<strong style="color:#e7ecff;">Unlimited analyses</strong>
+                  <tr><td style="padding:4px 0;color:rgba(200,238,255,0.7);font-size:14px;">
+                    ♾️ &nbsp;<strong style="color:#c8eeff;">Unlimited analyses</strong>
                     — no daily cap
                   </td></tr>
                 </table>
@@ -182,23 +182,23 @@ def _send_welcome_email(to_email: str) -> None:
 
           <!-- PREMIUM card -->
           <table cellpadding="0" cellspacing="0" width="100%"
-                 style="background:#1b2a57;border:1px solid rgba(255,193,7,0.4);border-radius:12px;margin-bottom:28px;">
+                 style="background:#0a2535;border:1px solid rgba(255,193,7,0.4);border-radius:12px;margin-bottom:28px;">
             <tr>
               <td style="padding:20px 24px;">
                 <p style="margin:0 0 4px;">
-                  <span style="background:#ffc107;color:#1b2a57;font-size:11px;font-weight:700;
-                               padding:3px 10px;border-radius:20px;letter-spacing:0.5px;">PREMIUM</span>
+                  <span style="background:#ffc107;color:#051520;font-size:11px;font-weight:700;
+                               padding:3px 10px;border-radius:20px;letter-spacing:0.5px;">PREMIUM · £5.99/mo</span>
                 </p>
-                <h3 style="margin:10px 0 12px;color:#e7ecff;font-size:16px;font-weight:700;">
+                <h3 style="margin:10px 0 12px;color:#c8eeff;font-size:16px;font-weight:700;">
                   Everything in Pro, plus:
                 </h3>
                 <table cellpadding="0" cellspacing="0">
-                  <tr><td style="padding:4px 0;color:#c8d4f0;font-size:14px;">
-                    💼 &nbsp;<strong style="color:#e7ecff;">AI Portfolio Advisor</strong>
+                  <tr><td style="padding:4px 0;color:rgba(200,238,255,0.7);font-size:14px;">
+                    💼 &nbsp;<strong style="color:#c8eeff;">AI Portfolio Advisor</strong>
                     — get personalised portfolio allocation advice based on the analysed stock
                   </td></tr>
-                  <tr><td style="padding:4px 0;color:#c8d4f0;font-size:14px;">
-                    📅 &nbsp;<strong style="color:#e7ecff;">Earnings Summarizer</strong>
+                  <tr><td style="padding:4px 0;color:rgba(200,238,255,0.7);font-size:14px;">
+                    📅 &nbsp;<strong style="color:#c8eeff;">Earnings Summarizer</strong>
                     — instant AI summaries of the latest earnings report, guidance &amp; surprises
                   </td></tr>
                 </table>
@@ -210,16 +210,16 @@ def _send_welcome_email(to_email: str) -> None:
           <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:28px;">
             <tr><td align="center">
               <a href="{site_url}"
-                 style="display:inline-block;background:#4f8ef7;color:#fff;text-decoration:none;
-                        font-size:15px;font-weight:600;padding:14px 36px;border-radius:10px;">
+                 style="display:inline-block;background:#00c8e8;color:#051520;text-decoration:none;
+                        font-size:15px;font-weight:700;padding:14px 36px;border-radius:10px;">
                 Start Analysing Stocks →
               </a>
             </td></tr>
           </table>
 
-          <p style="margin:0;color:#4a5a8a;font-size:13px;line-height:1.6;">
+          <p style="margin:0;color:rgba(200,238,255,0.35);font-size:13px;line-height:1.6;">
             Have questions? Reply to this email or visit
-            <a href="{site_url}" style="color:#4f8ef7;text-decoration:none;">{site_url}</a>
+            <a href="{site_url}" style="color:#00c8e8;text-decoration:none;">{site_url}</a>
           </p>
         </td>
       </tr>
@@ -227,11 +227,11 @@ def _send_welcome_email(to_email: str) -> None:
       <!-- Footer -->
       <tr>
         <td align="center"
-            style="background:#131f44;border-radius:0 0 16px 16px;padding:20px 40px;">
-          <p style="margin:0;color:#3a4a6a;font-size:12px;">
+            style="background:#071a28;border:1px solid rgba(0,200,232,0.25);border-top:none;border-radius:0 0 16px 16px;padding:20px 40px;">
+          <p style="margin:0;color:rgba(200,238,255,0.25);font-size:12px;">
             © 2025 Stocker · Gultechs · info@gultechs.net
           </p>
-          <p style="margin:6px 0 0;color:#3a4a6a;font-size:11px;">
+          <p style="margin:6px 0 0;color:rgba(200,238,255,0.2);font-size:11px;">
             You received this because you registered at {site_url}
           </p>
         </td>
