@@ -47,6 +47,21 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
+
+# Cache static assets aggressively (images, fonts, icons) — 1 year
+# Dynamic HTML responses are not affected (only /static/* hits this)
+@app.after_request
+def _set_cache_headers(response):
+    if request.path.startswith("/static/"):
+        ext = request.path.rsplit(".", 1)[-1].lower()
+        if ext in {"png", "jpg", "jpeg", "ico", "svg", "webp", "woff", "woff2", "ttf"}:
+            response.cache_control.max_age = 31536000  # 1 year
+            response.cache_control.immutable = True
+            response.cache_control.public = True
+        elif ext in {"css", "js"}:
+            response.cache_control.max_age = 86400  # 1 day
+            response.cache_control.public = True
+    return response
 SENTIMENT_ANALYZER = SentimentIntensityAnalyzer()
 _USER_AGENT = "Mozilla/5.0"
 
