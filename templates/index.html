@@ -138,17 +138,41 @@
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></noscript>
     <style>
+        /* ── Default Theme: Ocean Blue ── */
         :root {
-            --parliament-blue: #1b2a57;
-            --parliament-blue-soft: #24346a;
-            --parliament-blue-deep: #15224a;
-            --panel-text: #e7ecff;
-            --panel-muted: rgba(231, 236, 255, 0.7);
-            --panel-border: rgba(255, 255, 255, 0.08);
-            --body-bg: radial-gradient(circle at 10% 20%, #2f3b73 0, #1b2a57 45%, #0f1b3d 100%);
+            --parliament-blue: #0a2535;
+            --parliament-blue-soft: #0d3048;
+            --parliament-blue-deep: #071a28;
+            --panel-text: #c8eeff;
+            --panel-muted: rgba(200, 238, 255, 0.65);
+            --panel-border: rgba(0, 180, 220, 0.12);
+            --body-bg: radial-gradient(circle at 10% 20%, #1a4a6e 0, #0a2535 45%, #051520 100%);
+            --accent: #00c8e8;
+            --accent-rgb: 0, 200, 232;
+            --accent-2: rgba(60, 100, 247, 0.13);
+            --hero-bg: linear-gradient(120deg, #051520 0%, #0a2535 45%, #051520 100%);
+            --hero-tip-bg: #071a28;
+            --text-muted-rgb: 200, 238, 255;
         }
 
-        /* ── Dark Red Theme ── */
+        /* ── Warm Beige Theme ── */
+        [data-theme="beige"] {
+            --parliament-blue: #2a1f0e;
+            --parliament-blue-soft: #35281a;
+            --parliament-blue-deep: #1e1508;
+            --panel-text: #f0e6d3;
+            --panel-muted: rgba(240, 230, 211, 0.7);
+            --panel-border: rgba(200, 160, 100, 0.18);
+            --body-bg: radial-gradient(circle at 10% 20%, #4a3520 0, #2a1f0e 45%, #1a1208 100%);
+            --accent: #d4a054;
+            --accent-rgb: 212, 160, 84;
+            --accent-2: rgba(180, 120, 60, 0.13);
+            --hero-bg: linear-gradient(120deg, #1e1508 0%, #2e2010 45%, #1e1508 100%);
+            --hero-tip-bg: #1a1208;
+            --text-muted-rgb: 240, 230, 211;
+        }
+
+        /* ── Dark Crimson Theme ── */
         [data-theme="crimson"] {
             --parliament-blue: #2a0f0f;
             --parliament-blue-soft: #3d1515;
@@ -157,17 +181,12 @@
             --panel-muted: rgba(255, 232, 232, 0.65);
             --panel-border: rgba(255, 100, 100, 0.12);
             --body-bg: radial-gradient(circle at 10% 20%, #4a1a1a 0, #2a0f0f 45%, #150505 100%);
-        }
-
-        /* ── Midnight Black Theme ── */
-        [data-theme="midnight"] {
-            --parliament-blue: #0d0d0d;
-            --parliament-blue-soft: #181818;
-            --parliament-blue-deep: #080808;
-            --panel-text: #e8e8e8;
-            --panel-muted: rgba(232, 232, 232, 0.55);
-            --panel-border: rgba(255, 255, 255, 0.07);
-            --body-bg: radial-gradient(circle at 10% 20%, #222222 0, #111111 45%, #000000 100%);
+            --accent: #e84040;
+            --accent-rgb: 232, 64, 64;
+            --accent-2: rgba(247, 60, 100, 0.13);
+            --hero-bg: linear-gradient(120deg, #150505 0%, #2a0f0f 45%, #150505 100%);
+            --hero-tip-bg: #1a0808;
+            --text-muted-rgb: 255, 232, 232;
         }
 
         body {
@@ -199,9 +218,9 @@
         }
         .theme-dot:hover { transform: scale(1.15); }
         .theme-dot.active { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.3); }
-        .theme-dot-blue    { background: radial-gradient(circle, #2f3b73, #1b2a57); }
-        .theme-dot-crimson { background: radial-gradient(circle, #4a1a1a, #2a0f0f); }
-        .theme-dot-midnight{ background: radial-gradient(circle, #333, #000); }
+        .theme-dot-beige   { background: radial-gradient(circle, #c08a4a, #2a1f0e); }
+        .theme-dot-ocean   { background: radial-gradient(circle, #1a6b8a, #051520); }
+        .theme-dot-crimson { background: radial-gradient(circle, #7a1a1a, #2a0f0f); }
         .container {
             max-width: 1400px;
             padding-top: 20px;
@@ -1149,7 +1168,7 @@
         }
         .btn-predict {
             padding: 7px 18px;
-            background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+            background: linear-gradient(135deg, var(--accent), rgba(var(--accent-rgb), 0.75));
             border: none;
             border-radius: 8px;
             color: #fff;
@@ -1157,10 +1176,10 @@
             font-weight: 600;
             white-space: nowrap;
             cursor: pointer;
-            transition: opacity 0.2s, box-shadow 0.2s;
-            box-shadow: 0 2px 8px rgba(13,110,253,0.3);
+            transition: opacity 0.2s, box-shadow 0.2s, background 0.3s;
+            box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.35);
         }
-        .btn-predict:hover { opacity: 0.9; box-shadow: 0 4px 14px rgba(13,110,253,0.4); }
+        .btn-predict:hover { opacity: 0.9; box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.5); }
         .btn-predict:active { opacity: 0.8; }
         .toolbar-actions {
             display: flex;
@@ -1352,13 +1371,13 @@
 
         /* ── Hero banner ── */
         .hero-banner {
-            background: linear-gradient(120deg, #0a1535 0%, #132050 45%, #0a1535 100%);
-            border: 1px solid rgba(79,142,247,0.28);
+            background: var(--hero-bg);
+            border: 1px solid rgba(var(--accent-rgb), 0.28);
             border-radius: 24px;
             padding: 0;
             margin-bottom: 16px;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
             animation: heroBannerIn 0.55s cubic-bezier(0.22,1,0.36,1) both;
             box-shadow: 0 20px 60px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.04) inset;
         }
@@ -1366,30 +1385,37 @@
             from { opacity: 0; transform: translateY(-16px) scale(0.98); }
             to   { opacity: 1; transform: translateY(0)     scale(1); }
         }
-        .hero-banner::before {
+        /* Orb glows contained in their own clipping layer so hero-banner can be overflow:visible */
+        .hero-orbs {
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .hero-orbs::before {
             content: "";
             position: absolute;
             width: 560px; height: 560px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(79,142,247,0.16) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(var(--accent-rgb), 0.16) 0%, transparent 70%);
             top: -200px; left: -140px;
-            pointer-events: none;
         }
-        .hero-banner::after {
+        .hero-orbs::after {
             content: "";
             position: absolute;
             width: 400px; height: 400px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(124,90,247,0.13) 0%, transparent 70%);
+            background: var(--accent-2);
             bottom: -120px; right: -80px;
-            pointer-events: none;
         }
         .hero-inner {
             position: relative;
-            z-index: 1;
             display: grid;
-            grid-template-columns: 1fr auto;
-            grid-template-rows: auto auto;
+            grid-template-columns: 1fr 2fr 1fr;
+            grid-template-rows: auto;
+            align-items: stretch;
         }
         .hero-left {
             padding: 34px 32px 24px;
@@ -1415,9 +1441,9 @@
             font-weight: 700;
             letter-spacing: 2.5px;
             text-transform: uppercase;
-            color: #4f8ef7;
-            background: rgba(79,142,247,0.1);
-            border: 1px solid rgba(79,142,247,0.25);
+            color: var(--accent);
+            background: rgba(var(--accent-rgb), 0.10);
+            border: 1px solid rgba(var(--accent-rgb), 0.25);
             border-radius: 999px;
             padding: 4px 12px;
             width: fit-content;
@@ -1426,28 +1452,28 @@
         .hero-eyebrow-dot {
             width: 6px; height: 6px;
             border-radius: 50%;
-            background: #4f8ef7;
-            box-shadow: 0 0 7px #4f8ef7;
+            background: var(--accent);
+            box-shadow: 0 0 7px var(--accent);
             animation: livePulse 1.4s ease-in-out infinite;
             flex-shrink: 0;
         }
         .hero-headline {
             font-size: 1.75rem;
             font-weight: 800;
-            color: #e7ecff;
+            color: var(--panel-text);
             line-height: 1.2;
             margin-bottom: 12px;
             letter-spacing: -0.4px;
         }
         .hero-headline .hl-grad {
-            background: linear-gradient(90deg, #4f8ef7 0%, #a78bfa 100%);
+            background: linear-gradient(90deg, var(--accent) 0%, rgba(var(--accent-rgb), 0.6) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
         .hero-sub {
             font-size: 0.84rem;
-            color: rgba(200,215,255,0.52);
+            color: rgba(var(--text-muted-rgb), 0.52);
             line-height: 1.65;
             max-width: 460px;
         }
@@ -1476,72 +1502,73 @@
             line-height: 1;
             margin-bottom: 3px;
         }
-        .hero-stat-val.green { color: #34d399; }
-        .hero-stat-val.blue  { color: #4f8ef7; }
-        .hero-stat-val.purple{ color: #a78bfa; }
+        .hero-stat-val.green  { color: #34d399; }
+        .hero-stat-val.blue   { color: var(--accent); }
+        .hero-stat-val.purple { color: #a78bfa; }
         .hero-stat-lbl {
             font-size: 0.6rem;
             font-weight: 600;
-            color: rgba(200,215,255,0.3);
+            color: rgba(var(--text-muted-rgb), 0.3);
             text-transform: uppercase;
             letter-spacing: 0.8px;
         }
         .hero-bottom {
-            grid-column: 1 / -1;
-            border-top: 1px solid rgba(255,255,255,0.06);
-            padding: 16px 32px 22px;
+            border-left: 1px solid rgba(255,255,255,0.06);
+            border-right: 1px solid rgba(255,255,255,0.06);
+            padding: 24px 24px 24px;
             display: flex;
             flex-direction: column;
             gap: 14px;
+            justify-content: center;
         }
         .hero-features {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: repeat(3, auto);
+            gap: 7px;
         }
         .hero-feat-pill {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 7px 16px;
-            border-radius: 999px;
-            border: 1px solid rgba(79,142,247,0.18);
-            background: rgba(79,142,247,0.07);
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(var(--accent-rgb), 0.18);
+            background: rgba(var(--accent-rgb), 0.07);
             font-size: 0.72rem;
             font-weight: 600;
-            color: rgba(200,215,255,0.68);
-            flex: 1 1 auto;
-            justify-content: center;
+            color: rgba(var(--text-muted-rgb), 0.68);
+            justify-content: flex-start;
             white-space: nowrap;
             transition: border-color 0.18s, background 0.18s, color 0.18s;
             position: relative;
             cursor: default;
         }
         .hero-feat-pill:hover {
-            border-color: rgba(79,142,247,0.45);
-            background: rgba(79,142,247,0.14);
-            color: #c8d7ff;
+            border-color: rgba(var(--accent-rgb), 0.45);
+            background: rgba(var(--accent-rgb), 0.14);
+            color: var(--panel-text);
         }
-        .hero-feat-pill i { color: #4f8ef7; font-size: 0.68rem; }
+        .hero-feat-pill i { color: var(--accent); font-size: 0.68rem; flex-shrink: 0; }
         .hero-pill-tip {
             display: none;
             position: absolute;
             bottom: calc(100% + 10px);
             left: 50%;
             transform: translateX(-50%);
-            background: #0d1b3e;
-            border: 1px solid rgba(79,142,247,0.3);
+            background: var(--hero-tip-bg);
+            border: 1px solid rgba(var(--accent-rgb), 0.3);
             border-radius: 10px;
             padding: 9px 14px;
             width: 200px;
             font-size: 0.7rem;
             font-weight: 400;
-            color: rgba(200,215,255,0.75);
+            color: rgba(var(--text-muted-rgb), 0.75);
             line-height: 1.5;
             text-align: center;
             white-space: normal;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            z-index: 50;
+            z-index: 9999;
             pointer-events: none;
         }
         .hero-pill-tip::after {
@@ -1550,7 +1577,7 @@
             top: 100%; left: 50%;
             transform: translateX(-50%);
             border: 6px solid transparent;
-            border-top-color: rgba(79,142,247,0.3);
+            border-top-color: rgba(var(--accent-rgb), 0.3);
         }
         .hero-pill-tip::before {
             content: "";
@@ -1558,10 +1585,15 @@
             top: 100%; left: 50%;
             transform: translateX(-50%) translateY(-1px);
             border: 6px solid transparent;
-            border-top-color: #0d1b3e;
+            border-top-color: var(--hero-tip-bg);
             z-index: 1;
         }
         .hero-feat-pill:hover .hero-pill-tip { display: block; }
+        .hero-try-now {
+            border-top: 1px solid rgba(var(--accent-rgb), 0.12);
+            padding-top: 12px;
+            margin-top: 4px;
+        }
         .hero-tickers-row {
             display: flex;
             align-items: center;
@@ -1573,7 +1605,7 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
-            color: rgba(200,215,255,0.28);
+            color: rgba(var(--text-muted-rgb), 0.32);
             white-space: nowrap;
         }
         .hero-tickers {
@@ -1585,9 +1617,9 @@
         .hero-ticker-btn {
             padding: 7px 16px;
             border-radius: 10px;
-            border: 1.5px solid rgba(79,142,247,0.22);
-            background: rgba(79,142,247,0.06);
-            color: #9ec3ff;
+            border: 1.5px solid rgba(var(--accent-rgb), 0.22);
+            background: rgba(var(--accent-rgb), 0.06);
+            color: var(--panel-text);
             font-size: 0.76rem;
             font-weight: 700;
             cursor: pointer;
@@ -1596,18 +1628,20 @@
             letter-spacing: 0.5px;
         }
         .hero-ticker-btn:hover {
-            border-color: #4f8ef7;
-            background: rgba(79,142,247,0.18);
-            color: #c8d7ff;
+            border-color: var(--accent);
+            background: rgba(var(--accent-rgb), 0.18);
+            color: var(--panel-text);
             transform: translateY(-2px);
-            box-shadow: 0 4px 14px rgba(79,142,247,0.3);
+            box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.3);
         }
         .hero-ticker-btn:active { transform: translateY(0); box-shadow: none; }
-        @media (max-width: 900px) {
+        @media (max-width: 1024px) {
+            .hero-inner { grid-template-columns: 1fr 2fr; }
             .hero-right { display: none; }
-            .hero-inner { grid-template-columns: 1fr; }
         }
         @media (max-width: 767px) {
+            .hero-inner    { grid-template-columns: 1fr; }
+            .hero-bottom   { border-left: none; border-right: none; border-top: 1px solid rgba(var(--accent-rgb), 0.12); }
             .hero-left     { padding: 22px 20px 16px; }
             .hero-headline { font-size: 1.25rem; }
             .hero-bottom   { padding: 14px 20px 18px; }
@@ -2010,12 +2044,13 @@
 
         <!-- Hero Banner — hidden after dismiss, shown only on first visit -->
         <div class="hero-banner" id="hero-banner">
+            <div class="hero-orbs" aria-hidden="true"></div>
             <button class="hero-dismiss" id="hero-dismiss" aria-label="Dismiss"><i class="fas fa-times"></i></button>
             <div class="hero-inner">
 
                 <!-- Left: headline + sub -->
                 <div class="hero-left">
-                    
+
                     <div class="hero-headline">
                         AI and ML powered insights<br>
                         <span class="hl-grad">Confident decisions..</span>
@@ -2026,25 +2061,7 @@
                     </div>
                 </div>
 
-                <!-- Right: stat cluster -->
-                <div class="hero-right">
-                    <div class="hero-stat-cluster">
-                        <div class="hero-stat">
-                            <div class="hero-stat-val green">4,426</div>
-                            <div class="hero-stat-lbl">Symbols Scanned</div>
-                        </div>
-                        <div class="hero-stat">
-                            <div class="hero-stat-val blue">3</div>
-                            <div class="hero-stat-lbl">ML Models Blended</div>
-                        </div>
-                        <div class="hero-stat">
-                            <div class="hero-stat-val purple">30-day</div>
-                            <div class="hero-stat-lbl">Price Forecast</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Bottom: pills + tickers — spans full width -->
+                <!-- Middle: pills + tickers -->
                 <div class="hero-bottom">
                     <div class="hero-features">
                         <span class="hero-feat-pill"><i class="fas fa-brain"></i> Ensemble ML Forecast
@@ -2066,14 +2083,33 @@
                             <span class="hero-pill-tip">Save any analysed ticker to your personal watchlist for one-click reload — available on Pro and Premium plans.</span>
                         </span>
                     </div>
-                    <div class="hero-tickers-row">
-                        <span class="hero-tickers-label">Try now &rarr;</span>
-                        <div class="hero-tickers">
-                            
-                            <button class="hero-ticker-btn" data-ticker="NVDA">NVDA</button>
-                            <button class="hero-ticker-btn" data-ticker="AMZN">AMZN</button>
-                            <button class="hero-ticker-btn" data-ticker="BP.L">BP.L</button>
-                            <button class="hero-ticker-btn" data-ticker="THYAO.IS">THYAO.IS</button>
+                    <div class="hero-try-now">
+                        <div class="hero-tickers-row">
+                            <span class="hero-tickers-label">Try now &rarr;</span>
+                            <div class="hero-tickers">
+                                <button class="hero-ticker-btn" data-ticker="NVDA">NVDA</button>
+                                <button class="hero-ticker-btn" data-ticker="AMZN">AMZN</button>
+                                <button class="hero-ticker-btn" data-ticker="BP.L">BP.L</button>
+                                <button class="hero-ticker-btn" data-ticker="THYAO.IS">THYAO.IS</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: stat cluster -->
+                <div class="hero-right">
+                    <div class="hero-stat-cluster">
+                        <div class="hero-stat">
+                            <div class="hero-stat-val green">4,426</div>
+                            <div class="hero-stat-lbl">Symbols Scanned</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-val blue">3</div>
+                            <div class="hero-stat-lbl">ML Models Blended</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-val purple">30-day</div>
+                            <div class="hero-stat-lbl">Price Forecast</div>
                         </div>
                     </div>
                 </div>
@@ -2904,7 +2940,7 @@
         <div class="container">
             <div class="d-flex align-items-center gap-3 flex-wrap">
                 <a href="https://www.gultechs.net/" target="_blank" rel="noopener noreferrer">
-                    <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Company logo" class="footer-logo" width="64" height="64" loading="lazy" decoding="async">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="Company logo" class="footer-logo" width="64" height="64" loading="lazy" decoding="async">
                 </a>
                 <div class="footer-text">
                     <strong>Stocker</strong>
@@ -2915,9 +2951,9 @@
                 </div>
                 <div class="theme-switcher">
                     <span class="theme-switcher-label"><i class="fas fa-palette me-1"></i>Theme</span>
-                    <div class="theme-dot theme-dot-blue active"     data-theme=""         title="Ocean Blue"></div>
-                    <div class="theme-dot theme-dot-crimson"         data-theme="crimson"  title="Dark Crimson"></div>
-                    <div class="theme-dot theme-dot-midnight"        data-theme="midnight" title="Midnight Black"></div>
+                    <div class="theme-dot theme-dot-ocean active"    data-theme=""        title="Ocean Blue"></div>
+                    <div class="theme-dot theme-dot-beige"           data-theme="beige"   title="Warm Beige"></div>
+                    <div class="theme-dot theme-dot-crimson"         data-theme="crimson" title="Dark Crimson"></div>
                 </div>
             </div>
         </div>
