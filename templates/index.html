@@ -1918,7 +1918,7 @@
             {% endif %}
             <div class="pricing-grid">
                 <!-- Free -->
-                <div class="pricing-card">
+                <div class="pricing-card {% if user_tier == 'free' %}featured{% endif %}">
                     <div>
                         <span class="tier-badge tier-badge-free">Free</span>
                         <div class="price mt-2"><sup>£</sup>0<sub>/mo</sub></div>
@@ -1932,7 +1932,7 @@
                     <button class="btn btn-outline-secondary btn-sm" disabled>Current plan</button>
                 </div>
                 <!-- Pro -->
-                <div class="pricing-card featured">
+                <div class="pricing-card {% if user_tier == 'pro' %}featured{% endif %}">
                     <div>
                         <span class="tier-badge tier-badge-pro">Pro</span>
                         <div class="price mt-2"><sup>£</sup>3.99<sub>/mo</sub></div>
@@ -1944,10 +1944,14 @@
                         <li>AI Trade Thesis</li>
                         <li>Peer comparison</li>
                     </ul>
+                    {% if user_tier == 'pro' %}
+                    <button class="btn btn-outline-secondary btn-sm" disabled>Current plan</button>
+                    {% else %}
                     <button class="btn btn-primary btn-sm upgrade-btn" data-tier="pro">Choose Pro</button>
+                    {% endif %}
                 </div>
                 <!-- Premium -->
-                <div class="pricing-card">
+                <div class="pricing-card {% if user_tier == 'premium' %}featured{% endif %}">
                     <div>
                         <span class="tier-badge tier-badge-premium">Premium</span>
                         <div class="price mt-2"><sup>£</sup>5.99<sub>/mo</sub></div>
@@ -1957,7 +1961,11 @@
                         <li>AI Portfolio Advisor</li>
                         <li>Earnings Summarizer</li>
                     </ul>
+                    {% if user_tier == 'premium' %}
+                    <button class="btn btn-outline-secondary btn-sm" disabled>Current plan</button>
+                    {% else %}
                     <button class="btn btn-warning btn-sm upgrade-btn" data-tier="premium">Choose Premium</button>
+                    {% endif %}
                 </div>
             </div>
             {% if not user %}
@@ -2118,7 +2126,7 @@
                             </button>
                         </div>
                         <!-- Pro -->
-                        <div class="pricing-card featured">
+                        <div class="pricing-card {% if user_tier == 'pro' %}featured{% endif %}">
                             <div>
                                 <span class="tier-badge tier-badge-pro">Pro</span>
                                 <div class="price mt-2"><sup>£</sup>3.99<sub>/mo</sub></div>
@@ -2130,10 +2138,14 @@
                                 <li>AI Trade Thesis</li>
                                 <li>Peer comparison</li>
                             </ul>
+                            {% if user_tier == 'pro' %}
+                            <button class="btn btn-outline-secondary btn-sm" disabled>Current plan</button>
+                            {% else %}
                             <button class="btn btn-primary btn-sm upgrade-btn" data-tier="pro">Choose Pro</button>
+                            {% endif %}
                         </div>
                         <!-- Premium -->
-                        <div class="pricing-card">
+                        <div class="pricing-card {% if user_tier == 'premium' %}featured{% endif %}">
                             <div>
                                 <span class="tier-badge tier-badge-premium">Premium</span>
                                 <div class="price mt-2"><sup>£</sup>5.99<sub>/mo</sub></div>
@@ -2143,7 +2155,11 @@
                                 <li>AI Portfolio Advisor</li>
                                 <li>Earnings Summarizer</li>
                             </ul>
+                            {% if user_tier == 'premium' %}
+                            <button class="btn btn-outline-secondary btn-sm" disabled>Current plan</button>
+                            {% else %}
                             <button class="btn btn-warning btn-sm upgrade-btn" data-tier="premium">Choose Premium</button>
+                            {% endif %}
                         </div>
                     </div>
                     {% if not user %}
@@ -3185,12 +3201,6 @@
                         Secure, research-backed, and designed for everyday investors.
                     </p>
                 </div>
-                <div class="theme-switcher">
-                    <span class="theme-switcher-label"><i class="fas fa-palette me-1"></i>Theme</span>
-                    <div class="theme-dot theme-dot-ocean active"    data-theme=""        title="Ocean Blue"></div>
-                    <div class="theme-dot theme-dot-beige"           data-theme="beige"   title="Warm Beige"></div>
-                    <div class="theme-dot theme-dot-crimson"         data-theme="crimson" title="Dark Crimson"></div>
-                </div>
             </div>
         </div>
     </footer>
@@ -3299,7 +3309,7 @@
                 applyTheme(saved);
             } catch(_) { applyTheme(''); }
 
-            $(document).on('click', '.theme-dot', function() {
+            $(document).on('click', '#profile-pane-profile .theme-dot', function() {
                 applyTheme($(this).data('theme') || '');
             });
 
@@ -3367,7 +3377,7 @@
                 $('#profile-theme-name').text(themeNames[theme] || 'Ocean Blue');
             }
             // Extend the theme-dot handler to also save server-side and update label
-            $(document).on('click', '.theme-dot', function() {
+            $(document).on('click', '#profile-pane-profile .theme-dot', function() {
                 const theme = $(this).data('theme') || '';
                 updateProfileThemeName(theme);
                 if (isLoggedIn) saveProfileData({ theme });
@@ -3455,8 +3465,9 @@
                     const serverTheme = d.theme || '';
                     updateProfileThemeName(serverTheme);
                     try {
-                        if (!localStorage.getItem(THEME_KEY) && serverTheme) {
+                        if (serverTheme) {
                             applyTheme(serverTheme);
+                            localStorage.setItem(THEME_KEY, serverTheme);
                         }
                     } catch(_) {}
                 }).catch(() => {});
