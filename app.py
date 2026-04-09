@@ -48,6 +48,14 @@ app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
 
+@app.template_filter("strftime")
+def _jinja_strftime(ts, fmt="%d %b %Y"):
+    import datetime
+    try:
+        return datetime.datetime.utcfromtimestamp(int(ts)).strftime(fmt)
+    except Exception:
+        return ""
+
 # Cache static assets aggressively (images, fonts, icons) — 1 year
 # Dynamic HTML responses are not affected (only /static/* hits this)
 @app.after_request
@@ -270,6 +278,188 @@ def _send_welcome_email(to_email: str) -> None:
 
     threading.Thread(target=_send, daemon=True).start()
 
+
+def _send_subscription_email(to_email: str, tier: str) -> None:
+    """Send a Pro or Premium activation email in a background thread; never raises."""
+    if not SMTP_HOST or not SMTP_PASS:
+        logger.warning("SMTP not configured — subscription email skipped for %s", to_email)
+        return
+    if tier not in ("pro", "premium"):
+        return
+
+    def _send():
+        logo_url = f"{SITE_BASE_URL}/static/stocker_logo.png"
+        site_url = SITE_BASE_URL
+
+        if tier == "pro":
+            subject     = "You're now a Stocker Pro member 🚀"
+            headline    = "Welcome to Stocker Pro!"
+            subheadline = "Your subscription is active. Here's what you've unlocked:"
+            badge_style = "background:#00c8e8;color:#051520;"
+            badge_label = "PRO · £3.99/mo"
+            features    = [
+                ("🤖", "AI Trade Thesis",
+                 "For every stock you analyse, get a structured AI-written bull vs. bear thesis "
+                 "covering catalysts, risks, valuation, and a directional verdict."),
+                ("📊", "Peer Comparison",
+                 "Compare any stock side-by-side against its sector peers on fundamentals, "
+                 "valuation multiples, and growth metrics."),
+                ("⭐", "Watchlist",
+                 "Save unlimited tickers to your personal watchlist and monitor them from one place."),
+                ("♾️", "Unlimited analyses",
+                 "Run as many stock analyses as you need — no daily cap, ever."),
+            ]
+            upsell_html = f"""
+          <table cellpadding="0" cellspacing="0" width="100%"
+                 style="background:#0a2535;border:1px solid rgba(255,193,7,0.35);border-radius:12px;margin-top:24px;">
+            <tr><td style="padding:20px 24px;">
+              <p style="margin:0 0 6px;color:#ffc107;font-size:13px;font-weight:700;">⬆ Want even more?</p>
+              <p style="margin:0 0 10px;color:rgba(200,238,255,0.7);font-size:14px;line-height:1.6;">
+                Upgrade to <strong style="color:#ffc107;">Premium (£5.99/mo)</strong> for two additional AI-powered tools:
+              </p>
+              <table cellpadding="0" cellspacing="0">
+                <tr><td style="padding:4px 0;color:rgba(200,238,255,0.7);font-size:14px;">
+                  💼 &nbsp;<strong style="color:#c8eeff;">AI Portfolio Advisor</strong>
+                  — personalised allocation advice for every stock you analyse
+                </td></tr>
+                <tr><td style="padding:4px 0;color:rgba(200,238,255,0.7);font-size:14px;">
+                  📅 &nbsp;<strong style="color:#c8eeff;">Earnings Summarizer</strong>
+                  — instant AI summaries of the latest earnings report, guidance &amp; surprises
+                </td></tr>
+              </table>
+            </td></tr>
+          </table>"""
+        else:  # premium
+            subject     = "You're now a Stocker Premium member 👑"
+            headline    = "Welcome to Stocker Premium!"
+            subheadline = "Your subscription is active. You now have access to every feature on the platform:"
+            badge_style = "background:#ffc107;color:#051520;"
+            badge_label = "PREMIUM · £5.99/mo"
+            features    = [
+                ("♾️", "Unlimited analyses",
+                 "Run as many stock analyses as you need — no daily cap."),
+                ("🤖", "AI Trade Thesis",
+                 "Structured bull vs. bear thesis written by AI for every stock you analyse."),
+                ("📊", "Peer Comparison",
+                 "Side-by-side fundamentals and valuation metrics vs. sector peers."),
+                ("⭐", "Watchlist",
+                 "Save and monitor unlimited tickers from one place."),
+                ("💼", "AI Portfolio Advisor",
+                 "Personalised portfolio allocation advice based on the analysed stock's risk, "
+                 "sector, and valuation — tailored to your goals."),
+                ("📅", "Earnings Summarizer",
+                 "Instant AI summaries of the latest earnings report: beats/misses, "
+                 "guidance changes, and key management commentary."),
+            ]
+            upsell_html = ""
+
+        features_html = "".join(f"""
+              <tr>
+                <td style="padding:10px 0;border-bottom:1px solid rgba(0,200,232,0.1);">
+                  <p style="margin:0 0 3px;color:#c8eeff;font-size:14px;font-weight:700;">
+                    {icon} &nbsp;{name}
+                  </p>
+                  <p style="margin:0;color:rgba(200,238,255,0.6);font-size:13px;line-height:1.6;">
+                    {desc}
+                  </p>
+                </td>
+              </tr>""" for icon, name, desc in features)
+
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{subject}</title>
+</head>
+<body style="margin:0;padding:0;background:#051520;font-family:'Helvetica Neue',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#051520;padding:40px 0;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+      <tr>
+        <td align="center" style="background:#0a2535;border:1px solid rgba(0,200,232,0.25);border-bottom:none;border-radius:16px 16px 0 0;padding:32px 40px 24px;">
+          <img src="{logo_url}" alt="Stocker" width="180"
+               style="display:block;max-width:180px;height:auto;margin:0 auto 20px;"/>
+          <span style="{badge_style}font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;letter-spacing:0.5px;">
+            {badge_label}
+          </span>
+          <h1 style="margin:14px 0 6px;color:#c8eeff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">
+            {headline}
+          </h1>
+          <p style="margin:0;color:rgba(200,238,255,0.55);font-size:14px;">
+            {subheadline}
+          </p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="background:#0d3048;border-left:1px solid rgba(0,200,232,0.25);border-right:1px solid rgba(0,200,232,0.25);padding:32px 40px;">
+          <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:28px;">
+            {features_html}
+          </table>
+          {upsell_html}
+          <table cellpadding="0" cellspacing="0" width="100%" style="margin-top:28px;margin-bottom:28px;">
+            <tr><td align="center">
+              <a href="{site_url}"
+                 style="display:inline-block;background:#00c8e8;color:#051520;text-decoration:none;
+                        font-size:15px;font-weight:700;padding:14px 36px;border-radius:10px;">
+                Start Analysing Stocks →
+              </a>
+            </td></tr>
+          </table>
+          <p style="margin:0;color:rgba(200,238,255,0.35);font-size:13px;line-height:1.6;">
+            Questions? Reply to this email or visit
+            <a href="{site_url}" style="color:#00c8e8;text-decoration:none;">{site_url}</a>
+          </p>
+        </td>
+      </tr>
+
+      <tr>
+        <td align="center"
+            style="background:#071a28;border:1px solid rgba(0,200,232,0.25);border-top:none;border-radius:0 0 16px 16px;padding:20px 40px;">
+          <p style="margin:0;color:rgba(200,238,255,0.25);font-size:12px;">
+            © 2025 Stocker · Gultechs · info@gultechs.net
+          </p>
+          <p style="margin:6px 0 0;color:rgba(200,238,255,0.2);font-size:11px;">
+            You received this because you subscribed at {site_url}
+          </p>
+        </td>
+      </tr>
+
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>"""
+
+        plain = (
+            f"{headline}\n\n"
+            f"{subheadline}\n\n"
+            + "\n".join(f"• {name}: {desc}" for _, name, desc in features)
+            + f"\n\nVisit {site_url} to start.\n\nQuestions? Email info@gultechs.net\n"
+        )
+
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"]    = f"Stocker <{SMTP_USER}>"
+        msg["To"]      = to_email
+        msg.attach(MIMEText(plain, "plain"))
+        msg.attach(MIMEText(html, "html"))
+
+        try:
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+                server.ehlo()
+                server.starttls()
+                server.login(SMTP_USER, SMTP_PASS)
+                server.sendmail(SMTP_USER, to_email, msg.as_string())
+            logger.info("Subscription email (%s) sent to %s", tier, to_email)
+        except Exception as exc:
+            logger.warning("Subscription email failed for %s: %s", to_email, exc)
+
+    threading.Thread(target=_send, daemon=True).start()
+
+
 # Subscription tiers
 TIER_RANK = {"free": 0, "pro": 1, "premium": 2, "admin": 99}
 FREE_DAILY_LIMIT = 3
@@ -289,7 +479,8 @@ if google_client_id and google_client_secret:
             "openid",
             "https://www.googleapis.com/auth/userinfo.email",
             "https://www.googleapis.com/auth/userinfo.profile"
-        ]
+        ],
+        reprompt_select_account=True,
     )
     app.register_blueprint(google_bp, url_prefix="/login")
 else:
@@ -2979,6 +3170,18 @@ def home():
         if sym not in db_keys:
             autocomplete_symbols.append({"s": sym, "n": sym, "m": "US"})
 
+    anon_used = session.get("anon_analyses", 0) if not user_email else 0
+
+    # Subscription meta for profile modal
+    sub_cancel_at_period_end = False
+    sub_period_end_ts = 0
+    if user_email and user_tier in ("pro", "premium"):
+        users_tmp = _load_users()
+        info_tmp = users_tmp.get(user_email, {})
+        if isinstance(info_tmp, dict):
+            sub_cancel_at_period_end = bool(info_tmp.get("cancel_at_period_end", False))
+            sub_period_end_ts = int(info_tmp.get("current_period_end", 0))
+
     return render_template(
         'index.html',
         stocks=stocks,
@@ -2991,9 +3194,13 @@ def home():
         subscribed=subscribed,
         stripe_enabled=bool(stripe.api_key),
         free_daily_limit=FREE_DAILY_LIMIT,
+        anon_used=anon_used,
+        anon_daily_limit=ANON_DAILY_LIMIT,
         lse_data=lse_data,
         bist_data=bist_data,
         autocomplete_symbols=autocomplete_symbols,
+        sub_cancel_at_period_end=sub_cancel_at_period_end,
+        sub_period_end_ts=sub_period_end_ts,
     )
 
 @app.route('/api/remarkables', methods=['GET'])
@@ -3709,7 +3916,7 @@ def predict():
         resp["_meta"] = {
             "tier": tier,
             "used_today": used_now,
-            "daily_limit": FREE_DAILY_LIMIT if tier == "free" else -1,
+            "daily_limit": (ANON_DAILY_LIMIT if not email else FREE_DAILY_LIMIT) if tier == "free" else -1,
         }
         return jsonify(resp)
     return jsonify(resp), status
@@ -4005,6 +4212,58 @@ def api_me():
         "tier": tier,
         "used_today": used_today,
         "daily_limit": FREE_DAILY_LIMIT if tier == "free" else -1,
+        "nickname": info.get("nickname", "") if isinstance(info, dict) else "",
+        "avatar": info.get("avatar", "fa-user") if isinstance(info, dict) else "fa-user",
+        "theme": info.get("theme", "") if isinstance(info, dict) else "",
+    })
+
+
+_ALLOWED_AVATARS = {"fa-user", "fa-user-astronaut", "fa-user-ninja", "fa-user-secret", "fa-user-tie"}
+_ALLOWED_THEMES  = {"", "beige", "crimson"}
+
+
+@app.route("/api/profile", methods=["POST"])
+def api_profile():
+    email = _get_current_user_email()
+    if not email:
+        return jsonify({"error": "Not logged in"}), 401
+    data = request.get_json(silent=True) or {}
+    users = _load_users()
+    info = users.get(email, {})
+    if not isinstance(info, dict):
+        info = {"password_hash": info, "tier": "free"}
+    if "nickname" in data:
+        info["nickname"] = str(data["nickname"])[:30].strip()
+    if "avatar" in data and data["avatar"] in _ALLOWED_AVATARS:
+        info["avatar"] = data["avatar"]
+    if "theme" in data and data["theme"] in _ALLOWED_THEMES:
+        info["theme"] = data["theme"]
+    users[email] = info
+    _save_users(users)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/delete-account", methods=["POST"])
+def api_delete_account():
+    email = _get_current_user_email()
+    if not email:
+        return jsonify({"error": "Not logged in"}), 401
+    users = _load_users()
+    users.pop(email, None)
+    _save_users(users)
+    session.clear()
+    return jsonify({"ok": True})
+
+
+@app.route("/api/anon-usage")
+def api_anon_usage():
+    if _get_current_user_email():
+        return jsonify({"logged_in": True})
+    used = session.get("anon_analyses", 0)
+    return jsonify({
+        "logged_in": False,
+        "used_today": used,
+        "daily_limit": ANON_DAILY_LIMIT,
     })
 
 @app.route("/create-checkout-session", methods=["POST"])
@@ -4019,9 +4278,40 @@ def create_checkout_session():
     price_id = STRIPE_PREMIUM_PRICE_ID if tier == "premium" else STRIPE_PRO_PRICE_ID
     if not price_id:
         return jsonify({"error": "Price not configured"}), 503
+
+    users = _load_users()
+    info = users.get(email, {})
+    if not isinstance(info, dict):
+        info = {}
+
+    existing_sub_id = info.get("stripe_subscription_id")
+    existing_customer_id = info.get("stripe_customer_id")
+
+    # ── Upgrade / downgrade: modify existing subscription in-place ──────────
+    if existing_sub_id and info.get("subscription_status") in ("active", "trialing"):
+        try:
+            sub = stripe.Subscription.retrieve(existing_sub_id)
+            item_id = sub["items"]["data"][0]["id"]
+            # Replace the price immediately, prorating the difference
+            stripe.Subscription.modify(
+                existing_sub_id,
+                cancel_at_period_end=False,
+                items=[{"id": item_id, "price": price_id}],
+                proration_behavior="always_invoice",
+            )
+            # Update local record immediately (webhook will also confirm)
+            info["tier"] = tier
+            info["cancel_at_period_end"] = False
+            users[email] = info
+            _save_users(users)
+            return jsonify({"upgraded": True})
+        except Exception as e:
+            logger.error(f"Stripe subscription modify error: {e}")
+            return jsonify({"error": "Failed to change plan", "detail": str(e)}), 500
+
+    # ── New subscription: create Stripe Checkout session ────────────────────
     try:
-        checkout = stripe.checkout.Session.create(
-            customer_email=email,
+        session_kwargs = dict(
             payment_method_types=["card"],
             line_items=[{"price": price_id, "quantity": 1}],
             mode="subscription",
@@ -4029,10 +4319,16 @@ def create_checkout_session():
             cancel_url=url_for("home", _external=True),
             metadata={"email": email},
         )
+        # Reuse existing Stripe customer so webhook can match by customer_id
+        if existing_customer_id:
+            session_kwargs["customer"] = existing_customer_id
+        else:
+            session_kwargs["customer_email"] = email
+        checkout = stripe.checkout.Session.create(**session_kwargs)
         return jsonify({"url": checkout.url})
     except Exception as e:
         logger.error(f"Stripe checkout error: {e}")
-        return jsonify({"error": "Failed to create checkout session"}), 500
+        return jsonify({"error": "Failed to create checkout session", "detail": str(e)}), 500
 
 @app.route("/webhook/stripe", methods=["POST"])
 def stripe_webhook():
@@ -4046,48 +4342,122 @@ def stripe_webhook():
         return "", 400
 
     event_type = event["type"]
-    sub = event["data"]["object"]
-    customer_id = sub.get("customer")
+    obj = event["data"]["object"]
     users = _load_users()
 
-    def _apply_sub(info, sub_obj):
+    def _resolve_email_by_customer(cid):
+        """Return (email, info_dict) for a Stripe customer ID, or (None, None)."""
+        for em, inf in users.items():
+            if isinstance(inf, dict) and inf.get("stripe_customer_id") == cid:
+                return em, inf
+        # Fallback: ask Stripe for the email on the customer object
+        try:
+            cust = stripe.Customer.retrieve(cid)
+            em = (cust.get("email") or "").lower()
+        except Exception:
+            em = ""
+        if em and em in users:
+            inf = users[em]
+            if not isinstance(inf, dict):
+                inf = {"password_hash": inf, "tier": "free"}
+            return em, inf
+        return None, None
+
+    def _apply_sub(info, sub_obj, cid):
         items = (sub_obj.get("items") or {}).get("data") or [{}]
         price_id = (items[0].get("price") or {}).get("id", "")
         info["tier"] = "premium" if price_id == STRIPE_PREMIUM_PRICE_ID else "pro"
         info["subscription_status"] = sub_obj.get("status", "active")
         info["current_period_end"] = sub_obj.get("current_period_end", 0)
+        info["cancel_at_period_end"] = bool(sub_obj.get("cancel_at_period_end", False))
         info["stripe_subscription_id"] = sub_obj.get("id")
-        info["stripe_customer_id"] = customer_id
+        info["stripe_customer_id"] = cid
 
-    matched = False
-    for email, info in users.items():
-        if isinstance(info, dict) and info.get("stripe_customer_id") == customer_id:
-            if event_type in ("customer.subscription.created", "customer.subscription.updated"):
-                _apply_sub(info, sub)
-            elif event_type == "customer.subscription.deleted":
-                info["tier"] = "free"
-                info["subscription_status"] = "canceled"
-            elif event_type == "invoice.payment_failed":
-                info["subscription_status"] = "past_due"
-            matched = True
-            break
+    if event_type == "checkout.session.completed":
+        # Most reliable place to anchor customer_id → email for new subscribers
+        session_email = (obj.get("customer_details", {}).get("email") or
+                         obj.get("customer_email") or "").lower()
+        cid = obj.get("customer")
+        if session_email and cid and session_email in users:
+            inf = users[session_email]
+            if not isinstance(inf, dict):
+                inf = {"password_hash": inf, "tier": "free"}
+            inf["stripe_customer_id"] = cid
+            users[session_email] = inf
+            _save_users(users)
+        return "", 200
 
-    if not matched and event_type in ("customer.subscription.created", "customer.subscription.updated"):
-        # First-time subscriber: look up email from Stripe customer object
-        try:
-            customer = stripe.Customer.retrieve(customer_id)
-            customer_email = (customer.get("email") or "").lower()
-        except Exception:
-            customer_email = ""
-        if customer_email and customer_email in users:
-            info = users[customer_email]
-            if not isinstance(info, dict):
-                info = {"password_hash": info, "tier": "free"}
-            _apply_sub(info, sub)
-            users[customer_email] = info
+    customer_id = obj.get("customer")
 
-    _save_users(users)
+    if event_type in ("customer.subscription.created", "customer.subscription.updated"):
+        email, info = _resolve_email_by_customer(customer_id)
+        if email and info is not None:
+            old_tier = info.get("tier", "free")
+            _apply_sub(info, obj, customer_id)
+            new_tier = info["tier"]
+            users[email] = info
+            _save_users(users)
+            # Send activation email when tier genuinely moves up to pro/premium
+            if new_tier != old_tier and new_tier in ("pro", "premium"):
+                _send_subscription_email(email, new_tier)
+
+    elif event_type == "customer.subscription.deleted":
+        email, info = _resolve_email_by_customer(customer_id)
+        if email and info is not None:
+            info["tier"] = "free"
+            info["subscription_status"] = "canceled"
+            info["cancel_at_period_end"] = False
+            users[email] = info
+            _save_users(users)
+
+    elif event_type == "invoice.payment_failed":
+        email, info = _resolve_email_by_customer(customer_id)
+        if email and info is not None:
+            info["subscription_status"] = "past_due"
+            users[email] = info
+            _save_users(users)
+
+    elif event_type == "invoice.payment_succeeded":
+        # Renewal payment — re-sync subscription data to keep period_end fresh
+        sub_id = obj.get("subscription")
+        if sub_id:
+            email, info = _resolve_email_by_customer(customer_id)
+            if email and info is not None:
+                try:
+                    sub_obj = stripe.Subscription.retrieve(sub_id)
+                    _apply_sub(info, sub_obj, customer_id)
+                    users[email] = info
+                    _save_users(users)
+                except Exception as e:
+                    logger.warning(f"Could not refresh subscription on payment_succeeded: {e}")
+
     return "", 200
+
+@app.route("/api/cancel-subscription", methods=["POST"])
+def api_cancel_subscription():
+    """Cancel the recurring renewal at end of current billing period (no refund)."""
+    if not stripe.api_key:
+        return jsonify({"error": "Payments not configured."}), 503
+    email = _get_current_user_email()
+    if not email:
+        return jsonify({"error": "Not logged in."}), 401
+    users = _load_users()
+    info = users.get(email, {})
+    if not isinstance(info, dict):
+        return jsonify({"error": "Account not found."}), 404
+    sub_id = info.get("stripe_subscription_id")
+    if not sub_id:
+        return jsonify({"error": "No active subscription found."}), 400
+    try:
+        sub = stripe.Subscription.modify(sub_id, cancel_at_period_end=True)
+        info["cancel_at_period_end"] = True
+        info["current_period_end"] = sub.get("current_period_end", info.get("current_period_end", 0))
+        users[email] = info
+        _save_users(users)
+        return jsonify({"ok": True, "current_period_end": info["current_period_end"]})
+    except Exception as e:
+        logger.error(f"Cancel subscription error: {e}")
+        return jsonify({"error": "Failed to cancel subscription.", "detail": str(e)}), 500
 
 @app.route("/billing-portal")
 def billing_portal():
