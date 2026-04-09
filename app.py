@@ -75,8 +75,8 @@ _USER_AGENT = "Mozilla/5.0"
 
 # Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
-STRIPE_PRO_PRICE_ID = os.getenv("STRIPE_PRO_PRICE_ID", "")
+STRIPE_WEBHOOK_SECRET   = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_PRO_PRICE_ID     = os.getenv("STRIPE_PRO_PRICE_ID", "")
 STRIPE_PREMIUM_PRICE_ID = os.getenv("STRIPE_PREMIUM_PRICE_ID", "")
 
 # Email (SMTP)
@@ -85,6 +85,76 @@ SMTP_PORT     = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER     = os.getenv("SMTP_USER", "info@gultechs.net")
 SMTP_PASS     = os.getenv("SMTP_PASS", "")
 SITE_BASE_URL = os.getenv("SITE_BASE_URL", "https://stocker.gultechs.net")
+
+def _as_dict(obj):
+    """Best-effort conversion of Stripe (or similar) objects to plain dicts."""
+    if obj is None:
+        return {}
+    if isinstance(obj, dict):
+        return obj
+    if hasattr(obj, "to_dict"):
+        try:
+            return obj.to_dict()
+        except Exception:
+            pass
+    if hasattr(obj, "to_dict_recursive"):
+        try:
+            return obj.to_dict_recursive()
+        except Exception:
+            pass
+    try:
+        return dict(obj)
+    except Exception:
+        return {}
+
+
+def _tier_from_price_id(price_id: str) -> str:
+    """Map a Stripe price_id to our tier, with fallbacks."""
+    def _price_amount(pid: str):
+        try:
+            p = _as_dict(stripe.Price.retrieve(pid))
+            amt = p.get("unit_amount_decimal") or p.get("unit_amount") or 0
+            return float(amt) / 100.0 if isinstance(amt, (int, float, str)) else 0
+        except Exception:
+            return 0
+
+    if price_id:
+        if price_id == STRIPE_PRO_PRICE_ID:
+            return "pro"
+        if price_id == STRIPE_PREMIUM_PRICE_ID:
+            return "premium"
+
+    # Fallback: inspect price metadata / nickname / product name
+    try:
+        price_obj = _as_dict(stripe.Price.retrieve(price_id))
+        nick = (price_obj.get("nickname") or "").lower()
+        meta = _as_dict(price_obj.get("metadata"))
+        tier_meta = (meta.get("tier") or meta.get("plan") or "").lower()
+        product_id = price_obj.get("product")
+        product_name = ""
+        if product_id:
+            prod = _as_dict(stripe.Product.retrieve(product_id))
+            product_name = (prod.get("name") or "").lower()
+        for val in (tier_meta, nick, product_name):
+            if "premium" in val:
+                return "premium"
+            if "pro" in val:
+                return "pro"
+        # Heuristic: compare amounts vs known pro price (if set)
+        pro_amt = _price_amount(STRIPE_PRO_PRICE_ID) if STRIPE_PRO_PRICE_ID else 0
+        this_amt = price_obj.get("unit_amount_decimal") or price_obj.get("unit_amount") or 0
+        try:
+            this_amt = float(this_amt)
+        except Exception:
+            this_amt = 0
+        if pro_amt and this_amt > pro_amt:
+            return "premium"
+        if pro_amt and this_amt == pro_amt:
+            return "pro"
+    except Exception:
+        pass
+    # Default: treat as pro to avoid over-granting premium
+    return "pro"
 
 def _send_welcome_email(to_email: str) -> None:
     """Send a welcome email in a background thread; never raises."""
@@ -458,6 +528,107 @@ def _send_subscription_email(to_email: str, tier: str) -> None:
             logger.warning("Subscription email failed for %s: %s", to_email, exc)
 
     threading.Thread(target=_send, daemon=True).start()
+
+
+def _apply_subscription_to_user(info: dict, sub_obj: dict, customer_id: str):
+    """Persist subscription details into the local user record."""
+    sub_obj = _as_dict(sub_obj)
+    items = (sub_obj.get("items") or {}).get("data") or [{}]
+    first_item = _as_dict(items[0]) if items else {}
+    price = _as_dict(first_item.get("price"))
+    price_id = price.get("id", "")
+    resolved_tier = _tier_from_price_id(price_id)
+    info["tier"] = resolved_tier
+    info["subscription_status"] = sub_obj.get("status", "active")
+    info["current_period_end"] = sub_obj.get("current_period_end", 0)
+    info["cancel_at_period_end"] = bool(sub_obj.get("cancel_at_period_end", False))
+    info["stripe_subscription_id"] = sub_obj.get("id")
+    info["stripe_customer_id"] = customer_id
+
+
+def _sync_checkout_session_to_user(checkout_session_id: str) -> bool:
+    """Idempotently sync a successful Checkout session to the local user file.
+
+    This provides a reliable post-redirect fallback when webhooks are delayed or
+    misconfigured. Returns True if a paid subscription was applied.
+    """
+    if not stripe.api_key or not checkout_session_id:
+        return False
+    try:
+        cs = stripe.checkout.Session.retrieve(
+            checkout_session_id,
+            expand=["subscription", "customer"],
+        )
+    except Exception as exc:
+        logger.warning("Could not retrieve checkout session %s: %s", checkout_session_id, exc)
+        return False
+
+    cs_dict = _as_dict(cs)
+    if not isinstance(cs_dict, dict) or not cs_dict:
+        logger.warning("Checkout session %s could not be converted to dict; got %s", checkout_session_id, type(cs_dict))
+        return False
+
+    payment_status = cs_dict.get("payment_status")
+
+    # Subscription object (expanded) may already carry a definitive status
+    sub_obj = cs_dict.get("subscription")
+    if isinstance(sub_obj, str):
+        try:
+            sub_obj = _as_dict(stripe.Subscription.retrieve(sub_obj))
+        except Exception as exc:
+            logger.warning("Could not retrieve subscription %s during session sync: %s", sub_obj, exc)
+            sub_obj = None
+    else:
+        sub_obj = _as_dict(sub_obj)
+
+    sub_status = sub_obj.get("status") if isinstance(sub_obj, dict) else None
+    price_id = ""
+    try:
+        items = (sub_obj.get("items") or {}).get("data") or []
+        if items:
+            first_item = _as_dict(items[0])
+            price = _as_dict(first_item.get("price"))
+            price_id = price.get("id", "")
+    except Exception:
+        price_id = ""
+
+    if payment_status not in ("paid", "no_payment_required") and sub_status not in ("active", "trialing"):
+        return False
+
+    customer_dict = _as_dict(cs_dict.get("customer"))
+    email = (
+        cs_dict.get("customer_details", {}).get("email")
+        or cs_dict.get("customer_email")
+        or customer_dict.get("email") if isinstance(customer_dict, dict) else None
+        or (cs_dict.get("metadata") or {}).get("email")
+        or session.get("user_email")
+    )
+    if not email:
+        return False
+    email = email.lower()
+
+    users = _load_users()
+    info = users.get(email, {"tier": "free"})
+    if not isinstance(info, dict):
+        info = {"password_hash": info, "tier": "free"}
+    old_tier = info.get("tier", "free")
+
+    customer = cs_dict.get("customer")
+    customer = _as_dict(customer)
+    customer_id = customer.get("id") if isinstance(customer, dict) else customer
+    # sub_obj may already be dict from above; ensure dict before applying
+    if not isinstance(sub_obj, dict):
+        return False
+
+    _apply_subscription_to_user(info, sub_obj, customer_id)
+    users[email] = info
+    _save_users(users)
+    session["user_email"] = email
+
+    if info["tier"] in ("pro", "premium") and info["tier"] != old_tier:
+        _send_subscription_email(email, info["tier"])
+
+    return True
 
 
 # Subscription tiers
@@ -3172,6 +3343,16 @@ def home():
 
     anon_used = session.get("anon_analyses", 0) if not user_email else 0
 
+    # If returning from Stripe Checkout and webhooks were delayed, reconcile now
+    session_id = request.args.get("session_id")
+    synced = False
+    if session_id:
+        try:
+            synced = _sync_checkout_session_to_user(session_id)
+        except Exception as exc:
+            logger.error("Session sync failed for %s: %s", session_id, exc, exc_info=True)
+            synced = False
+
     # Subscription meta for profile modal
     sub_cancel_at_period_end = False
     sub_period_end_ts = 0
@@ -3191,7 +3372,7 @@ def home():
         undervalued_stocks=undervalued_stocks,
         user_tier=user_tier,
         user_email=user_email or "",
-        subscribed=subscribed,
+        subscribed=subscribed or synced,
         stripe_enabled=bool(stripe.api_key),
         free_daily_limit=FREE_DAILY_LIMIT,
         anon_used=anon_used,
@@ -4293,17 +4474,18 @@ def create_checkout_session():
             sub = stripe.Subscription.retrieve(existing_sub_id)
             item_id = sub["items"]["data"][0]["id"]
             # Replace the price immediately, prorating the difference
-            stripe.Subscription.modify(
+            updated_sub = stripe.Subscription.modify(
                 existing_sub_id,
                 cancel_at_period_end=False,
                 items=[{"id": item_id, "price": price_id}],
                 proration_behavior="always_invoice",
             )
             # Update local record immediately (webhook will also confirm)
-            info["tier"] = tier
-            info["cancel_at_period_end"] = False
+            _apply_subscription_to_user(info, updated_sub, existing_customer_id)
             users[email] = info
             _save_users(users)
+            if tier in ("pro", "premium"):
+                _send_subscription_email(email, tier)
             return jsonify({"upgraded": True})
         except Exception as e:
             logger.error(f"Stripe subscription modify error: {e}")
@@ -4311,12 +4493,14 @@ def create_checkout_session():
 
     # ── New subscription: create Stripe Checkout session ────────────────────
     try:
+        success_base = url_for("home", _external=True)
         session_kwargs = dict(
             payment_method_types=["card"],
             line_items=[{"price": price_id, "quantity": 1}],
             mode="subscription",
-            success_url=url_for("home", _external=True) + "?subscribed=1",
-            cancel_url=url_for("home", _external=True),
+            # Include session id so we can sync locally even if webhooks fail
+            success_url=f"{success_base}?session_id={{CHECKOUT_SESSION_ID}}&subscribed=1",
+            cancel_url=success_base,
             metadata={"email": email},
         )
         # Reuse existing Stripe customer so webhook can match by customer_id
@@ -4333,7 +4517,11 @@ def create_checkout_session():
 @app.route("/webhook/stripe", methods=["POST"])
 def stripe_webhook():
     if not STRIPE_WEBHOOK_SECRET:
+        logger.error("Stripe webhook secret not configured; incoming webhook ignored.")
         return "", 400
+    if not stripe.api_key:
+        logger.error("Stripe secret key not configured; cannot process webhook events.")
+        return "", 503
     sig = request.headers.get("Stripe-Signature", "")
     try:
         event = stripe.Webhook.construct_event(request.data, sig, STRIPE_WEBHOOK_SECRET)
@@ -4343,6 +4531,7 @@ def stripe_webhook():
 
     event_type = event["type"]
     obj = event["data"]["object"]
+    obj_dict = _as_dict(obj)
     users = _load_users()
 
     def _resolve_email_by_customer(cid):
@@ -4363,75 +4552,86 @@ def stripe_webhook():
             return em, inf
         return None, None
 
-    def _apply_sub(info, sub_obj, cid):
-        items = (sub_obj.get("items") or {}).get("data") or [{}]
-        price_id = (items[0].get("price") or {}).get("id", "")
-        info["tier"] = "premium" if price_id == STRIPE_PREMIUM_PRICE_ID else "pro"
-        info["subscription_status"] = sub_obj.get("status", "active")
-        info["current_period_end"] = sub_obj.get("current_period_end", 0)
-        info["cancel_at_period_end"] = bool(sub_obj.get("cancel_at_period_end", False))
-        info["stripe_subscription_id"] = sub_obj.get("id")
-        info["stripe_customer_id"] = cid
+    try:
+        if event_type == "checkout.session.completed":
+            # Most reliable place to anchor customer_id → email for new subscribers
+            session_email = (obj_dict.get("customer_details", {}).get("email") or
+                             obj_dict.get("customer_email") or "").lower()
+            cid = obj_dict.get("customer")
+            if session_email and cid and session_email in users:
+                inf = users[session_email]
+                if not isinstance(inf, dict):
+                    inf = {"password_hash": inf, "tier": "free"}
+                inf["stripe_customer_id"] = cid
+                users[session_email] = inf
+                _save_users(users)
 
-    if event_type == "checkout.session.completed":
-        # Most reliable place to anchor customer_id → email for new subscribers
-        session_email = (obj.get("customer_details", {}).get("email") or
-                         obj.get("customer_email") or "").lower()
-        cid = obj.get("customer")
-        if session_email and cid and session_email in users:
-            inf = users[session_email]
-            if not isinstance(inf, dict):
-                inf = {"password_hash": inf, "tier": "free"}
-            inf["stripe_customer_id"] = cid
-            users[session_email] = inf
-            _save_users(users)
-        return "", 200
-
-    customer_id = obj.get("customer")
-
-    if event_type in ("customer.subscription.created", "customer.subscription.updated"):
-        email, info = _resolve_email_by_customer(customer_id)
-        if email and info is not None:
-            old_tier = info.get("tier", "free")
-            _apply_sub(info, obj, customer_id)
-            new_tier = info["tier"]
-            users[email] = info
-            _save_users(users)
-            # Send activation email when tier genuinely moves up to pro/premium
-            if new_tier != old_tier and new_tier in ("pro", "premium"):
-                _send_subscription_email(email, new_tier)
-
-    elif event_type == "customer.subscription.deleted":
-        email, info = _resolve_email_by_customer(customer_id)
-        if email and info is not None:
-            info["tier"] = "free"
-            info["subscription_status"] = "canceled"
-            info["cancel_at_period_end"] = False
-            users[email] = info
-            _save_users(users)
-
-    elif event_type == "invoice.payment_failed":
-        email, info = _resolve_email_by_customer(customer_id)
-        if email and info is not None:
-            info["subscription_status"] = "past_due"
-            users[email] = info
-            _save_users(users)
-
-    elif event_type == "invoice.payment_succeeded":
-        # Renewal payment — re-sync subscription data to keep period_end fresh
-        sub_id = obj.get("subscription")
-        if sub_id:
-            email, info = _resolve_email_by_customer(customer_id)
-            if email and info is not None:
+            # If the subscription is already available here, apply it immediately
+            sub_id = obj_dict.get("subscription")
+            if cid and sub_id:
                 try:
                     sub_obj = stripe.Subscription.retrieve(sub_id)
-                    _apply_sub(info, sub_obj, customer_id)
-                    users[email] = info
-                    _save_users(users)
+                    email, info = _resolve_email_by_customer(cid)
+                    if email and info is not None:
+                        old_tier = info.get("tier", "free")
+                        _apply_subscription_to_user(info, sub_obj, cid)
+                        new_tier = info["tier"]
+                        users[email] = info
+                        _save_users(users)
+                        if new_tier != old_tier and new_tier in ("pro", "premium"):
+                            _send_subscription_email(email, new_tier)
                 except Exception as e:
-                    logger.warning(f"Could not refresh subscription on payment_succeeded: {e}")
+                    logger.warning(f"Could not apply subscription during checkout.session.completed: {e}")
+            return "", 200
 
-    return "", 200
+        customer_id = obj_dict.get("customer")
+
+        if event_type in ("customer.subscription.created", "customer.subscription.updated"):
+            email, info = _resolve_email_by_customer(customer_id)
+            if email and info is not None:
+                old_tier = info.get("tier", "free")
+                _apply_subscription_to_user(info, obj_dict, customer_id)
+                new_tier = info["tier"]
+                users[email] = info
+                _save_users(users)
+                # Send activation email when tier genuinely moves up to pro/premium
+                if new_tier != old_tier and new_tier in ("pro", "premium"):
+                    _send_subscription_email(email, new_tier)
+
+        elif event_type == "customer.subscription.deleted":
+            email, info = _resolve_email_by_customer(customer_id)
+            if email and info is not None:
+                info["tier"] = "free"
+                info["subscription_status"] = "canceled"
+                info["cancel_at_period_end"] = False
+                users[email] = info
+                _save_users(users)
+
+        elif event_type == "invoice.payment_failed":
+            email, info = _resolve_email_by_customer(customer_id)
+            if email and info is not None:
+                info["subscription_status"] = "past_due"
+                users[email] = info
+                _save_users(users)
+
+        elif event_type == "invoice.payment_succeeded":
+            # Renewal payment — re-sync subscription data to keep period_end fresh
+            sub_id = obj_dict.get("subscription")
+            if sub_id:
+                email, info = _resolve_email_by_customer(customer_id)
+                if email and info is not None:
+                    try:
+                        sub_obj = stripe.Subscription.retrieve(sub_id)
+                        _apply_subscription_to_user(info, sub_obj, customer_id)
+                        users[email] = info
+                        _save_users(users)
+                    except Exception as e:
+                        logger.warning(f"Could not refresh subscription on payment_succeeded: {e}")
+
+        return "", 200
+    except Exception as e:
+        logger.error(f"Unhandled exception in stripe_webhook: {e}", exc_info=True)
+        return "", 500
 
 @app.route("/api/cancel-subscription", methods=["POST"])
 def api_cancel_subscription():
@@ -4450,13 +4650,19 @@ def api_cancel_subscription():
         return jsonify({"error": "No active subscription found."}), 400
     try:
         sub = stripe.Subscription.modify(sub_id, cancel_at_period_end=True)
+        sub_dict = _as_dict(sub)
+        current_period_end = (
+            sub_dict.get("current_period_end")
+            if isinstance(sub_dict, dict)
+            else getattr(sub, "current_period_end", None)
+        )
         info["cancel_at_period_end"] = True
-        info["current_period_end"] = sub.get("current_period_end", info.get("current_period_end", 0))
+        info["current_period_end"] = current_period_end or info.get("current_period_end", 0)
         users[email] = info
         _save_users(users)
         return jsonify({"ok": True, "current_period_end": info["current_period_end"]})
     except Exception as e:
-        logger.error(f"Cancel subscription error: {e}")
+        logger.error(f"Cancel subscription error: {e}", exc_info=True)
         return jsonify({"error": "Failed to cancel subscription.", "detail": str(e)}), 500
 
 @app.route("/billing-portal")
