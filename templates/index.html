@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Stocker — Stock Prediction & Analysis</title>
-    <link rel="icon" type="image/x-icon"  href="{{ url_for('static', filename='favicon-v2.ico') }}">
+    <link rel="icon" type="image/x-icon"  href="{{ url_for('static', filename='favicon-v3.ico') }}">
     <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='favicon-192.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
 
@@ -1126,7 +1126,7 @@
             text-decoration: none;
         }
         .toolbar-logo {
-            height: 36px;
+            height: 46px;
             width: auto;
             display: block;
         }
@@ -1645,75 +1645,8 @@
             .hero-left     { padding: 22px 20px 16px; }
             .hero-headline { font-size: 1.25rem; }
             .hero-bottom   { padding: 14px 20px 18px; }
-            .search-guide-label { display: none; }
         }
 
-        /* ── Search pulse + guide (first-visit) ── */
-        .search-pulse-ring {
-            position: absolute;
-            inset: -4px;
-            border-radius: 12px;
-            border: 2px solid #4f8ef7;
-            pointer-events: none;
-            animation: searchPulseRing 1.8s ease-out infinite;
-        }
-        @keyframes searchPulseRing {
-            0%   { opacity: 0.85; transform: scale(1); }
-            100% { opacity: 0;    transform: scale(1.1); }
-        }
-        .search-guide-label {
-            position: absolute;
-            top: calc(100% + 10px);
-            left: 0; right: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            background: linear-gradient(90deg, #0d1b3e, #1a2f6b, #0d1b3e);
-            border: 1px solid rgba(79,142,247,0.35);
-            border-radius: 10px;
-            padding: 8px 14px;
-            font-size: 0.72rem;
-            font-weight: 600;
-            color: #9ec3ff;
-            white-space: nowrap;
-            z-index: 20;
-            pointer-events: none;
-            animation: guideIn 0.4s ease both, guidePulse 2.4s 0.4s ease-in-out infinite;
-        }
-        .search-guide-label::before {
-            content: "";
-            position: absolute;
-            bottom: 100%; left: 50%;
-            transform: translateX(-50%);
-            border: 6px solid transparent;
-            border-bottom-color: rgba(79,142,247,0.35);
-        }
-        .search-guide-label::after {
-            content: "";
-            position: absolute;
-            bottom: 100%; left: 50%;
-            transform: translateX(-50%) translateY(1px);
-            border: 6px solid transparent;
-            border-bottom-color: #0d1b3e;
-            z-index: 1;
-        }
-        @keyframes guideIn {
-            from { opacity: 0; transform: translateY(-4px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes guidePulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(79,142,247,0.3); }
-            50%       { box-shadow: 0 0 0 5px rgba(79,142,247,0); }
-        }
-        .search-guide-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: #4f8ef7;
-            box-shadow: 0 0 6px #4f8ef7;
-            flex-shrink: 0;
-            animation: livePulse 1.2s ease-in-out infinite;
-        }
 
         /* ── Ticker autocomplete dropdown ── */
         .ticker-autocomplete {
@@ -1782,6 +1715,150 @@
             font-size: 0.75rem;
             color: rgba(200,215,255,0.3);
         }
+        /* ── Profile button ── */
+        .tb-btn-profile {
+            background: rgba(255,255,255,0.07);
+            border-color: rgba(255,255,255,0.2);
+            color: var(--panel-text);
+        }
+        .tb-btn-profile:hover {
+            background: rgba(255,255,255,0.13);
+        }
+        /* ── Profile modal ── */
+        .profile-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(8,12,20,0.75);
+            align-items: center;
+            justify-content: center;
+            z-index: 1300;
+        }
+        .profile-modal-card {
+            width: min(540px, 96vw);
+            background: var(--parliament-blue-soft);
+            border: 1px solid var(--panel-border);
+            border-radius: 20px;
+            padding: 0;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+            color: var(--panel-text);
+            overflow: hidden;
+        }
+        .profile-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px 0;
+        }
+        .profile-modal-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--panel-border);
+            padding: 0 22px;
+            margin-top: 12px;
+        }
+        .profile-tab-btn {
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--panel-muted);
+            padding: 8px 14px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: -1px;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .profile-tab-btn.active {
+            color: var(--panel-text);
+            border-bottom-color: var(--accent);
+        }
+        .profile-tab-btn:hover:not(.active) { color: var(--panel-text); }
+        .profile-tab-content {
+            padding: 20px 22px 22px;
+            max-height: 75vh;
+            overflow-y: auto;
+        }
+        .profile-tab-pane { display: none; }
+        .profile-tab-pane.active { display: block; }
+        /* Avatar grid */
+        .avatar-grid {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0 4px;
+        }
+        .avatar-option {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--parliament-blue);
+            border: 2px solid var(--panel-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+            color: var(--panel-muted);
+            flex-shrink: 0;
+        }
+        .avatar-option:hover {
+            border-color: var(--accent);
+            color: var(--panel-text);
+        }
+        .avatar-option.selected {
+            border-color: var(--accent);
+            background: rgba(var(--accent-rgb), 0.1);
+            color: var(--accent);
+        }
+        /* Section labels */
+        .profile-section-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--panel-muted);
+            margin-bottom: 8px;
+        }
+        /* Membership card in profile modal */
+        .profile-membership-card {
+            background: var(--parliament-blue);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+        .profile-membership-perks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .profile-membership-perks span {
+            font-size: 0.72rem;
+            color: var(--panel-muted);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--panel-border);
+            border-radius: 20px;
+            padding: 2px 9px;
+        }
+        /* Blinking TRY ONE label */
+        @keyframes blink-try {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.25; }
+        }
+        .hero-tickers-label-blink {
+            animation: blink-try 1.4s ease-in-out infinite;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+        /* Guest anon badge in toolbar */
+        .tb-anon-badge {
+            font-size: 0.72rem;
+            color: var(--panel-muted);
+            white-space: nowrap;
+            padding: 4px 10px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--panel-border);
+            border-radius: 20px;
+        }
+        .tb-anon-badge.warning { color: #f7c04f; border-color: rgba(247,192,79,0.35); }
     </style>
 </head>
 <body>
@@ -1858,7 +1935,7 @@
                 <div class="pricing-card featured">
                     <div>
                         <span class="tier-badge tier-badge-pro">Pro</span>
-                        <div class="price mt-2"><sup>£</sup>5<sub>/mo</sub></div>
+                        <div class="price mt-2"><sup>£</sup>3.99<sub>/mo</sub></div>
                     </div>
                     <ul>
                         <li>Unlimited analyses</li>
@@ -1867,29 +1944,20 @@
                         <li>AI Trade Thesis</li>
                         <li>Peer comparison</li>
                     </ul>
-                    {% if stripe_enabled %}
                     <button class="btn btn-primary btn-sm upgrade-btn" data-tier="pro">Choose Pro</button>
-                    {% else %}
-                    <button class="btn btn-primary btn-sm upgrade-btn" data-tier="pro">Choose Pro</button>
-                    {% endif %}
                 </div>
                 <!-- Premium -->
                 <div class="pricing-card">
                     <div>
                         <span class="tier-badge tier-badge-premium">Premium</span>
-                        <div class="price mt-2"><sup>£</sup>10<sub>/mo</sub></div>
+                        <div class="price mt-2"><sup>£</sup>5.99<sub>/mo</sub></div>
                     </div>
                     <ul>
                         <li>Everything in Pro</li>
                         <li>AI Portfolio Advisor</li>
                         <li>Earnings Summarizer</li>
-                        <li>Chat with your stocks</li>
                     </ul>
-                    {% if stripe_enabled %}
-                    <button class="btn btn-warning btn-sm upgrade-btn" data-tier="premium">Upgrade to Premium</button>
-                    {% else %}
-                    <button class="btn btn-warning btn-sm" disabled>Coming soon</button>
-                    {% endif %}
+                    <button class="btn btn-warning btn-sm upgrade-btn" data-tier="premium">Choose Premium</button>
                 </div>
             </div>
             {% if not user %}
@@ -1897,6 +1965,196 @@
                 <a href="#" class="auth-link" id="upgrade-signin-link">Sign in</a> to get 5 free analyses per day.
             </p>
             {% endif %}
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="profile-modal" id="profile-modal" style="display:none;">
+        <div class="profile-modal-card">
+            <div class="profile-modal-header">
+                <span class="fw-semibold" style="font-size:0.95rem;">
+                    {% if user_email %}<i class="fas fa-user-circle me-2" style="color:var(--accent);"></i>{{ user_email.split('@')[0]|capitalize }}{% else %}<i class="fas fa-user-circle me-2" style="color:var(--accent);"></i>Stocker{% endif %}
+                </span>
+                <button type="button" class="auth-modal-close" id="profile-close" aria-label="Close" onclick="closeProfileModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="profile-modal-tabs">
+                <button class="profile-tab-btn active" data-tab="profile" onclick="switchProfileTab('profile')"><i class="fas fa-user me-1"></i>Profile</button>
+                <button class="profile-tab-btn" data-tab="pricing" onclick="switchProfileTab('pricing')"><i class="fas fa-tag me-1"></i>Plans &amp; Pricing</button>
+            </div>
+            <div class="profile-tab-content">
+
+                <!-- ── Profile tab ── -->
+                <div class="profile-tab-pane active" id="profile-pane-profile">
+                    {% if user %}
+                    <!-- Avatar -->
+                    <div class="profile-section-label">Avatar</div>
+                    <div class="avatar-grid" id="avatar-grid">
+                        <div class="avatar-option selected" data-icon="fa-user" title="Default"><i class="fas fa-user"></i></div>
+                        <div class="avatar-option" data-icon="fa-user-astronaut" title="Astronaut"><i class="fas fa-user-astronaut"></i></div>
+                        <div class="avatar-option" data-icon="fa-user-ninja" title="Ninja"><i class="fas fa-user-ninja"></i></div>
+                        <div class="avatar-option" data-icon="fa-user-secret" title="Secret"><i class="fas fa-user-secret"></i></div>
+                        <div class="avatar-option" data-icon="fa-user-tie" title="Professional"><i class="fas fa-user-tie"></i></div>
+                    </div>
+                    <!-- Nickname -->
+                    <div class="profile-section-label mt-3">Nickname</div>
+                    <div class="d-flex gap-2 mb-3">
+                        <input type="text" id="profile-nickname" class="form-control form-control-sm"
+                            placeholder="Your nickname" maxlength="30"
+                            style="background:var(--parliament-blue); border-color:var(--panel-border); color:var(--panel-text);">
+                        <button id="profile-save-btn" type="button" class="btn btn-sm btn-primary px-3">Save</button>
+                    </div>
+                    <!-- Theme -->
+                    <div class="profile-section-label">Theme</div>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="theme-dot theme-dot-ocean"   data-theme=""        title="Ocean Blue"></div>
+                        <div class="theme-dot theme-dot-beige"   data-theme="beige"   title="Warm Beige"></div>
+                        <div class="theme-dot theme-dot-crimson" data-theme="crimson" title="Dark Crimson"></div>
+                        <span class="small" style="color:var(--panel-muted);" id="profile-theme-name">Ocean Blue</span>
+                    </div>
+                    <!-- Plan -->
+                    <div class="profile-section-label">Membership</div>
+                    <div class="profile-membership-card mb-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2">
+                                {% if user_tier == 'admin' %}
+                                <i class="fas fa-shield-alt" style="color:#ff8a8a;"></i>
+                                <span class="fw-semibold">Admin</span>
+                                {% elif user_tier == 'premium' %}
+                                <i class="fas fa-crown" style="color:#fbbf24;"></i>
+                                <span class="fw-semibold">Premium</span>
+                                {% elif user_tier == 'pro' %}
+                                <i class="fas fa-bolt" style="color:#4f8ef7;"></i>
+                                <span class="fw-semibold">Pro</span>
+                                {% else %}
+                                <i class="fas fa-user" style="color:var(--panel-muted);"></i>
+                                <span class="fw-semibold">Free</span>
+                                {% endif %}
+                                <span class="tier-badge tier-badge-{{ user_tier }} ms-1">{{ user_tier }}</span>
+                            </div>
+                            {% if user_tier in ('pro', 'premium') %}
+                            <a href="/billing-portal" class="small auth-link">Manage billing →</a>
+                            {% elif user_tier == 'admin' %}
+                            <span class="small" style="color:var(--panel-muted);">Full access</span>
+                            {% else %}
+                            <button type="button" class="btn btn-link btn-sm p-0 auth-link" id="profile-go-pricing">Upgrade →</button>
+                            {% endif %}
+                        </div>
+                        <div class="profile-membership-perks mt-2">
+                            {% if user_tier == 'admin' %}
+                            <span>Unlimited analyses</span><span>All features</span><span>Admin panel</span>
+                            {% elif user_tier == 'premium' %}
+                            <span>Unlimited analyses</span><span>AI Portfolio Advisor</span><span>Earnings Summarizer</span>
+                            {% elif user_tier == 'pro' %}
+                            <span>Unlimited analyses</span><span>Watchlist</span><span>AI Trade Thesis</span>
+                            {% else %}
+                            <span>{{ free_daily_limit }} analyses / day</span><span>ML predictions</span><span>Pattern detection</span>
+                            {% endif %}
+                        </div>
+                        {% if user_tier in ('pro', 'premium') %}
+                        <hr style="border-color:var(--panel-border); margin:10px 0 8px;">
+                        {% if sub_cancel_at_period_end %}
+                        <div class="d-flex align-items-center gap-2" style="font-size:0.78rem; color:#fbbf24;">
+                            <i class="fas fa-clock"></i>
+                            <span>Subscription ends on <strong id="sub-end-date">{% if sub_period_end_ts %}{{ (sub_period_end_ts | int) | strftime('%d %b %Y') }}{% else %}end of billing period{% endif %}</strong> — no further charges.</span>
+                        </div>
+                        {% else %}
+                        <div class="d-flex align-items-start justify-content-between gap-2" style="font-size:0.78rem;">
+                            <span style="color:var(--panel-muted); line-height:1.4;">Cancellation stops future renewals only. Access continues until the end of your current billing period. <strong style="color:var(--panel-muted);">Payments already made are non-refundable.</strong></span>
+                            <button id="profile-cancel-sub-btn" type="button" class="btn btn-sm flex-shrink-0"
+                                style="font-size:0.72rem; color:#ff8a8a; background:rgba(255,80,80,0.07); border:1px solid rgba(255,80,80,0.25); white-space:nowrap;">
+                                Cancel plan
+                            </button>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                    <!-- Danger zone -->
+                    <hr style="border-color:var(--panel-border); margin:14px 0;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <a href="/logout" class="btn btn-sm" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:var(--panel-muted);">
+                            <i class="fas fa-sign-out-alt me-1"></i>Sign out
+                        </a>
+                        <button id="profile-delete-btn" type="button" class="btn btn-sm"
+                            style="color:#ff8a8a; background:rgba(255,80,80,0.07); border:1px solid rgba(255,80,80,0.25);">
+                            <i class="fas fa-trash me-1"></i>Delete account
+                        </button>
+                    </div>
+                    {% else %}
+                    <!-- Guest -->
+                    <div class="text-center py-3">
+                        <div style="font-size:3rem; margin-bottom:14px; color:var(--panel-muted);"><i class="fas fa-user-circle"></i></div>
+                        <p class="text-muted small mb-3">Sign in to save your avatar, nickname,<br>and theme preferences across devices.</p>
+                        <button id="profile-auth-trigger" type="button" class="btn btn-primary btn-sm px-4">
+                            <i class="fas fa-sign-in-alt me-1"></i>Sign In / Register
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- ── Plans & Pricing tab ── -->
+                <div class="profile-tab-pane" id="profile-pane-pricing">
+                    <div class="mb-1 fw-semibold">Plans &amp; Pricing</div>
+                    <p class="text-muted small mb-0">Choose the plan that fits you best.</p>
+                    {% if subscribed %}
+                    <div class="alert alert-success py-2 small mb-0 mt-2">
+                        <i class="fas fa-check-circle me-1"></i> Your subscription is active. Thank you!
+                    </div>
+                    {% endif %}
+                    <div class="pricing-grid">
+                        <!-- Free -->
+                        <div class="pricing-card">
+                            <div>
+                                <span class="tier-badge tier-badge-free">Free</span>
+                                <div class="price mt-2"><sup>£</sup>0<sub>/mo</sub></div>
+                            </div>
+                            <ul>
+                                <li>{{ free_daily_limit }} analyses per day</li>
+                                <li>ML price predictions</li>
+                                <li>Pattern detection</li>
+                                <li>News &amp; sentiment</li>
+                            </ul>
+                            <button class="btn btn-outline-secondary btn-sm" disabled>
+                                {% if not user or user_tier == 'free' %}Current plan{% else %}Free plan{% endif %}
+                            </button>
+                        </div>
+                        <!-- Pro -->
+                        <div class="pricing-card featured">
+                            <div>
+                                <span class="tier-badge tier-badge-pro">Pro</span>
+                                <div class="price mt-2"><sup>£</sup>3.99<sub>/mo</sub></div>
+                            </div>
+                            <ul>
+                                <li>Unlimited analyses</li>
+                                <li>Everything in Free</li>
+                                <li>Watchlist (save &amp; track tickers)</li>
+                                <li>AI Trade Thesis</li>
+                                <li>Peer comparison</li>
+                            </ul>
+                            <button class="btn btn-primary btn-sm upgrade-btn" data-tier="pro">Choose Pro</button>
+                        </div>
+                        <!-- Premium -->
+                        <div class="pricing-card">
+                            <div>
+                                <span class="tier-badge tier-badge-premium">Premium</span>
+                                <div class="price mt-2"><sup>£</sup>5.99<sub>/mo</sub></div>
+                            </div>
+                            <ul>
+                                <li>Everything in Pro</li>
+                                <li>AI Portfolio Advisor</li>
+                                <li>Earnings Summarizer</li>
+                            </ul>
+                            <button class="btn btn-warning btn-sm upgrade-btn" data-tier="premium">Choose Premium</button>
+                        </div>
+                    </div>
+                    {% if not user %}
+                    <p class="text-muted small text-center mt-3 mb-0">
+                        <button type="button" class="btn btn-link p-0 small text-muted" style="text-decoration:underline;" id="profile-pricing-signin">Sign in</button>
+                        to get {{ free_daily_limit }} free analyses per day.
+                    </p>
+                    {% endif %}
+                </div>
+
+            </div>
         </div>
     </div>
 
@@ -1974,7 +2232,7 @@
         <div class="top-toolbar mb-3">
             <!-- Logo -->
             <a href="https://www.gultechs.net/" target="_blank" rel="noopener noreferrer" class="toolbar-logo-wrap">
-                <img src="{{ url_for('static', filename='stocker_logo.png') }}" alt="Stocker" class="toolbar-logo" width="104" height="36" decoding="async">
+                <img src="{{ url_for('static', filename='stocker_logo.png') }}" alt="Stocker" class="toolbar-logo" width="133" height="46" decoding="async">
             </a>
 
             <!-- Ticker input + Predict -->
@@ -1982,14 +2240,8 @@
                 <div class="ticker-input-wrap" style="position:relative;">
                     <i class="fas fa-search ticker-search-icon"></i>
                     <input id="stock-input" type="text" class="ticker-input" placeholder="e.g. AAPL, BP.L" autocomplete="off" spellcheck="false" />
-                    <div class="search-pulse-ring" id="search-pulse-ring"></div>
                     <!-- Autocomplete dropdown -->
                     <div class="ticker-autocomplete" id="ticker-ac"></div>
-                </div>
-                <!-- First-visit guide label -->
-                <div class="search-guide-label" id="search-guide-label">
-                    <span class="search-guide-dot"></span>
-                    Type a ticker here
                 </div>
                 <button id="predict-btn" class="btn-predict">
                     <i class="fas fa-chart-line"></i> Analyse
@@ -1998,47 +2250,31 @@
 
             <!-- Action buttons -->
             <div class="toolbar-actions">
-                {% if user %}
-                    <!-- Tier / Billing / Upgrade -->
-                    {% if user_tier == 'admin' %}
-                    <span class="tb-btn tb-btn-admin" style="cursor:default;">
-                        <i class="fas fa-shield-alt"></i><span>Admin</span>
-                    </span>
-                    {% elif user_tier in ('pro', 'premium') %}
-                    <a href="/billing-portal" class="tb-btn tb-btn-billing">
-                        <span class="tier-badge tier-badge-{{ user_tier }} me-1">{{ user_tier }}</span><span>Billing</span>
-                    </a>
-                    {% else %}
-                    <button id="upgrade-trigger" type="button" class="tb-btn tb-btn-upgrade">
-                        <i class="fas fa-bolt"></i><span>Upgrade</span>
-                    </button>
-                    {% endif %}
-                    <!-- Sign out -->
-                    <a href="/logout" class="tb-btn tb-btn-signout">
-                        <i class="fas fa-sign-out-alt"></i><span>Sign out</span>
-                    </a>
-                {% else %}
-                    <button id="upgrade-trigger-anon" type="button" class="tb-btn tb-btn-upgrade">
-                        <i class="fas fa-bolt"></i><span>Pricing</span>
-                    </button>
-                    <button id="auth-trigger" type="button" class="tb-btn tb-btn-login">
-                        <i class="fas fa-user"></i><span>Login</span>
-                    </button>
+                {% if not user_email %}
+                <button id="auth-trigger" type="button" class="tb-btn tb-btn-login">
+                    <i class="fas fa-sign-in-alt"></i><span>Login</span>
+                </button>
                 {% endif %}
+                <button id="profile-trigger" type="button" class="tb-btn tb-btn-profile">
+                    <i class="fas fa-user" id="profile-btn-icon"></i><span id="profile-btn-label">{% if user_email %}{{ user_email.split('@')[0][:14] }}{% else %}Profile{% endif %}</span>
+                </button>
             </div>
 
             <!-- Usage / tier badge -->
-            {% if user %}
             <div class="toolbar-usage" id="usage-counter">
-                {% if user_tier == 'admin' %}
-                <span class="tier-badge tier-badge-admin">admin</span>&nbsp;Full access
-                {% elif user_tier == 'free' %}
-                <span id="usage-text">loading…</span>
+                {% if user %}
+                    {% if user_tier == 'admin' %}
+                    <span class="tier-badge tier-badge-admin">admin</span>&nbsp;Full access
+                    {% elif user_tier == 'free' %}
+                    <span id="usage-text">loading…</span>
+                    {% else %}
+                    <span class="tier-badge tier-badge-{{ user_tier }}">{{ user_tier }}</span>&nbsp;Unlimited
+                    {% endif %}
                 {% else %}
-                <span class="tier-badge tier-badge-{{ user_tier }}">{{ user_tier }}</span>&nbsp;Unlimited
+                {% set anon_remaining = [anon_daily_limit - anon_used, 0]|max %}
+                <span class="tb-anon-badge{% if anon_remaining == 0 %} warning{% endif %}" id="tb-anon-badge">{{ anon_remaining }} free {{ 'analysis' if anon_remaining == 1 else 'analyses' }} left today</span>
                 {% endif %}
             </div>
-            {% endif %}
         </div>
 
 
@@ -2085,7 +2321,7 @@
                     </div>
                     <div class="hero-try-now">
                         <div class="hero-tickers-row">
-                            <span class="hero-tickers-label">Try now &rarr;</span>
+                            <span class="hero-tickers-label hero-tickers-label-blink">TRY ONE</span>
                             <div class="hero-tickers">
                                 <button class="hero-ticker-btn" data-ticker="NVDA">NVDA</button>
                                 <button class="hero-ticker-btn" data-ticker="AMZN">AMZN</button>
@@ -2959,6 +3195,65 @@
         </div>
     </footer>
 
+    <!-- ── Modal helpers + toolbar wiring (pure vanilla, no jQuery needed) ── -->
+    <script>
+        /* ---------- modal helpers ---------- */
+        function openProfileModal(tab) {
+            var el = document.getElementById('profile-modal');
+            if (el) el.style.display = 'flex';
+            if (tab) switchProfileTab(tab);
+        }
+        function closeProfileModal() {
+            var el = document.getElementById('profile-modal');
+            if (el) el.style.display = 'none';
+        }
+        function switchProfileTab(tab) {
+            document.querySelectorAll('.profile-tab-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.querySelectorAll('.profile-tab-pane').forEach(function(p) { p.classList.remove('active'); });
+            var btn = document.querySelector('.profile-tab-btn[data-tab="' + tab + '"]');
+            var pane = document.getElementById('profile-pane-' + tab);
+            if (btn) btn.classList.add('active');
+            if (pane) pane.classList.add('active');
+        }
+        function openAuthModal() {
+            var el = document.getElementById('auth-modal');
+            if (el) { el.classList.add('is-visible'); el.setAttribute('aria-hidden', 'false'); }
+        }
+
+        /* ---------- toolbar button wiring (DOM is already built at this point) ---------- */
+        (function() {
+            var profileBtn = document.getElementById('profile-trigger');
+            if (profileBtn) profileBtn.addEventListener('click', function() { openProfileModal('profile'); });
+
+            var loginBtn = document.getElementById('auth-trigger');
+            if (loginBtn) loginBtn.addEventListener('click', openAuthModal);
+
+            /* auth-modal: close button + backdrop */
+            var authClose = document.getElementById('auth-close');
+            if (authClose) authClose.addEventListener('click', function() {
+                var el = document.getElementById('auth-modal');
+                if (el) { el.classList.remove('is-visible'); el.setAttribute('aria-hidden', 'true'); }
+                /* reset form */
+                var ep = document.getElementById('auth-view-providers');
+                var ee = document.getElementById('auth-view-email');
+                if (ep) ep.style.display = '';
+                if (ee) ee.style.display = 'none';
+            });
+            var authModal = document.getElementById('auth-modal');
+            if (authModal) authModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('is-visible'); this.setAttribute('aria-hidden', 'true');
+                }
+            });
+
+            /* profile-modal: close on backdrop click */
+            var profileModal = document.getElementById('profile-modal');
+            if (profileModal) profileModal.addEventListener('click', function(e) {
+                if (e.target === this) closeProfileModal();
+            });
+        })();
+    </script>
+
     <!-- ── Plotly + jQuery loaded at bottom — no render blocking ── -->
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -3032,10 +3327,147 @@
                 else $counter.removeClass('warning');
             }
 
-            if (isLoggedIn && userTier === 'free') {
+            // Profile tab buttons (also wired in early script, but this handles dynamic re-renders)
+            document.querySelectorAll('.profile-tab-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    switchProfileTab(this.dataset.tab);
+                });
+            });
+
+            $('#profile-go-pricing').on('click', function(e) {
+                e.preventDefault();
+                switchProfileTab('pricing');
+            });
+
+            // Avatar selection
+            let selectedAvatar = 'fa-user';
+            $('#avatar-grid').on('click', '.avatar-option', function() {
+                selectedAvatar = $(this).data('icon');
+                $('.avatar-option').removeClass('selected');
+                $(this).addClass('selected');
+                $('#profile-btn-icon').removeClass().addClass('fas ' + selectedAvatar);
+                saveProfileData({ avatar: selectedAvatar });
+            });
+
+            // Nickname save
+            $('#profile-save-btn').on('click', function() {
+                const nickname = $('#profile-nickname').val().trim();
+                saveProfileData({ nickname });
+                if (nickname) $('#profile-btn-label').text(nickname.substring(0, 14));
+                else $('#profile-btn-label').text({{ user_email.split('@')[0][:14] | tojson if user_email else '"Profile"' }});
+            });
+            $('#profile-nickname').on('keydown', function(e) {
+                if (e.key === 'Enter') $('#profile-save-btn').trigger('click');
+            });
+
+            // Theme in profile modal (syncs with footer dots via existing handler)
+            // After theme changes, also update the profile label and save server-side
+            const themeNames = { '': 'Ocean Blue', 'beige': 'Warm Beige', 'crimson': 'Dark Crimson' };
+            function updateProfileThemeName(theme) {
+                $('#profile-theme-name').text(themeNames[theme] || 'Ocean Blue');
+            }
+            // Extend the theme-dot handler to also save server-side and update label
+            $(document).on('click', '.theme-dot', function() {
+                const theme = $(this).data('theme') || '';
+                updateProfileThemeName(theme);
+                if (isLoggedIn) saveProfileData({ theme });
+            });
+
+            async function saveProfileData(data) {
+                try {
+                    await fetch('/api/profile', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } catch(e) {}
+            }
+
+            // Cancel subscription
+            $('#profile-cancel-sub-btn').on('click', function() {
+                if (!confirm(
+                    'Cancel your subscription?\n\n' +
+                    '• Future renewals will be stopped.\n' +
+                    '• You keep full access until the end of your current billing period.\n' +
+                    '• Payments already made are non-refundable.\n\n' +
+                    'Confirm cancellation?'
+                )) return;
+                const $btn = $(this);
+                $btn.prop('disabled', true).text('Cancelling…');
+                fetch('/api/cancel-subscription', { method: 'POST' })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.ok) {
+                            // Replace cancel section with "ends on" notice
+                            const ts = d.current_period_end;
+                            const dateStr = ts
+                                ? new Date(ts * 1000).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
+                                : 'end of billing period';
+                            $btn.closest('.d-flex').replaceWith(
+                                '<div class="d-flex align-items-center gap-2" style="font-size:0.78rem; color:#fbbf24;">' +
+                                '<i class="fas fa-clock"></i>' +
+                                '<span>Subscription ends on <strong>' + dateStr + '</strong> — no further charges.</span>' +
+                                '</div>'
+                            );
+                        } else {
+                            alert(d.error || 'Failed to cancel. Please try again.');
+                            $btn.prop('disabled', false).text('Cancel plan');
+                        }
+                    })
+                    .catch(() => {
+                        alert('Network error. Please try again.');
+                        $btn.prop('disabled', false).text('Cancel plan');
+                    });
+            });
+
+            // Delete account
+            $('#profile-delete-btn').on('click', function() {
+                if (!confirm('Permanently delete your account? This cannot be undone.')) return;
+                fetch('/api/delete-account', { method: 'POST' })
+                    .then(r => r.json())
+                    .then(d => { if (d.ok) window.location.href = '/'; })
+                    .catch(() => alert('Error. Please try again.'));
+            });
+
+            // Guest: sign in from profile modal
+            $('#profile-auth-trigger, #profile-pricing-signin').on('click', function() {
+                closeProfileModal();
+                $authModal.addClass('is-visible').attr('aria-hidden', 'false');
+            });
+
+            // Load user profile on init
+            if (isLoggedIn) {
                 fetch('/api/me').then(r => r.json()).then(d => {
-                    if (d.logged_in) updateUsageDisplay(d.used_today, d.daily_limit);
+                    if (!d.logged_in) return;
+                    if (userTier === 'free') updateUsageDisplay(d.used_today, d.daily_limit);
+                    // Avatar
+                    const av = d.avatar || 'fa-user';
+                    selectedAvatar = av;
+                    $('#profile-btn-icon').removeClass().addClass('fas ' + av);
+                    $('.avatar-option').removeClass('selected');
+                    $(`.avatar-option[data-icon="${av}"]`).addClass('selected');
+                    // Nickname
+                    if (d.nickname) {
+                        $('#profile-nickname').val(d.nickname);
+                        $('#profile-btn-label').text(d.nickname.substring(0, 14));
+                    }
+                    // Theme: apply server preference if localStorage has no saved value
+                    const serverTheme = d.theme || '';
+                    updateProfileThemeName(serverTheme);
+                    try {
+                        if (!localStorage.getItem(THEME_KEY) && serverTheme) {
+                            applyTheme(serverTheme);
+                        }
+                    } catch(_) {}
                 }).catch(() => {});
+            }
+
+            function updateAnonUsage(used, limit) {
+                const remaining = Math.max(0, limit - used);
+                const $badge = $('#tb-anon-badge');
+                $badge.text(`${remaining} free ${remaining === 1 ? 'analysis' : 'analyses'} left today`);
+                if (remaining <= 0) $badge.addClass('warning');
+                else $badge.removeClass('warning');
             }
 
             // ---------------------------------------------------------------
@@ -3053,21 +3485,17 @@
             $('#upgrade-close').on('click', closeUpgradeModal);
             $upgradeModal.on('click', function(e) { if (e.target === this) closeUpgradeModal(); });
 
-            $('#upgrade-trigger, #upgrade-trigger-anon').on('click', function() {
-                openUpgradeModal("Choose the plan that fits you best.");
-            });
-
             $('#upgrade-signin-link').on('click', function(e) {
                 e.preventDefault();
                 closeUpgradeModal();
                 $authModal.addClass('is-visible').attr('aria-hidden', 'false');
             });
 
-            // Stripe checkout
+            // Stripe checkout / plan switch
             $(document).on('click', '.upgrade-btn', async function() {
                 const tier = $(this).data('tier');
                 const $btn = $(this);
-                $btn.prop('disabled', true).text('Redirecting…');
+                $btn.prop('disabled', true).text('Processing…');
                 try {
                     const resp = await fetch('/create-checkout-session', {
                         method: 'POST',
@@ -3076,14 +3504,18 @@
                     });
                     const data = await resp.json();
                     if (data.url) {
+                        // New subscriber — go to Stripe Checkout
                         window.location.href = data.url;
+                    } else if (data.upgraded) {
+                        // Existing subscriber changed plan — just reload
+                        window.location.href = '/?subscribed=1';
                     } else {
-                        alert(data.error || 'Could not start checkout. Please try again.');
-                        $btn.prop('disabled', false).text(tier === 'premium' ? 'Upgrade to Premium' : 'Upgrade to Pro');
+                        alert((data.error || 'Could not start checkout.') + (data.detail ? '\n\n' + data.detail : ''));
+                        $btn.prop('disabled', false).text(tier === 'premium' ? 'Choose Premium' : 'Choose Pro');
                     }
                 } catch (e) {
                     alert('Network error. Please try again.');
-                    $btn.prop('disabled', false).text(tier === 'premium' ? 'Upgrade to Premium' : 'Upgrade to Pro');
+                    $btn.prop('disabled', false).text(tier === 'premium' ? 'Choose Premium' : 'Choose Pro');
                 }
             });
 
@@ -3251,27 +3683,6 @@
                 });
             })();
 
-            /* ── Search pulse guide (first-visit only) ── */
-            (function() {
-                const PULSE_KEY = 'stocker_search_guided';
-                const ring  = document.getElementById('search-pulse-ring');
-                const label = document.getElementById('search-guide-label');
-                const input = document.getElementById('stock-input');
-
-                function hideGuide() {
-                    if (ring)  ring.style.display  = 'none';
-                    if (label) label.style.display = 'none';
-                    localStorage.setItem(PULSE_KEY, '1');
-                }
-
-                if (localStorage.getItem(PULSE_KEY)) {
-                    hideGuide();
-                } else {
-                    input && input.addEventListener('input', hideGuide, { once: true });
-                    document.getElementById('predict-btn') &&
-                        document.getElementById('predict-btn').addEventListener('click', hideGuide, { once: true });
-                }
-            })();
 
             /* ── Ticker autocomplete ── */
             (function() {
@@ -3455,9 +3866,6 @@
                 $('#auth-email-input').focus();
             }
 
-            $('#auth-trigger').on('click', function() {
-                $authModal.addClass('is-visible').attr('aria-hidden', 'false');
-            });
             $('#auth-close').on('click', closeAuthModal);
             $authModal.on('click', function(e) {
                 if (e.target === this) closeAuthModal();
@@ -3782,7 +4190,11 @@
                         $('#results').show();
                         $('#add-watchlist').fadeIn(300);
                         if (response._meta) {
-                            updateUsageDisplay(response._meta.used_today, response._meta.daily_limit);
+                            if (isLoggedIn) {
+                                updateUsageDisplay(response._meta.used_today, response._meta.daily_limit);
+                            } else {
+                                updateAnonUsage(response._meta.used_today, response._meta.daily_limit);
+                            }
                         }
 
                         const chartData = typeof response.chart === 'string' ? JSON.parse(response.chart) : response.chart;
