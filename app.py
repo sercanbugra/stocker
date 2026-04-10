@@ -70,6 +70,32 @@ def _set_cache_headers(response):
             response.cache_control.max_age = 86400  # 1 day
             response.cache_control.public = True
     return response
+
+
+@app.route("/client-log", methods=["POST"])
+def client_log():
+    """Lightweight client-side log sink to debug frontend issues in prod.
+
+    Accepts arbitrary JSON from the browser (sent via navigator.sendBeacon/fetch)
+    and writes a compact line to the server log. No auth required but the payload
+    is capped to avoid abuse.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+    except Exception:
+        data = {}
+
+    payload = {
+        "event": data.get("evt") or data.get("event"),
+        "detail": data.get("detail"),
+        "path": data.get("path") or request.headers.get("Referer") or request.path,
+        "ua": request.headers.get("User-Agent", ""),
+    }
+    try:
+        logger.warning("CLIENT_LOG %s", json.dumps(payload)[:800])
+    except Exception:
+        logger.warning("CLIENT_LOG raw %s", str(payload)[:800])
+    return ("", 204)
 SENTIMENT_ANALYZER = SentimentIntensityAnalyzer()
 _USER_AGENT = "Mozilla/5.0"
 
