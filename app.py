@@ -349,6 +349,103 @@ def _send_welcome_email(to_email: str) -> None:
     threading.Thread(target=_send, daemon=True).start()
 
 
+def _send_cancellation_email(to_email: str, tier: str = "") -> None:
+    """Send a subscription-ended email; never raises."""
+    if not SMTP_HOST or not SMTP_PASS:
+        logger.warning("SMTP not configured — cancellation email skipped for %s", to_email)
+        return
+
+    def _send():
+        logo_url = f"{SITE_BASE_URL}/static/stocker_logo.png"
+        site_url = SITE_BASE_URL
+        subject = "We hope to see you back at Stocker ✨"
+        tier_label = tier.upper() if tier else "your"
+
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{subject}</title>
+</head>
+<body style="margin:0;padding:0;background:#051520;font-family:'Helvetica Neue',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#051520;padding:40px 0;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+      <tr>
+        <td align="center" style="background:#0a2535;border:1px solid rgba(0,200,232,0.25);border-bottom:none;border-radius:16px 16px 0 0;padding:28px 36px 18px;">
+          <img src="{logo_url}" alt="Stocker" width="160" style="display:block;max-width:160px;height:auto;margin:0 auto 12px;"/>
+          <h1 style="margin:0;color:#c8eeff;font-size:21px;font-weight:700;letter-spacing:-0.2px;">
+            Thanks for trying Stocker
+          </h1>
+          <p style="margin:6px 0 0;color:rgba(200,238,255,0.6);font-size:14px;">
+            Your {tier_label} subscription has ended.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#0d3048;border-left:1px solid rgba(0,200,232,0.25);border-right:1px solid rgba(0,200,232,0.25);padding:30px 36px;">
+          <p style="margin:0 0 16px;color:#c8eeff;font-size:15px;line-height:1.7;">
+            We’re sorry to see you go. If there was anything missing or frustrating, we’d love to hear it—just reply to this email.
+          </p>
+          <p style="margin:0 0 18px;color:rgba(200,238,255,0.7);font-size:14px;line-height:1.7;">
+            You can continue using the Free tier with daily analyses, charts, and sentiment. When you’re ready, upgrading again is one click away.
+          </p>
+          <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:22px;">
+            <tr><td align="center">
+              <a href="{site_url}"
+                 style="display:inline-block;background:#00c8e8;color:#051520;text-decoration:none;
+                        font-size:15px;font-weight:700;padding:12px 30px;border-radius:10px;">
+                Come back anytime →
+              </a>
+            </td></tr>
+          </table>
+          <p style="margin:0;color:rgba(200,238,255,0.5);font-size:13px;line-height:1.6;">
+            Thank you for being part of Stocker. We’re here whenever you need us.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td align="center"
+            style="background:#071a28;border:1px solid rgba(0,200,232,0.25);border-top:none;border-radius:0 0 16px 16px;padding:18px 36px;">
+          <p style="margin:0;color:rgba(200,238,255,0.25);font-size:12px;">
+            © 2025 Stocker · Gultechs · info@gultechs.net
+          </p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>"""
+
+        plain = (
+            "Thanks for trying Stocker.\n"
+            "Your subscription has ended. If we missed something, please reply and let us know.\n"
+            f"You can keep using the Free tier anytime at {site_url}.\n"
+            "We hope to see you again!\n"
+        )
+
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"]    = f"Stocker <{SMTP_USER}>"
+        msg["To"]      = to_email
+        msg.attach(MIMEText(plain, "plain"))
+        msg.attach(MIMEText(html, "html"))
+
+        try:
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+                server.ehlo()
+                server.starttls()
+                server.login(SMTP_USER, SMTP_PASS)
+                server.sendmail(SMTP_USER, to_email, msg.as_string())
+            logger.info("Cancellation email sent to %s", to_email)
+        except Exception as exc:
+            logger.warning("Cancellation email failed for %s: %s", to_email, exc)
+
+    threading.Thread(target=_send, daemon=True).start()
+
+
 def _send_subscription_email(to_email: str, tier: str) -> None:
     """Send a Pro or Premium activation email in a background thread; never raises."""
     if not SMTP_HOST or not SMTP_PASS:
@@ -4435,6 +4532,50 @@ def api_delete_account():
     session.clear()
     return jsonify({"ok": True})
 
+# ---------------- Admin APIs -----------------
+def _require_admin():
+    email = _get_current_user_email()
+    if not email:
+        return None, (jsonify({"error": "Not logged in"}), 401)
+    if _get_user_tier(email) != "admin":
+        return None, (jsonify({"error": "Forbidden"}), 403)
+    return email, None
+
+@app.route("/api/admin/users", methods=["GET"])
+def api_admin_users():
+    _, error = _require_admin()
+    if error:
+        return error
+    users = _load_users()
+    out = []
+    for em, info in users.items():
+        tier = "free"
+        if isinstance(info, dict):
+            tier = info.get("tier", "free")
+            status = info.get("subscription_status", "active")
+            if tier != "free" and status not in ("active", "trialing"):
+                tier = "free"
+        out.append({"email": em, "tier": tier})
+    return jsonify(out)
+
+@app.route("/api/admin/delete-user", methods=["POST"])
+def api_admin_delete_user():
+    admin_email, error = _require_admin()
+    if error:
+        return error
+    data = request.get_json(silent=True) or {}
+    target = (data.get("email") or "").strip().lower()
+    if not target:
+        return jsonify({"error": "Email required"}), 400
+    if target == admin_email:
+        return jsonify({"error": "Cannot delete your own admin account."}), 400
+    users = _load_users()
+    if target not in users:
+        return jsonify({"error": "User not found"}), 404
+    users.pop(target, None)
+    _save_users(users)
+    return jsonify({"ok": True})
+
 
 @app.route("/api/anon-usage")
 def api_anon_usage():
@@ -4467,9 +4608,10 @@ def create_checkout_session():
 
     existing_sub_id = info.get("stripe_subscription_id")
     existing_customer_id = info.get("stripe_customer_id")
+    cancel_at_period_end = bool(info.get("cancel_at_period_end", False))
 
     # ── Upgrade / downgrade: modify existing subscription in-place ──────────
-    if existing_sub_id and info.get("subscription_status") in ("active", "trialing"):
+    if existing_sub_id and not cancel_at_period_end and info.get("subscription_status") in ("active", "trialing"):
         try:
             sub = stripe.Subscription.retrieve(existing_sub_id)
             item_id = sub["items"]["data"][0]["id"]
@@ -4601,11 +4743,13 @@ def stripe_webhook():
         elif event_type == "customer.subscription.deleted":
             email, info = _resolve_email_by_customer(customer_id)
             if email and info is not None:
+                ended_tier = info.get("tier", "pro")
                 info["tier"] = "free"
                 info["subscription_status"] = "canceled"
                 info["cancel_at_period_end"] = False
                 users[email] = info
                 _save_users(users)
+                _send_cancellation_email(email, ended_tier)
 
         elif event_type == "invoice.payment_failed":
             email, info = _resolve_email_by_customer(customer_id)
@@ -4656,10 +4800,12 @@ def api_cancel_subscription():
             if isinstance(sub_dict, dict)
             else getattr(sub, "current_period_end", None)
         )
+        ended_tier = info.get("tier", "pro")
         info["cancel_at_period_end"] = True
         info["current_period_end"] = current_period_end or info.get("current_period_end", 0)
         users[email] = info
         _save_users(users)
+        _send_cancellation_email(email, ended_tier)
         return jsonify({"ok": True, "current_period_end": info["current_period_end"]})
     except Exception as e:
         logger.error(f"Cancel subscription error: {e}", exc_info=True)
