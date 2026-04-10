@@ -3220,6 +3220,32 @@
 
     <!-- ── Modal helpers + toolbar wiring (pure vanilla, no jQuery needed) ── -->
     <script>
+        // Minimal client-side logger to catch silent JS failures in production
+        (function() {
+            const log = window.__stockerLog = function(evt, detail) {
+                const payload = { evt, detail, path: window.location.href };
+                try {
+                    const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+                    if (navigator.sendBeacon) navigator.sendBeacon('/client-log', blob);
+                } catch (_) {}
+                try { console.warn('[stocker-log]', evt, detail); } catch (_) {}
+            };
+            window.addEventListener('error', function(e) {
+                let snippet = '';
+                try {
+                    const lines = (document.documentElement.innerHTML || '').split('\n');
+                    const idx = (e.lineno || 0) - 1;
+                    if (idx >= 0 && idx < lines.length) {
+                        snippet = lines.slice(Math.max(0, idx - 1), idx + 2).join('\n').slice(0, 300);
+                    }
+                } catch (_) {}
+                log('error', { message: e.message, filename: e.filename, lineno: e.lineno, colno: e.colno, snippet });
+            });
+            window.addEventListener('unhandledrejection', function(e) {
+                log('unhandledrejection', { reason: (e.reason && e.reason.message) || String(e.reason) });
+            });
+        })();
+
         /* ---------- modal helpers ---------- */
         function openProfileModal(tab) {
             var el = document.getElementById('profile-modal');
@@ -3280,8 +3306,58 @@
     <!-- ── JS loaded at bottom — no render blocking ── -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
+    <!-- Fallback wiring in case jQuery or the main ready-block fails early -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            window.__stockerReadyLite = true;
+            const btn = document.getElementById('predict-btn');
+            if (btn && !btn.dataset.fallbackBound) {
+                btn.dataset.fallbackBound = '1';
+                btn.addEventListener('click', function(e) {
+                    // If jQuery handlers are active, let them run instead
+                    if (window.$ && window.$.fn && window.$.ajax) return;
+                    const input = document.getElementById('stock-input');
+                    const symbol = (input && input.value || '').trim().toUpperCase();
+                    if (!symbol) { alert('Please enter a stock symbol'); return; }
+                    const body = 'symbol=' + encodeURIComponent(symbol);
+                    fetch('/predict', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body
+                    }).then(resp => resp.json().catch(() => ({})).then(data => ({ resp, data })))
+                      .then(({ resp, data }) => {
+                          if (resp.ok) {
+                              console.info('Fallback predict success');
+                              window.location.reload();
+                          } else {
+                              alert(data.error || 'Request failed');
+                          }
+                      }).catch(err => {
+                          console.error('Fallback predict failed', err);
+                          if (window.__stockerLog) window.__stockerLog('fallback-predict-failed', String(err));
+                      });
+                });
+            }
+
+            // Minimal remarkables loader if main script fails before wiring
+            const riskList = document.getElementById('risk-lovers-list');
+            if (riskList && !riskList.dataset.loaded) {
+                fetch('/api/remarkables').then(r => r.ok ? r.json() : null).then(data => {
+                    if (!data) return;
+                    const items = (data.for_risk_lovers || []).slice(0, 5);
+                    if (!items.length) return;
+                    riskList.dataset.loaded = '1';
+                    riskList.innerHTML = items.map((item, idx) => `<li><span class="rm-rank">${idx+1}</span><a href="#" class="remarkable-symbol" data-symbol="${item.symbol}">${item.symbol}</a></li>`).join('');
+                }).catch(err => {
+                    if (window.__stockerLog) window.__stockerLog('remarkables-fallback-fail', String(err));
+                });
+            }
+        });
+    </script>
+
     <script>
             $(document).ready(function() {
+            try { if (window.__stockerLog) window.__stockerLog('ready'); } catch(_) {}
 
             // Lazy-load Plotly only when needed (served from jsDelivr with long cache TTL)
             let plotlyPromise = null;
@@ -3367,7 +3443,9 @@
             const $authModal = $('#auth-modal');
             const $upgradeModal = $('#upgrade-modal');
             const isLoggedIn = {{ 'true' if user else 'false' }};
-            const userTier = {{ user_tier | tojson }};
+            const userTier = {{ (user_tier or 'free') | tojson }};
+            const anonDailyLimit = {{ anon_daily_limit | default(1, true) | int }};
+            let anonUsed = {{ anon_used | default(0, true) | int }};
             const $riskList = $('#risk-lovers-list');
             const $noPainList = $('#no-pain-list');
             const $remarkablesUpdated = $('#remarkables-updated');
@@ -3414,7 +3492,7 @@
                 const nickname = $('#profile-nickname').val().trim();
                 saveProfileData({ nickname });
                 if (nickname) $('#profile-btn-label').text(nickname.substring(0, 14));
-                else $('#profile-btn-label').text({{ user_email.split('@')[0][:14] | tojson if user_email else '"Profile"' }});
+                else $('#profile-btn-label').text({{ (user_email.split('@')[0][:14] if user_email else 'Profile') | tojson }});
             });
             $('#profile-nickname').on('keydown', function(e) {
                 if (e.key === 'Enter') $('#profile-save-btn').trigger('click');
@@ -3570,7 +3648,9 @@
             }
 
             function updateAnonUsage(used, limit) {
-                const remaining = Math.max(0, limit - used);
+                if (Number.isFinite(used)) anonUsed = used;
+                const lim = Number.isFinite(limit) ? limit : anonDailyLimit;
+                const remaining = Math.max(0, lim - anonUsed);
                 const $badge = $('#tb-anon-badge');
                 $badge.text(`${remaining} free ${remaining === 1 ? 'analysis' : 'analyses'} left today`);
                 if (remaining <= 0) $badge.addClass('warning');
@@ -3793,7 +3873,7 @@
 
             /* ── Ticker autocomplete ── */
             (function() {
-                const AC_DATA = {{ autocomplete_symbols | tojson }};
+                const AC_DATA = {{ autocomplete_symbols | default([], true) | tojson }};
                 const input   = document.getElementById('stock-input');
                 const ac      = document.getElementById('ticker-ac');
                 let selectedIdx = -1;
@@ -3902,7 +3982,11 @@
                 function load() {
                     try {
                         const saved = JSON.parse(localStorage.getItem(LS_KEY));
-                        if (Array.isArray(saved) && saved.length) return saved;
+                        if (Array.isArray(saved)) {
+                            if (saved.length) return saved;
+                            // If user previously cleared all selections, fall back to US so lists are visible
+                            return ['us'];
+                        }
                     } catch (_) {}
                     // Default: show US market
                     return ['us'];
@@ -4284,6 +4368,13 @@
                     return;
                 }
 
+                // Guard: anonymous users who exhausted the quota should see the upgrade modal instantly
+                if (!isLoggedIn && anonUsed >= anonDailyLimit) {
+                    console.warn('Blocked predict: anon limit reached', { anonUsed, anonDailyLimit });
+                    openUpgradeModal("You've reached your free analysis limit. Sign in or upgrade to continue.");
+                    return;
+                }
+
                 _startLoader(symbol);
                 $('.loading-spinner').addClass('is-visible');
                 $('#results').hide();
@@ -4433,8 +4524,14 @@
                         _stopLoader();
                         $('.loading-spinner').removeClass('is-visible');
                         const data = xhr.responseJSON || {};
+                        console.warn('Predict failed', { status: xhr.status, data });
                         if (xhr.status === 429 && data.upgrade_required) {
+                            if (!isLoggedIn && data.used_today !== undefined) {
+                                updateAnonUsage(data.used_today, data.daily_limit);
+                            }
                             openUpgradeModal(data.error || "You've reached your daily limit.");
+                        } else if (xhr.status === 0) {
+                            alert('Network error — request could not reach the server. Please retry.');
                         } else {
                             alert('Error: ' + (data.error || 'Unknown error'));
                         }
