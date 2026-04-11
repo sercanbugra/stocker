@@ -20,6 +20,7 @@ import xgboost as xgb
 from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
 import requests
 from datetime import datetime, timezone
+from datetime import datetime as dt
 from requests.exceptions import HTTPError
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from plotly.utils import PlotlyJSONEncoder
@@ -1976,6 +1977,13 @@ def load_cached_response(symbol: str):
             return None
         payload = _upgrade_cached_payload(payload, symbol)
         payload['cache_used'] = True
+        # Attach cache timestamp if missing
+        if '_cached_at' not in payload:
+            try:
+                ts = os.path.getmtime(cache_path)
+                payload['_cached_at'] = datetime.utcfromtimestamp(ts).replace(tzinfo=timezone.utc).isoformat()
+            except Exception:
+                payload['_cached_at'] = None
         return payload
     except Exception as exc:
         logger.warning(f"Failed to load cache for {symbol}: {exc}")
@@ -1987,6 +1995,8 @@ def save_cached_response(symbol: str, payload: dict):
     os.makedirs(cache_dir, exist_ok=True)
     cache_path = os.path.join(cache_dir, f'{symbol}.json')
     try:
+        payload = dict(payload)
+        payload['_cached_at'] = datetime.now(timezone.utc).isoformat()
         with open(cache_path, 'w', encoding='utf-8') as f:
             json.dump(payload, f)
     except Exception as exc:
@@ -2853,28 +2863,31 @@ def train_prediction_models(close_values, forecast_horizon=30, time_steps=30):
     X, y, feature_scaler, close_scaler = prepare_feature_windows(close_values, time_steps)
     flat_X = X.reshape(X.shape[0], -1)
     predictions = {}
+    t0 = time.monotonic()
 
     # XGBoost Model (more estimators, lower learning rate for stability)
     xgb_model = xgb.XGBRegressor(
-        n_estimators=320,
+        n_estimators=140,
         max_depth=5,
         learning_rate=0.035,
         subsample=0.9,
         colsample_bytree=0.9,
-        random_state=42
+        random_state=42,
+        n_jobs=1,
     )
     xgb_model.fit(flat_X, y)
     xgb_forecast = _forecast_tree_recursive(
         xgb_model, close_values, feature_scaler, close_scaler, time_steps, forecast_horizon
     )
     predictions['XGBoost'] = xgb_forecast
+    t_xgb = time.monotonic()
 
     # ExtraTrees Model (controls to reduce overfitting on small windows)
     try:
         et_model = ExtraTreesRegressor(
-            n_estimators=260,
+            n_estimators=160,
             random_state=42,
-            n_jobs=-1,
+            n_jobs=1,
             max_depth=None,
             max_features='sqrt',
             min_samples_leaf=2
@@ -2886,13 +2899,14 @@ def train_prediction_models(close_values, forecast_horizon=30, time_steps=30):
         predictions['ExtraTrees'] = et_forecast
     except Exception as e:
         logger.error(f"ExtraTrees model error: {e}")
+    t_et = time.monotonic()
 
     # RandomForest Model
     try:
         rf_model = RandomForestRegressor(
-            n_estimators=260,
+            n_estimators=160,
             random_state=42,
-            n_jobs=-1,
+            n_jobs=1,
             max_depth=None,
             max_features='sqrt',
             min_samples_leaf=2
@@ -2904,6 +2918,17 @@ def train_prediction_models(close_values, forecast_horizon=30, time_steps=30):
         predictions['RandomForest'] = rf_forecast
     except Exception as e:
         logger.error(f"RandomForest model error: {e}")
+
+    try:
+        logger.info(
+            "train timings xgb=%.2fs et=%.2fs rf=%.2fs total=%.2fs",
+            t_xgb - t0,
+            t_et - t_xgb,
+            time.monotonic() - t_et,
+            time.monotonic() - t0,
+        )
+    except Exception:
+        pass
 
     return predictions
 
@@ -4024,11 +4049,28 @@ def run_prediction(symbol: str):
     symbol = (symbol or "").strip().upper()
     if not symbol:
         return {'error': 'Please provide a symbol'}, 400
+    # Serve warm cache if fresh (<=12 hours)
+    cached = load_cached_response(symbol)
+    if cached:
+        try:
+            ts = cached.get('_cached_at')
+            if ts:
+                age_hours = (datetime.now(timezone.utc) - datetime.fromisoformat(ts)).total_seconds() / 3600.0
+            else:
+                age_hours = 0
+        except Exception:
+            age_hours = 0
+        if age_hours <= 12:
+            logger.info("predict served from warm cache symbol=%s age=%.2fh", symbol, age_hours)
+            return cached, 200
+    t0 = time.monotonic()
+    t_fetch = t_train = t_charts = t_insights = 0.0
     try:
         stock = yf.Ticker(symbol)
         data_source = "yahoo"
         try:
             df = fetch_with_retry(symbol, period='1y', attempts=3, delay=2)
+            t_fetch = time.monotonic()
         except Exception as exc:
             cached = load_cached_response(symbol)
             if cached:
@@ -4047,12 +4089,15 @@ def run_prediction(symbol: str):
                 raise exc
         df = validate_stock_data(df)
 
+        t1 = time.monotonic()
+
         forecast_horizon = 30
         predictions = train_prediction_models(
             df['Close'].values,
             forecast_horizon=forecast_horizon,
             time_steps=30
         )
+        t_train = time.monotonic()
 
         # Build dates
         actual_dates = [pd.Timestamp(ts).tz_localize(None).isoformat() for ts in df.index]
@@ -4130,6 +4175,7 @@ def run_prediction(symbol: str):
         rsi_chart_json = _build_rsi_chart_from_series(
             symbol, last1_dates, df_1m['Close'].astype(float).tolist()
         )
+        t_charts = time.monotonic()
 
         # 3M predictions removed in favor of pattern detection chart
         preds_3m = {}
@@ -4143,6 +4189,7 @@ def run_prediction(symbol: str):
         news = news_future.result()
         company_info, company_info_source = profile_future.result()
         analyst_payload = analyst_future.result()
+        t_insights = time.monotonic()
         response = {
             'chart': chart_json,
             'pattern_chart': pattern_chart_json,
@@ -4165,6 +4212,15 @@ def run_prediction(symbol: str):
             'future_dates_3m': future_dates_3m_iso
         }
         save_cached_response(symbol, response)
+        logger.info(
+            "predict timings symbol=%s fetch=%.2fs train=%.2fs charts=%.2fs insights=%.2fs total=%.2fs",
+            symbol,
+            (t_fetch - t0),
+            (t_train - t1),
+            (t_charts - t_train),
+            (t_insights - t_charts),
+            (t_insights - t0),
+        )
         return response, 200
     except HTTPError as he:
         status = getattr(getattr(he, "response", None), "status_code", None)
@@ -4186,6 +4242,9 @@ def run_prediction(symbol: str):
 @app.route('/predict', methods=['POST'])
 def predict():
     email = _get_current_user_email()
+    symbol = (request.form.get('symbol') or '').strip().upper()
+    t0 = time.monotonic()
+    logger.info("predict request start symbol=%s user=%s", symbol, email or "anon")
     if email:
         allowed, used, limit = _check_and_increment_daily_usage(email)
         if not allowed:
@@ -4207,7 +4266,9 @@ def predict():
             }), 429
         session["anon_analyses"] = anon_used + 1
 
-    resp, status = run_prediction(request.form.get('symbol'))
+    t1 = time.monotonic()
+    resp, status = run_prediction(symbol)
+    t2 = time.monotonic()
     if status == 200:
         tier = _get_user_tier(email) if email else "free"
         today = datetime.now(timezone.utc).date().isoformat()
@@ -4222,7 +4283,23 @@ def predict():
             "used_today": used_now,
             "daily_limit": (ANON_DAILY_LIMIT if not email else FREE_DAILY_LIMIT) if tier == "free" else -1,
         }
+        logger.info(
+            "predict success symbol=%s user=%s total=%.2fs run=%.2fs",
+            symbol,
+            email or "anon",
+            t2 - t0,
+            t2 - t1,
+        )
         return jsonify(resp)
+    logger.warning(
+        "predict failed symbol=%s user=%s status=%s total=%.2fs run=%.2fs error=%s",
+        symbol,
+        email or "anon",
+        status,
+        time.monotonic() - t0,
+        t2 - t1,
+        resp,
+    )
     return jsonify(resp), status
 
 
