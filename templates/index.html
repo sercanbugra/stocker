@@ -3446,6 +3446,12 @@
             const userTier = {{ (user_tier or 'free') | tojson }};
             const anonDailyLimit = {{ anon_daily_limit | default(1, true) | int }};
             let anonUsed = {{ anon_used | default(0, true) | int }};
+            const proTiers = ['pro', 'premium', 'admin'];
+            const premiumTiers = ['premium', 'admin'];
+            const hasProAccess = isLoggedIn && proTiers.includes(userTier);
+            const hasPremiumAccess = isLoggedIn && premiumTiers.includes(userTier);
+            const watchlistTiers = proTiers;
+            const hasWatchlistAccess = hasProAccess;
             const $riskList = $('#risk-lovers-list');
             const $noPainList = $('#no-pain-list');
             const $remarkablesUpdated = $('#remarkables-updated');
@@ -4384,6 +4390,7 @@
                     url: '/predict',
                     method: 'POST',
                     data: { symbol: symbol },
+                    timeout: 80000, // allow slow backend up to 80s before timing out
                     success: function(response) {
                         _stopLoader();
                         setTimeout(function() { $('.loading-spinner').removeClass('is-visible'); }, 320);
@@ -4520,7 +4527,7 @@
                             loadEarningsSummary(currentSymbol);
                         }
                     },
-                    error: function(xhr) {
+                    error: function(xhr, textStatus) {
                         _stopLoader();
                         $('.loading-spinner').removeClass('is-visible');
                         const data = xhr.responseJSON || {};
@@ -4530,6 +4537,9 @@
                                 updateAnonUsage(data.used_today, data.daily_limit);
                             }
                             openUpgradeModal(data.error || "You've reached your daily limit.");
+                        } else if (textStatus === 'timeout') {
+                            alert('Request timed out. The server is slow right now—please try again in a moment.');
+                            if (window.__stockerLog) window.__stockerLog('predict-timeout', { symbol });
                         } else if (xhr.status === 0) {
                             alert('Network error — request could not reach the server. Please retry.');
                         } else {
@@ -4538,13 +4548,6 @@
                     }
                 });
             });
-
-            const proTiers = ['pro', 'premium', 'admin'];
-            const premiumTiers = ['premium', 'admin'];
-            const hasProAccess = isLoggedIn && proTiers.includes(userTier);
-            const hasPremiumAccess = isLoggedIn && premiumTiers.includes(userTier);
-            const watchlistTiers = proTiers;
-            const hasWatchlistAccess = hasProAccess;
 
             // Upgrade button inside locked cards
             $('#thesis-upgrade-btn, #peers-upgrade-btn').on('click', function() {
@@ -4839,12 +4842,16 @@
             modal.classList.remove('is-visible');
             document.getElementById('sample-modal-img').src = '';
         }
-        document.getElementById('sample-modal').addEventListener('click', function(e) {
-            if (e.target === this) closeSampleModal();
-        });
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') closeSampleModal();
-        });
+        (function() {
+            const modal = document.getElementById('sample-modal');
+            if (!modal) return;
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) closeSampleModal();
+            });
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeSampleModal();
+            });
+        })();
 
     </script>
 
