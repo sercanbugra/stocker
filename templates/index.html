@@ -1899,6 +1899,23 @@
                     <a href="#" class="auth-link" id="auth-mode-toggle">Register</a>
                 </div>
             </div>
+
+            <!-- Pending email verification view -->
+            <div id="auth-view-pending" style="display:none; text-align:center; padding:8px 0;">
+                <div style="font-size:2.4rem; margin-bottom:12px;">✉️</div>
+                <h6 style="color:var(--panel-text); margin-bottom:8px;">Check your inbox</h6>
+                <p class="small" style="color:var(--panel-muted); line-height:1.6; margin-bottom:16px;">
+                    An activation email has been sent to<br>
+                    <strong id="auth-pending-email" style="color:var(--panel-text);"></strong><br>
+                    Click the link in that email to activate your account.
+                </p>
+                <p class="small" style="color:var(--panel-muted); margin-bottom:16px;">
+                    The link expires in 24 hours. Check your spam folder if you don't see it.
+                </p>
+                <button class="btn btn-link text-muted small p-0" type="button" id="auth-pending-back">
+                    <i class="fas fa-arrow-left me-1"></i> Back to sign in
+                </button>
+            </div>
         </div>
     </div>
     <!-- Upgrade Modal -->
@@ -2019,6 +2036,15 @@
                         <div class="theme-dot theme-dot-crimson" data-theme="crimson" title="Dark Crimson"></div>
                         <span class="small" style="color:var(--panel-muted);" id="profile-theme-name">Ocean Blue</span>
                     </div>
+
+                    <!-- Markets -->
+                    <div class="profile-section-label">Markets</div>
+                    <div class="d-flex flex-wrap gap-2 mb-3" id="profile-markets">
+                        <button type="button" class="btn btn-sm btn-outline-light profile-market-chip" data-market="us">US</button>
+                        <button type="button" class="btn btn-sm btn-outline-light profile-market-chip" data-market="uk">UK</button>
+                        <button type="button" class="btn btn-sm btn-outline-light profile-market-chip" data-market="tr">Turkey</button>
+                    </div>
+
                     <!-- Plan -->
                     <div class="profile-section-label">Membership</div>
                     <div class="profile-membership-card mb-3">
@@ -2079,7 +2105,7 @@
                     <!-- Sign out -->
                     <hr style="border-color:var(--panel-border); margin:14px 0;">
                     <div class="d-flex align-items-center justify-content-start">
-                        <a href="/logout" class="btn btn-sm" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:var(--panel-muted);">
+                        <a href="/logout" id="logout-link" class="btn btn-sm" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:var(--panel-muted);">
                             <i class="fas fa-sign-out-alt me-1"></i>Sign out
                         </a>
                     </div>
@@ -3393,6 +3419,32 @@
                         sessionStorage.removeItem(flagKey);
                     }
                 }
+                // Show email-verification result toast
+                const verifiedParam = params.get('verified');
+                if (verifiedParam) {
+                    history.replaceState(null, '', window.location.pathname);
+                    const $toast = $('<div>', {
+                        css: {
+                            position: 'fixed', bottom: '24px', left: '50%',
+                            transform: 'translateX(-50%)',
+                            background: verifiedParam === '1' ? '#0d3048' : '#3a1a1a',
+                            border: '1px solid ' + (verifiedParam === '1' ? 'rgba(0,200,232,0.4)' : 'rgba(220,53,69,0.4)'),
+                            color: '#c8eeff', borderRadius: '10px',
+                            padding: '12px 24px', fontSize: '14px',
+                            boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
+                            zIndex: 9999, whiteSpace: 'nowrap',
+                        }
+                    });
+                    if (verifiedParam === '1') {
+                        $toast.html('<i class="fas fa-check-circle me-2" style="color:#00c8e8;"></i>Your email has been verified — welcome to Stocker!');
+                    } else if (verifiedParam === 'expired') {
+                        $toast.html('<i class="fas fa-exclamation-circle me-2" style="color:#ffc107;"></i>Verification link has expired. Please register again.');
+                    } else {
+                        $toast.html('<i class="fas fa-times-circle me-2" style="color:#dc3545;"></i>Invalid verification link.');
+                    }
+                    $('body').append($toast);
+                    setTimeout(() => $toast.fadeOut(400, function(){ $(this).remove(); }), 5000);
+                }
             })();
 
             // ---------------------------------------------------------------
@@ -3446,6 +3498,8 @@
             const userTier = {{ (user_tier or 'free') | tojson }};
             const anonDailyLimit = {{ anon_daily_limit | default(1, true) | int }};
             let anonUsed = {{ anon_used | default(0, true) | int }};
+            const userMarkets = {{ user_markets | default([], true) | tojson }};
+            const currentUser = {{ (user_email or '') | tojson }};
             const proTiers = ['pro', 'premium', 'admin'];
             const premiumTiers = ['premium', 'admin'];
             const hasProAccess = isLoggedIn && proTiers.includes(userTier);
@@ -3516,6 +3570,31 @@
                 updateProfileThemeName(theme);
                 if (isLoggedIn) saveProfileData({ theme });
             });
+
+            // Markets in profile modal
+            (function() {
+                const $chips = $('#profile-markets .profile-market-chip');
+                function syncChips(sel) {
+                    $chips.each(function() {
+                        const m = $(this).data('market');
+                        $(this).toggleClass('active', sel.includes(m));
+                    });
+                }
+                const initial = (Array.isArray(userMarkets) && userMarkets.length) ? userMarkets : (window._rm_selected_markets || ['us']);
+                syncChips(initial);
+                $chips.on('click', function() {
+                    const m = $(this).data('market');
+                    let sel = $chips.filter('.active').map(function(){ return $(this).data('market'); }).get();
+                    if (sel.includes(m)) {
+                        sel = sel.filter(x => x !== m);
+                    } else {
+                        sel.push(m);
+                    }
+                    if (!sel.length) sel = ['us'];
+                    syncChips(sel);
+                    if (window.setMarketSelection) window.setMarketSelection(sel);
+                });
+            })();
 
             async function saveProfileData(data) {
                 try {
@@ -3983,26 +4062,46 @@
             /* ── Market picker ── */
             (function() {
                 const LS_KEY = 'stocker_rm_markets';
+                const LS_LAST_USER = 'stocker_last_user';
                 const ALL    = ['us', 'uk', 'tr'];
+                window._rm_selected_markets = [];
 
                 function load() {
+                    const lastUser = localStorage.getItem(LS_LAST_USER) || '';
+                    if (isLoggedIn) {
+                        if (lastUser && lastUser !== currentUser) {
+                            // New user logged in on same browser — reset to server or default
+                            localStorage.removeItem(LS_KEY);
+                        }
+                        localStorage.setItem(LS_LAST_USER, currentUser || '');
+                        if (Array.isArray(userMarkets) && userMarkets.length) {
+                            return userMarkets;
+                        }
+                    } else {
+                        // logged out: if last user was someone else, keep LS; otherwise use LS
+                        if (lastUser && lastUser !== 'anon') {
+                            // coming from logged-in state -> reset to anon defaults
+                            localStorage.removeItem(LS_KEY);
+                        }
+                        localStorage.setItem(LS_LAST_USER, 'anon');
+                    }
                     try {
                         const saved = JSON.parse(localStorage.getItem(LS_KEY));
                         if (Array.isArray(saved)) {
                             if (saved.length) return saved;
-                            // If user previously cleared all selections, fall back to US so lists are visible
                             return ['us'];
                         }
                     } catch (_) {}
-                    // Default: show US market
                     return ['us'];
                 }
 
                 function save(arr) {
                     localStorage.setItem(LS_KEY, JSON.stringify(arr));
+                    if (isLoggedIn) saveProfileData({ markets: arr });
                 }
 
                 function apply(selected) {
+                    window._rm_selected_markets = selected;
                     // Update chips
                     document.querySelectorAll('.rm-mkt-chip').forEach(function(btn) {
                         btn.classList.toggle('active', selected.includes(btn.dataset.market));
@@ -4020,6 +4119,10 @@
                 // Init
                 let selected = load();
                 apply(selected);
+                if (isLoggedIn && !(userMarkets && userMarkets.length)) {
+                    // save defaults to server for this user so next login has their own copy
+                    save(selected);
+                }
 
                 // Chip click: toggle on/off (multi-select)
                 document.querySelectorAll('.rm-mkt-chip').forEach(function(btn) {
@@ -4035,6 +4138,15 @@
                         loadRemarkables(true);
                     });
                 });
+
+                // expose setter for profile modal
+                window.setMarketSelection = function(arr, triggerRefresh=true) {
+                    const cleaned = (arr || []).filter(m => ALL.includes(m));
+                    const finalSel = cleaned.length ? cleaned : ['us'];
+                    save(finalSel);
+                    apply(finalSel);
+                    if (triggerRefresh) loadRemarkables(true);
+                };
             })();
 
             function closeAuthModal() {
@@ -4046,6 +4158,19 @@
                 $('#auth-email-error').hide().text('');
                 $('#auth-modal-title').text('Welcome');
             }
+
+            // Sign out via fetch to avoid caching issues
+            $('#logout-link').on('click', async function(e) {
+                e.preventDefault();
+                try {
+                    await fetch('/logout', { method: 'GET', cache: 'no-cache' });
+                } catch(_) {}
+                try {
+                    localStorage.removeItem('stocker_rm_markets');
+                    localStorage.setItem('stocker_last_user', 'anon');
+                } catch(_) {}
+                window.location.href = '/';
+            });
 
             function showEmailView(mode) {
                 // mode: 'login' | 'register'
@@ -4106,6 +4231,12 @@
                     const data = await resp.json();
                     if (!resp.ok) {
                         $err.text(data.error || 'An error occurred.').show();
+                    } else if (data.pending_verification) {
+                        // Show "check your inbox" view instead of reloading
+                        $('#auth-pending-email').text(email);
+                        $('#auth-modal-title').text('Verify your email');
+                        $('#auth-view-email').hide();
+                        $('#auth-view-pending').show();
                     } else {
                         window.location.reload();
                     }
@@ -4118,6 +4249,13 @@
             // Allow Enter key to submit
             $('#auth-email-input, #auth-password-input').on('keydown', function(e) {
                 if (e.key === 'Enter') $('#auth-email-submit').click();
+            });
+            // Back button from pending-verification view
+            $('#auth-pending-back').on('click', function() {
+                $('#auth-view-pending').hide();
+                $('#auth-view-email').show();
+                $('#auth-modal-title').text('Sign In');
+                showEmailView('login');
             });
 
             function getCssVar(name) {
