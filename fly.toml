@@ -1,7 +1,4 @@
-# fly.toml app configuration file generated for stocker-4ii2vw on 2026-02-11T13:54:16Z
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
+# fly.toml app configuration file for stocker-2xbjqq
 
 app = 'stocker-2xbjqq'
 primary_region = 'ams'
@@ -23,10 +20,10 @@ primary_region = 'ams'
   min_machines_running = 1
   processes = ['app']
 
-
 [[mounts]]
   source = "stocker_data"
   destination = "/data"
+  processes = ["app"]
 
 [[vm]]
   cpu_kind = 'shared'

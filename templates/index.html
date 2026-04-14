@@ -537,6 +537,12 @@
             width: 64px;
             height: auto;
         }
+        .footer-link {
+            color: var(--panel-muted);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        .footer-link:hover { color: var(--accent); }
         .footer-text {
             max-width: 520px;
         }
@@ -1894,7 +1900,22 @@
                         <i class="fas fa-arrow-left me-1"></i> Back
                     </button>
                 </div>
-                <div class="mt-3 small text-center">
+                <!-- GDPR consent checkbox — shown only in Register mode -->
+                <div id="auth-consent-wrap" style="display:none; margin-top:6px;">
+                    <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-size:0.82rem; color:var(--panel-muted); line-height:1.5;">
+                        <input type="checkbox" id="auth-consent-checkbox" style="margin-top:3px; flex-shrink:0; accent-color:var(--accent);">
+                        <span>
+                            I have read and agree to the
+                            <a href="/privacy" target="_blank" style="color:var(--accent);">Privacy Policy</a>
+                            and consent to Stocker processing my personal data (email address and usage data)
+                            to provide the service.
+                        </span>
+                    </label>
+                    <p id="auth-consent-error" style="display:none; color:#dc3545; font-size:0.78rem; margin:4px 0 0 22px;">
+                        Please accept the Privacy Policy to continue.
+                    </p>
+                </div>
+                <div class="mt-2 small text-center">
                     <span id="auth-toggle-text">Don't have an account?</span>
                     <a href="#" class="auth-link" id="auth-mode-toggle">Register</a>
                 </div>
@@ -2280,7 +2301,7 @@
         <!-- ── Top toolbar ── -->
         <div class="top-toolbar mb-3">
             <!-- Logo -->
-            <a href="https://www.gultechs.net/" target="_blank" rel="noopener noreferrer" class="toolbar-logo-wrap">
+            <a href="https://stocker.gultechs.net/" class="toolbar-logo-wrap">
                 <picture>
                     <source srcset="{{ url_for('static', filename='stocker_logo_small.webp') }}" type="image/webp">
                     <img src="{{ url_for('static', filename='stocker_logo.png') }}" alt="Stocker" class="toolbar-logo" width="133" height="46" decoding="async">
@@ -3226,19 +3247,26 @@
 
     <footer class="site-footer mt-4">
         <div class="container">
-            <div class="d-flex align-items-center gap-3 flex-wrap">
-                <a href="https://www.gultechs.net/" target="_blank" rel="noopener noreferrer">
-                    <picture>
-                        <source srcset="{{ url_for('static', filename='logo_small.webp') }}" type="image/webp">
-                        <img src="{{ url_for('static', filename='logo.png') }}" alt="Company logo" class="footer-logo" width="64" height="64" loading="lazy" decoding="async">
-                    </picture>
-                </a>
-                <div class="footer-text">
-                    <strong>Stocker</strong>
-                    <p class="mb-0">
-                        Gultechs build data-driven market tools for faster, clearer decisions.
-                        Secure, research-backed, and designed for everyday investors.
-                    </p>
+            <div class="d-flex align-items-center gap-3 flex-wrap justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="https://www.gultechs.net/" target="_blank" rel="noopener noreferrer">
+                        <picture>
+                            <source srcset="{{ url_for('static', filename='logo_small.webp') }}" type="image/webp">
+                            <img src="{{ url_for('static', filename='logo.png') }}" alt="Company logo" class="footer-logo" width="64" height="64" loading="lazy" decoding="async">
+                        </picture>
+                    </a>
+                    <div class="footer-text">
+                        <strong>Stocker</strong>
+                        <p class="mb-0">
+                            Gultechs build data-driven market tools for faster, clearer decisions.
+                            Secure, research-backed, and designed for everyday investors.
+                        </p>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 flex-wrap" style="font-size:0.82rem;">
+                    <a href="/privacy" class="footer-link">Privacy Policy</a>
+                    <a href="mailto:info@gultechs.net" class="footer-link">Contact</a>
+                    <span style="color:var(--panel-muted);">© 2025 Gultechs</span>
                 </div>
             </div>
         </div>
@@ -4181,11 +4209,15 @@
                     $('#auth-email-submit').text('Register');
                     $('#auth-toggle-text').text('Already have an account?');
                     $('#auth-mode-toggle').text('Sign In').data('mode', 'login');
+                    $('#auth-consent-wrap').show();
+                    $('#auth-consent-checkbox').prop('checked', false);
+                    $('#auth-consent-error').hide();
                 } else {
                     $('#auth-modal-title').text('Sign In');
                     $('#auth-email-submit').text('Sign In');
                     $('#auth-toggle-text').text("Don't have an account?");
                     $('#auth-mode-toggle').text('Register').data('mode', 'register');
+                    $('#auth-consent-wrap').hide();
                 }
                 $('#auth-email-input').focus();
             }
@@ -4220,13 +4252,24 @@
                     $err.text('Please enter your email and password.').show();
                     return;
                 }
+                // Validate GDPR consent checkbox for registration
+                if (isRegister) {
+                    const consented = $('#auth-consent-checkbox').is(':checked');
+                    if (!consented) {
+                        $('#auth-consent-error').show();
+                        return;
+                    }
+                    $('#auth-consent-error').hide();
+                }
                 $btn.prop('disabled', true).text(isRegister ? 'Registering…' : 'Signing in…');
                 try {
                     const endpoint = isRegister ? '/register/email' : '/login/email';
+                    const body = { email, password };
+                    if (isRegister) body.gdpr_consent = true;
                     const resp = await fetch(endpoint, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password })
+                        body: JSON.stringify(body)
                     });
                     const data = await resp.json();
                     if (!resp.ok) {
@@ -4449,6 +4492,7 @@
 
             function _startLoader(symbol) {
                 // Reset UI
+                $('.rm-picker-wrap').show();
                 _resetSteps();
                 _buildCandles();
                 document.getElementById('loader-symbol').textContent = symbol || '—';
@@ -4533,6 +4577,7 @@
                         _stopLoader();
                         setTimeout(function() { $('.loading-spinner').removeClass('is-visible'); }, 320);
                         $('#results').show();
+                        $('.rm-picker-wrap').hide();
                         $('#add-watchlist').fadeIn(300);
                         if (response._meta) {
                             if (isLoggedIn) {
@@ -5002,5 +5047,147 @@
             <img id="sample-modal-img" src="" alt="" width="800" height="600" loading="lazy" decoding="async">
         </div>
     </div>
+
+    <!-- ── Cookie consent banner ── -->
+    <div id="cookie-banner" style="
+        display:none; position:fixed; bottom:0; left:0; right:0; z-index:10000;
+        background:#0a2535; border-top:1px solid rgba(0,200,232,0.25);
+        padding:14px 20px; box-shadow:0 -4px 20px rgba(0,0,0,0.5);">
+        <div style="max-width:960px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <p style="margin:0; font-size:0.84rem; color:rgba(200,238,255,0.7); flex:1; min-width:220px;">
+                🍪 We use functional cookies to keep you signed in and remember your preferences.
+                No advertising or tracking cookies. <a href="/privacy" target="_blank" style="color:#00c8e8;">Privacy Policy</a>
+            </p>
+            <div style="display:flex; gap:10px; flex-shrink:0;">
+                <button id="cookie-settings-btn" style="
+                    background:transparent; color:rgba(200,238,255,0.6); border:1px solid rgba(200,238,255,0.25);
+                    border-radius:8px; padding:8px 16px; font-size:0.84rem; cursor:pointer; white-space:nowrap;">
+                    Manage Preferences
+                </button>
+                <button id="cookie-accept" style="
+                    background:#00c8e8; color:#051520; border:none; border-radius:8px;
+                    padding:8px 22px; font-size:0.84rem; font-weight:700; cursor:pointer; white-space:nowrap;">
+                    Accept All
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Cookie preferences panel ── -->
+    <div id="cookie-prefs-overlay" style="
+        display:none; position:fixed; inset:0; z-index:10001;
+        background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
+        <div style="
+            position:absolute; bottom:0; left:0; right:0;
+            background:#0a2535; border-top:1px solid rgba(0,200,232,0.3);
+            padding:28px 24px 24px; max-width:560px; margin:0 auto; border-radius:16px 16px 0 0;">
+            <h6 style="color:#c8eeff; font-weight:700; margin-bottom:6px;">Cookie Preferences</h6>
+            <p style="font-size:0.82rem; color:rgba(200,238,255,0.55); margin-bottom:20px;">
+                Choose which cookies Stocker may use. You can change these at any time.
+                <a href="/privacy" target="_blank" style="color:#00c8e8;">Privacy Policy</a>
+            </p>
+
+            <!-- Functional -->
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; padding:14px 0; border-top:1px solid rgba(0,200,232,0.12);">
+                <div style="flex:1; padding-right:16px;">
+                    <p style="margin:0 0 3px; font-size:0.88rem; font-weight:600; color:#c8eeff;">
+                        Functional (Required)
+                    </p>
+                    <p style="margin:0; font-size:0.78rem; color:rgba(200,238,255,0.5); line-height:1.5;">
+                        Session cookies to keep you logged in, and local storage for your theme and market preferences. Cannot be disabled as these are essential for the service.
+                    </p>
+                </div>
+                <div style="flex-shrink:0; padding-top:2px;">
+                    <span style="
+                        display:inline-block; background:#00c8e8; color:#051520;
+                        font-size:0.72rem; font-weight:700; padding:3px 10px;
+                        border-radius:20px; white-space:nowrap;">Always On</span>
+                </div>
+            </div>
+
+            <!-- Analytics — we don't use any, shown for transparency -->
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; padding:14px 0; border-top:1px solid rgba(0,200,232,0.12);">
+                <div style="flex:1; padding-right:16px;">
+                    <p style="margin:0 0 3px; font-size:0.88rem; font-weight:600; color:#c8eeff;">
+                        Analytics
+                    </p>
+                    <p style="margin:0; font-size:0.78rem; color:rgba(200,238,255,0.5); line-height:1.5;">
+                        We do not currently use any analytics or tracking cookies. No third-party analytics scripts are loaded.
+                    </p>
+                </div>
+                <div style="flex-shrink:0; padding-top:2px;">
+                    <span style="
+                        display:inline-block; background:rgba(200,238,255,0.08); color:rgba(200,238,255,0.35);
+                        font-size:0.72rem; font-weight:700; padding:3px 10px;
+                        border-radius:20px; white-space:nowrap;">Not Used</span>
+                </div>
+            </div>
+
+            <!-- Advertising -->
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; padding:14px 0; border-top:1px solid rgba(0,200,232,0.12); margin-bottom:20px;">
+                <div style="flex:1; padding-right:16px;">
+                    <p style="margin:0 0 3px; font-size:0.88rem; font-weight:600; color:#c8eeff;">
+                        Advertising
+                    </p>
+                    <p style="margin:0; font-size:0.78rem; color:rgba(200,238,255,0.5); line-height:1.5;">
+                        We do not use advertising or retargeting cookies of any kind.
+                    </p>
+                </div>
+                <div style="flex-shrink:0; padding-top:2px;">
+                    <span style="
+                        display:inline-block; background:rgba(200,238,255,0.08); color:rgba(200,238,255,0.35);
+                        font-size:0.72rem; font-weight:700; padding:3px 10px;
+                        border-radius:20px; white-space:nowrap;">Not Used</span>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button id="cookie-prefs-close" style="
+                    background:transparent; color:rgba(200,238,255,0.6);
+                    border:1px solid rgba(200,238,255,0.25); border-radius:8px;
+                    padding:9px 20px; font-size:0.84rem; cursor:pointer;">
+                    Cancel
+                </button>
+                <button id="cookie-prefs-save" style="
+                    background:#00c8e8; color:#051520; border:none; border-radius:8px;
+                    padding:9px 22px; font-size:0.84rem; font-weight:700; cursor:pointer;">
+                    Save Preferences
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            var CONSENT_KEY = 'stocker_cookie_consent';
+            var banner  = document.getElementById('cookie-banner');
+            var overlay = document.getElementById('cookie-prefs-overlay');
+
+            function dismiss() {
+                localStorage.setItem(CONSENT_KEY, '1');
+                banner.style.display  = 'none';
+                overlay.style.display = 'none';
+            }
+
+            if (!localStorage.getItem(CONSENT_KEY)) {
+                banner.style.display = 'block';
+            }
+
+            document.getElementById('cookie-accept').addEventListener('click', dismiss);
+
+            document.getElementById('cookie-settings-btn').addEventListener('click', function() {
+                overlay.style.display = 'block';
+            });
+            document.getElementById('cookie-prefs-close').addEventListener('click', function() {
+                overlay.style.display = 'none';
+            });
+            document.getElementById('cookie-prefs-save').addEventListener('click', dismiss);
+
+            // Close overlay on backdrop click
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) overlay.style.display = 'none';
+            });
+        })();
+    </script>
 </body>
 </html>

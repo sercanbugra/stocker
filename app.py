@@ -74,6 +74,48 @@ def _set_cache_headers(response):
     return response
 
 
+_CSP = "; ".join([
+    "default-src 'self'",
+    # Scripts: jQuery, Bootstrap JS, Plotly — all from trusted CDNs
+    # 'unsafe-inline' required for existing inline onclick handlers in the template
+    "script-src 'self' 'unsafe-inline' https://code.jquery.com https://cdn.jsdelivr.net",
+    # Styles: Bootstrap, Font Awesome — 'unsafe-inline' required for inline style= attributes
+    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
+    # Font Awesome webfonts
+    "font-src 'self' https://cdnjs.cloudflare.com",
+    # Images: self + data: URIs (Plotly exports charts as data: URLs)
+    "img-src 'self' data:",
+    # XHR/fetch: all API calls are same-origin
+    "connect-src 'self'",
+    # No iframes anywhere on the site
+    "frame-src 'none'",
+    # Block Flash/plugins entirely
+    "object-src 'none'",
+    # Prevent base-tag injection attacks
+    "base-uri 'self'",
+    # Form submissions only go to the same origin
+    "form-action 'self'",
+])
+
+
+@app.after_request
+def _set_security_headers(response):
+    h = response.headers
+    # HTTPS-only for 1 year; tells browsers never to load this site over plain HTTP
+    h["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    # Prevent this site being embedded in iframes on other domains (clickjacking)
+    h["X-Frame-Options"] = "SAMEORIGIN"
+    # Stop browsers guessing content types (MIME-sniffing attacks)
+    h["X-Content-Type-Options"] = "nosniff"
+    # Only send the origin (no path) in Referer headers to external sites
+    h["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    # Disable browser features the app never uses
+    h["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), usb=(), interest-cohort=()"
+    # Content Security Policy — controls exactly which resources can load
+    h["Content-Security-Policy"] = _CSP
+    return response
+
+
 @app.route("/client-log", methods=["POST"])
 def client_log():
     """Lightweight client-side log sink to debug frontend issues in prod.
@@ -335,7 +377,8 @@ def _send_welcome_email(to_email: str) -> None:
         <td align="center"
             style="background:#071a28;border:1px solid rgba(0,200,232,0.25);border-top:none;border-radius:0 0 16px 16px;padding:20px 40px;">
           <p style="margin:0;color:rgba(200,238,255,0.25);font-size:12px;">
-            © 2025 Stocker · Gultechs · info@gultechs.net
+            © 2025 Stocker · Gultechs · info@gultechs.net &nbsp;·&nbsp;
+            <a href="{site_url}/privacy" style="color:rgba(200,238,255,0.4);text-decoration:none;">Privacy Policy</a>
           </p>
           <p style="margin:6px 0 0;color:rgba(200,238,255,0.2);font-size:11px;">
             You received this because you registered at {site_url}
@@ -439,7 +482,8 @@ def _send_cancellation_email(to_email: str, tier: str = "") -> None:
         <td align="center"
             style="background:#071a28;border:1px solid rgba(0,200,232,0.25);border-top:none;border-radius:0 0 16px 16px;padding:18px 36px;">
           <p style="margin:0;color:rgba(200,238,255,0.25);font-size:12px;">
-            © 2025 Stocker · Gultechs · info@gultechs.net
+            © 2025 Stocker · Gultechs · info@gultechs.net &nbsp;·&nbsp;
+            <a href="{site_url}/privacy" style="color:rgba(200,238,255,0.4);text-decoration:none;">Privacy Policy</a>
           </p>
         </td>
       </tr>
@@ -538,7 +582,8 @@ def _send_verification_email(to_email: str, token: str) -> None:
         <td align="center"
             style="background:#071a28;border:1px solid rgba(0,200,232,0.25);border-top:none;border-radius:0 0 16px 16px;padding:20px 40px;">
           <p style="margin:0;color:rgba(200,238,255,0.25);font-size:12px;">
-            © 2025 Stocker · Gultechs · info@gultechs.net
+            © 2025 Stocker · Gultechs · info@gultechs.net &nbsp;·&nbsp;
+            <a href="{site_url}/privacy" style="color:rgba(200,238,255,0.4);text-decoration:none;">Privacy Policy</a>
           </p>
         </td>
       </tr>
@@ -717,7 +762,8 @@ def _send_subscription_email(to_email: str, tier: str) -> None:
         <td align="center"
             style="background:#071a28;border:1px solid rgba(0,200,232,0.25);border-top:none;border-radius:0 0 16px 16px;padding:20px 40px;">
           <p style="margin:0;color:rgba(200,238,255,0.25);font-size:12px;">
-            © 2025 Stocker · Gultechs · info@gultechs.net
+            © 2025 Stocker · Gultechs · info@gultechs.net &nbsp;·&nbsp;
+            <a href="{site_url}/privacy" style="color:rgba(200,238,255,0.4);text-decoration:none;">Privacy Policy</a>
           </p>
           <p style="margin:6px 0 0;color:rgba(200,238,255,0.2);font-size:11px;">
             You received this because you subscribed at {site_url}
@@ -3537,6 +3583,12 @@ def get_full_market_data(market_key: str, force_refresh: bool = False) -> dict:
     return mem or cached or empty
 
 
+@app.route('/privacy')
+def privacy():
+    last_updated = "14 April 2026"
+    return render_template('privacy.html', last_updated=last_updated)
+
+
 @app.route('/sitemap.xml')
 def sitemap():
     from flask import send_from_directory
@@ -3700,6 +3752,8 @@ def register_email():
         return jsonify({"error": "Invalid email address."}), 400
     if len(password) < 6:
         return jsonify({"error": "Password must be at least 6 characters."}), 400
+    if not data.get("gdpr_consent"):
+        return jsonify({"error": "You must accept the Privacy Policy to create an account."}), 400
     users = _load_users()
     if email in users:
         existing = users[email]
@@ -3708,6 +3762,8 @@ def register_email():
             token = secrets.token_urlsafe(32)
             existing["email_verification_token"] = token
             existing["email_verification_expires"] = time.time() + 86400
+            existing["gdpr_consent"] = True
+            existing["gdpr_consent_at"] = datetime.now(timezone.utc).isoformat()
             users[email] = existing
             _save_users(users)
             _send_verification_email(email, token)
@@ -3720,6 +3776,8 @@ def register_email():
         "email_verified": False,
         "email_verification_token": token,
         "email_verification_expires": time.time() + 86400,
+        "gdpr_consent": True,
+        "gdpr_consent_at": datetime.now(timezone.utc).isoformat(),
     }
     _save_users(users)
     _send_verification_email(email, token)
