@@ -5,6 +5,7 @@ import logging
 import json
 import time
 import re
+import secrets
 import threading
 import concurrent.futures
 import smtplib
@@ -12,6 +13,7 @@ import urllib.parse
 import xml.etree.ElementTree as ET
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import formatdate, make_msgid
 import numpy as np
 import pandas as pd
 import yfinance as yf
@@ -20,7 +22,6 @@ import xgboost as xgb
 from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
 import requests
 from datetime import datetime, timezone
-from datetime import datetime as dt
 from requests.exceptions import HTTPError
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from plotly.utils import PlotlyJSONEncoder
@@ -357,9 +358,11 @@ def _send_welcome_email(to_email: str) -> None:
         )
 
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = "Welcome to Stocker — your AI stock analysis platform"
-        msg["From"]    = f"Stocker <{SMTP_USER}>"
-        msg["To"]      = to_email
+        msg["Subject"]    = "Welcome to Stocker — your AI stock analysis platform"
+        msg["From"]       = f"Stocker <{SMTP_USER}>"
+        msg["To"]         = to_email
+        msg["Date"]       = formatdate(localtime=False)
+        msg["Message-ID"] = make_msgid(domain="gultechs.net")
         msg.attach(MIMEText(plain, "plain"))
         msg.attach(MIMEText(html, "html"))
 
@@ -454,9 +457,11 @@ def _send_cancellation_email(to_email: str, tier: str = "") -> None:
         )
 
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"]    = f"Stocker <{SMTP_USER}>"
-        msg["To"]      = to_email
+        msg["Subject"]    = subject
+        msg["From"]       = f"Stocker <{SMTP_USER}>"
+        msg["To"]         = to_email
+        msg["Date"]       = formatdate(localtime=False)
+        msg["Message-ID"] = make_msgid(domain="gultechs.net")
         msg.attach(MIMEText(plain, "plain"))
         msg.attach(MIMEText(html, "html"))
 
@@ -469,6 +474,105 @@ def _send_cancellation_email(to_email: str, tier: str = "") -> None:
             logger.info("Cancellation email sent to %s", to_email)
         except Exception as exc:
             logger.warning("Cancellation email failed for %s: %s", to_email, exc)
+
+    threading.Thread(target=_send, daemon=True).start()
+
+
+def _send_verification_email(to_email: str, token: str) -> None:
+    """Send an email-verification link in a background thread; never raises."""
+    if not SMTP_HOST or not SMTP_PASS:
+        logger.warning("SMTP not configured — verification email skipped for %s", to_email)
+        return
+
+    def _send():
+        logo_url = f"{SITE_BASE_URL}/static/stocker_logo.png"
+        site_url = SITE_BASE_URL
+        verify_url = f"{SITE_BASE_URL}/verify-email?token={token}"
+
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Verify your Stocker email</title>
+</head>
+<body style="margin:0;padding:0;background:#051520;font-family:'Helvetica Neue',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#051520;padding:40px 0;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+      <tr>
+        <td align="center" style="background:#0a2535;border:1px solid rgba(0,200,232,0.25);border-bottom:none;border-radius:16px 16px 0 0;padding:32px 40px 24px;">
+          <img src="{logo_url}" alt="Stocker" width="180"
+               style="display:block;max-width:180px;height:auto;margin:0 auto 20px;"/>
+          <h1 style="margin:0;color:#c8eeff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">
+            Confirm your email address
+          </h1>
+          <p style="margin:8px 0 0;color:rgba(200,238,255,0.55);font-size:14px;">
+            One click and you're in.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#0d3048;border-left:1px solid rgba(0,200,232,0.25);border-right:1px solid rgba(0,200,232,0.25);padding:32px 40px;">
+          <p style="margin:0 0 20px;color:rgba(200,238,255,0.75);font-size:15px;line-height:1.7;">
+            Thanks for signing up! Click the button below to verify your email address and activate your Stocker account.
+          </p>
+          <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:28px;">
+            <tr><td align="center">
+              <a href="{verify_url}"
+                 style="display:inline-block;background:#00c8e8;color:#051520;text-decoration:none;
+                        font-size:15px;font-weight:700;padding:14px 36px;border-radius:10px;">
+                Activate My Account →
+              </a>
+            </td></tr>
+          </table>
+          <p style="margin:0 0 8px;color:rgba(200,238,255,0.4);font-size:13px;line-height:1.6;">
+            This link expires in 24 hours. If you didn't create an account, you can safely ignore this email.
+          </p>
+          <p style="margin:0;color:rgba(200,238,255,0.3);font-size:12px;word-break:break-all;">
+            {verify_url}
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td align="center"
+            style="background:#071a28;border:1px solid rgba(0,200,232,0.25);border-top:none;border-radius:0 0 16px 16px;padding:20px 40px;">
+          <p style="margin:0;color:rgba(200,238,255,0.25);font-size:12px;">
+            © 2025 Stocker · Gultechs · info@gultechs.net
+          </p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>"""
+
+        plain = (
+            f"Confirm your Stocker email address\n\n"
+            f"Click the link below to activate your account:\n{verify_url}\n\n"
+            f"This link expires in 24 hours.\n"
+            f"If you didn't create an account, you can safely ignore this email.\n"
+        )
+
+        msg = MIMEMultipart("alternative")
+        msg["Subject"]    = "Activate your Stocker account"
+        msg["From"]       = f"Stocker <{SMTP_USER}>"
+        msg["To"]         = to_email
+        msg["Date"]       = formatdate(localtime=False)
+        msg["Message-ID"] = make_msgid(domain="gultechs.net")
+        msg.attach(MIMEText(plain, "plain"))
+        msg.attach(MIMEText(html, "html"))
+
+        try:
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+                server.ehlo()
+                server.starttls()
+                server.login(SMTP_USER, SMTP_PASS)
+                server.sendmail(SMTP_USER, to_email, msg.as_string())
+            logger.info("Verification email sent to %s", to_email)
+        except Exception as exc:
+            logger.warning("Verification email failed for %s: %s", to_email, exc)
 
     threading.Thread(target=_send, daemon=True).start()
 
@@ -635,9 +739,11 @@ def _send_subscription_email(to_email: str, tier: str) -> None:
         )
 
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"]    = f"Stocker <{SMTP_USER}>"
-        msg["To"]      = to_email
+        msg["Subject"]    = subject
+        msg["From"]       = f"Stocker <{SMTP_USER}>"
+        msg["To"]         = to_email
+        msg["Date"]       = formatdate(localtime=False)
+        msg["Message-ID"] = make_msgid(domain="gultechs.net")
         msg.attach(MIMEText(plain, "plain"))
         msg.attach(MIMEText(html, "html"))
 
@@ -3472,6 +3578,12 @@ def home():
     if user_email and user is None:
         user = {"email": user_email}
     user_tier = _get_user_tier(user_email) if user_email else "free"
+    user_markets = []
+    if user_email:
+        users_tmp = _load_users()
+        info_tmp = users_tmp.get(user_email, {})
+        if isinstance(info_tmp, dict):
+            user_markets = info_tmp.get("markets") or []
     subscribed = request.args.get("subscribed") == "1"
     lse_data  = get_full_market_data("lse")
     bist_data = get_full_market_data("bist")
@@ -3488,6 +3600,15 @@ def home():
     for sym in stocks:
         if sym not in db_keys:
             autocomplete_symbols.append({"s": sym, "n": sym, "m": "US"})
+
+    # Fallback aliases for symbols not in the DB (e.g., NOK for Nokia)
+    fallback_syms = [
+        {"s": "NOK", "n": "Nokia Oyj", "m": "US"},
+    ]
+    existing_syms = {item["s"] for item in autocomplete_symbols}
+    for item in fallback_syms:
+        if item["s"] not in existing_syms:
+            autocomplete_symbols.append(item)
 
     anon_used = session.get("anon_analyses", 0) if not user_email else 0
 
@@ -3530,6 +3651,7 @@ def home():
         autocomplete_symbols=autocomplete_symbols,
         sub_cancel_at_period_end=sub_cancel_at_period_end,
         sub_period_end_ts=sub_period_end_ts,
+        user_markets=user_markets,
     )
 
 @app.route('/api/remarkables', methods=['GET'])
@@ -3561,6 +3683,8 @@ def login_email():
     hashed = info["password_hash"] if isinstance(info, dict) else info
     if not check_password_hash(hashed, password):
         return jsonify({"error": "Invalid email or password."}), 401
+    if isinstance(info, dict) and not info.get("email_verified", True):
+        return jsonify({"error": "Please verify your email before signing in. Check your inbox for the activation link.", "unverified": True}), 403
     session["user_email"] = email
     tier = info.get("tier", "free") if isinstance(info, dict) else "free"
     return jsonify({"ok": True, "tier": tier})
@@ -3578,12 +3702,55 @@ def register_email():
         return jsonify({"error": "Password must be at least 6 characters."}), 400
     users = _load_users()
     if email in users:
+        existing = users[email]
+        # If an unverified account exists, allow re-sending the verification email
+        if isinstance(existing, dict) and not existing.get("email_verified", True):
+            token = secrets.token_urlsafe(32)
+            existing["email_verification_token"] = token
+            existing["email_verification_expires"] = time.time() + 86400
+            users[email] = existing
+            _save_users(users)
+            _send_verification_email(email, token)
+            return jsonify({"ok": True, "pending_verification": True})
         return jsonify({"error": "An account with this email already exists."}), 409
-    users[email] = {"password_hash": generate_password_hash(password), "tier": "free"}
+    token = secrets.token_urlsafe(32)
+    users[email] = {
+        "password_hash": generate_password_hash(password),
+        "tier": "free",
+        "email_verified": False,
+        "email_verification_token": token,
+        "email_verification_expires": time.time() + 86400,
+    }
     _save_users(users)
-    session["user_email"] = email
-    _send_welcome_email(email)
-    return jsonify({"ok": True, "tier": "free"})
+    _send_verification_email(email, token)
+    return jsonify({"ok": True, "pending_verification": True})
+
+@app.route("/verify-email")
+def verify_email():
+    token = request.args.get("token", "").strip()
+    if not token:
+        return redirect(url_for("home"))
+    users = _load_users()
+    matched_email = None
+    for em, info in users.items():
+        if isinstance(info, dict) and info.get("email_verification_token") == token:
+            matched_email = em
+            break
+    if not matched_email:
+        return redirect(url_for("home") + "?verified=invalid")
+    info = users[matched_email]
+    expires = info.get("email_verification_expires", 0)
+    if time.time() > expires:
+        return redirect(url_for("home") + "?verified=expired")
+    info["email_verified"] = True
+    info.pop("email_verification_token", None)
+    info.pop("email_verification_expires", None)
+    users[matched_email] = info
+    _save_users(users)
+    session["user_email"] = matched_email
+    _send_welcome_email(matched_email)
+    return redirect(url_for("home") + "?verified=1")
+
 
 @app.route("/api/watchlist", methods=["GET", "POST"])
 def watchlist_api():
@@ -4249,7 +4416,7 @@ def predict():
         allowed, used, limit = _check_and_increment_daily_usage(email)
         if not allowed:
             return jsonify({
-                "error": "You've used all 5 free analyses for today. Upgrade to Pro for unlimited access.",
+                "error": f"You've used all {FREE_DAILY_LIMIT} free analyses for today. Upgrade to Pro for unlimited access.",
                 "upgrade_required": True,
                 "used_today": used,
                 "daily_limit": limit,
@@ -4596,11 +4763,13 @@ def api_me():
         "nickname": info.get("nickname", "") if isinstance(info, dict) else "",
         "avatar": info.get("avatar", "fa-user") if isinstance(info, dict) else "fa-user",
         "theme": info.get("theme", "") if isinstance(info, dict) else "",
+        "markets": info.get("markets", []) if isinstance(info, dict) else [],
     })
 
 
 _ALLOWED_AVATARS = {"fa-user", "fa-user-astronaut", "fa-user-ninja", "fa-user-secret", "fa-user-tie"}
 _ALLOWED_THEMES  = {"", "beige", "crimson"}
+_ALLOWED_MARKETS = {"us", "uk", "tr"}
 
 
 @app.route("/api/profile", methods=["POST"])
@@ -4619,6 +4788,12 @@ def api_profile():
         info["avatar"] = data["avatar"]
     if "theme" in data and data["theme"] in _ALLOWED_THEMES:
         info["theme"] = data["theme"]
+    if "markets" in data:
+        try:
+            markets = [m for m in data.get("markets", []) if m in _ALLOWED_MARKETS]
+            info["markets"] = markets
+        except Exception:
+            pass
     users[email] = info
     _save_users(users)
     return jsonify({"ok": True})
