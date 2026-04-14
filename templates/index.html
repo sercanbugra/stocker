@@ -1221,6 +1221,16 @@
             background: rgba(255,165,0,0.22);
             box-shadow: 0 2px 8px rgba(255,165,0,0.2);
         }
+        /* Watchlisted (already saved) state */
+        .tb-btn-watchlisted {
+            background: rgba(110,231,168,0.12) !important;
+            border-color: rgba(110,231,168,0.35) !important;
+            color: #6ee7a8 !important;
+            cursor: default;
+        }
+        .tb-btn-watchlisted:hover {
+            background: rgba(110,231,168,0.16) !important;
+        }
         /* Locked / greyed watchlist */
         .tb-btn-locked {
             background: rgba(255,255,255,0.04) !important;
@@ -4567,6 +4577,8 @@
                 $('.loading-spinner').addClass('is-visible');
                 $('#results').hide();
                 $('#add-watchlist').hide();
+                // Reset watchlist button state for new symbol
+                $('#add-watchlist').html('<i class="fas fa-star"></i><span> Save</span>').prop('disabled', false).removeClass('tb-btn-watchlisted');
 
                 $.ajax({
                     url: '/predict',
@@ -4579,6 +4591,19 @@
                         $('#results').show();
                         $('.rm-picker-wrap').hide();
                         $('#add-watchlist').fadeIn(300);
+                        // If symbol already in watchlist, show Watchlisted state immediately
+                        if (hasWatchlistAccess) {
+                            loadWatchlist().then(function(wl) {
+                                if (wl.includes(symbol)) {
+                                    $('#add-watchlist').html('<i class="fas fa-check"></i><span> Watchlisted</span>').prop('disabled', true).addClass('tb-btn-watchlisted');
+                                }
+                            });
+                        }
+                        // Scroll results into view so user doesn't have to hunt for them
+                        setTimeout(function() {
+                            var top = $('#results').offset().top - 80;
+                            $('html, body').animate({ scrollTop: top }, 450);
+                        }, 80);
                         if (response._meta) {
                             if (isLoggedIn) {
                                 updateUsageDisplay(response._meta.used_today, response._meta.daily_limit);
@@ -4986,9 +5011,16 @@
                     list.push(symbol);
                     await saveWatchlist(list);
                     await renderWatchlist();
-                    $watchlistNotice.text(`${symbol} added to watchlist.`);
+                    // Show temporary confirmation message
+                    $watchlistNotice.text('Your stock has been added to the watchlist.');
+                    setTimeout(function() { $watchlistNotice.text(''); }, 3000);
+                    // Transform button to Watchlisted state
+                    $('#add-watchlist').html('<i class="fas fa-check"></i><span> Watchlisted</span>').prop('disabled', true).addClass('tb-btn-watchlisted');
                 } else {
-                    $watchlistNotice.text(`${symbol} is already in watchlist.`);
+                    // Already saved — reflect state without adding again
+                    $('#add-watchlist').html('<i class="fas fa-check"></i><span> Watchlisted</span>').prop('disabled', true).addClass('tb-btn-watchlisted');
+                    $watchlistNotice.text(`${symbol} is already in your watchlist.`);
+                    setTimeout(function() { $watchlistNotice.text(''); }, 3000);
                 }
             });
 

@@ -4470,26 +4470,40 @@ def predict():
     symbol = (request.form.get('symbol') or '').strip().upper()
     t0 = time.monotonic()
     logger.info("predict request start symbol=%s user=%s", symbol, email or "anon")
-    if email:
-        allowed, used, limit = _check_and_increment_daily_usage(email)
-        if not allowed:
-            return jsonify({
-                "error": f"You've used all {FREE_DAILY_LIMIT} free analyses for today. Upgrade to Pro for unlimited access.",
-                "upgrade_required": True,
-                "used_today": used,
-                "daily_limit": limit,
-            }), 429
-    else:
-        anon_used = session.get("anon_analyses", 0)
-        if anon_used >= ANON_DAILY_LIMIT:
-            return jsonify({
-                "error": f"You've used your {ANON_DAILY_LIMIT} free analyses. Sign in for more, or upgrade to Pro.",
-                "upgrade_required": True,
-                "sign_in_required": True,
-                "used_today": anon_used,
-                "daily_limit": ANON_DAILY_LIMIT,
-            }), 429
-        session["anon_analyses"] = anon_used + 1
+
+    # Check warm cache FIRST — cache hits do not consume daily quota
+    _is_cache_hit = False
+    if symbol:
+        _cached_pre = load_cached_response(symbol)
+        if _cached_pre:
+            try:
+                _ts = _cached_pre.get('_cached_at')
+                _age = (datetime.now(timezone.utc) - datetime.fromisoformat(_ts)).total_seconds() / 3600.0 if _ts else 0
+            except Exception:
+                _age = 0
+            _is_cache_hit = _age <= 12
+
+    if not _is_cache_hit:
+        if email:
+            allowed, used, limit = _check_and_increment_daily_usage(email)
+            if not allowed:
+                return jsonify({
+                    "error": f"You've used all {FREE_DAILY_LIMIT} free analyses for today. Upgrade to Pro for unlimited access.",
+                    "upgrade_required": True,
+                    "used_today": used,
+                    "daily_limit": limit,
+                }), 429
+        else:
+            anon_used = session.get("anon_analyses", 0)
+            if anon_used >= ANON_DAILY_LIMIT:
+                return jsonify({
+                    "error": f"You've used your {ANON_DAILY_LIMIT} free analyses. Sign in for more, or upgrade to Pro.",
+                    "upgrade_required": True,
+                    "sign_in_required": True,
+                    "used_today": anon_used,
+                    "daily_limit": ANON_DAILY_LIMIT,
+                }), 429
+            session["anon_analyses"] = anon_used + 1
 
     t1 = time.monotonic()
     resp, status = run_prediction(symbol)
