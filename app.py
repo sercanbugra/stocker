@@ -1257,7 +1257,7 @@ def subscription_required(min_tier="pro"):
 REMARKABLES_CACHE_PATH = os.path.join(_DATA_DIR, "cache", "remarkables_nasdaq.json")
 REMARKABLES_CACHE_TTL_SECONDS = 12 * 60 * 60
 REMARKABLES_BATCH_SIZE = 25
-REMARKABLES_RULE_VERSION = "2026-02-16-v8-risk-near-fill-up1.20-down0.9"
+REMARKABLES_RULE_VERSION = "2026-04-15-v9-day-change-pct"
 REMARKABLES_REFRESH_LOCK = threading.Lock()
 REMARKABLES_REFRESH_IN_PROGRESS = False
 REMARKABLES_MEMORY_CACHE = None
@@ -2919,9 +2919,9 @@ def validate_stock_data(df):
         df.index = pd.to_datetime(df.index)
     cutoff = df.index.max() - pd.Timedelta(days=365)
     df = df.loc[df.index >= cutoff].copy()
-    
-    if len(df) < 250:  # Minimum trading days in a year
-        raise ValueError(f"Insufficient data points. Required: 250, Available: {len(df)}")
+
+    if len(df) < 60:  # Need at least ~3 months of data for reliable features
+        raise ValueError(f"Insufficient data points. Required: 60, Available: {len(df)}")
     
     # Remove rows with zero or negative prices
     df = df[df['Close'] > 0]
