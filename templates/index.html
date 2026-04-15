@@ -3315,6 +3315,8 @@
             var el = document.getElementById('profile-modal');
             if (el) el.style.display = 'flex';
             if (tab) switchProfileTab(tab);
+            // Refresh admin members list every time the modal opens
+            if (typeof loadAdminMembers === 'function') loadAdminMembers();
         }
         function closeProfileModal() {
             var el = document.getElementById('profile-modal');
@@ -3644,6 +3646,35 @@
                 } catch(e) {}
             }
 
+            // Admin: load/refresh members list
+            function loadAdminMembers() {
+                if (userTier !== 'admin' || !$adminMembersList.length) return;
+                $adminMembersList.html('<div class="text-muted">Loading members…</div>');
+                fetch('/api/admin/users').then(r => r.json()).then(users => {
+                    if (!Array.isArray(users)) {
+                        $adminMembersList.html('<div class="text-muted">Could not load members.</div>');
+                        return;
+                    }
+                    const rows = users.map(u => {
+                        const email = u.email || 'unknown';
+                        const tier = u.tier || 'free';
+                        return `
+                            <div class="d-flex justify-content-between align-items-center mb-2 admin-user-row">
+                                <div>
+                                    <div style="color:#e7ecff;">${email}</div>
+                                    <div class="text-muted" style="font-size:0.75rem;">${tier}</div>
+                                </div>
+                                <button class="btn btn-sm btn-outline-danger admin-delete-user" data-email="${email}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>`;
+                    }).join('') || '<div class="text-muted">No members found.</div>';
+                    $adminMembersList.html(rows);
+                }).catch(() => {
+                    $adminMembersList.html('<div class="text-muted">Could not load members.</div>');
+                });
+            }
+
             // Admin delete user
             $(document).on('click', '.admin-delete-user', async function() {
                 const email = $(this).data('email');
@@ -3657,7 +3688,7 @@
                     });
                     const res = await resp.json();
                     if (res && res.ok) {
-                        $(this).closest('.admin-user-row').remove();
+                        loadAdminMembers(); // reload full list after deletion
                     } else {
                         alert(res.error || 'Failed to delete user.');
                     }
@@ -3744,29 +3775,8 @@
                         }
                     } catch(_) {}
 
-                    // Admin: load members list
-                    if (userTier === 'admin' && $adminMembersList.length) {
-                        fetch('/api/admin/users').then(r => r.json()).then(users => {
-                            if (!Array.isArray(users)) return;
-                            const rows = users.map(u => {
-                                const email = u.email || 'unknown';
-                                const tier = u.tier || 'free';
-                                return `
-                                    <div class="d-flex justify-content-between align-items-center mb-2 admin-user-row">
-                                        <div>
-                                            <div style="color:#e7ecff;">${email}</div>
-                                            <div class="text-muted" style="font-size:0.75rem;">${tier}</div>
-                                        </div>
-                                        <button class="btn btn-sm btn-outline-danger admin-delete-user" data-email="${email}">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>`;
-                            }).join('') || '<div class="text-muted">No members found.</div>';
-                            $adminMembersList.html(rows);
-                        }).catch(() => {
-                            $adminMembersList.html('<div class="text-muted">Could not load members.</div>');
-                        });
-                    }
+                    // Admin: load members list on init
+                    if (userTier === 'admin') loadAdminMembers();
                 }).catch(() => {});
             }
 
