@@ -1257,7 +1257,7 @@ def subscription_required(min_tier="pro"):
 REMARKABLES_CACHE_PATH = os.path.join(_DATA_DIR, "cache", "remarkables_nasdaq.json")
 REMARKABLES_CACHE_TTL_SECONDS = 12 * 60 * 60
 REMARKABLES_BATCH_SIZE = 25
-REMARKABLES_RULE_VERSION = "2026-04-15-v9-day-change-pct"
+REMARKABLES_RULE_VERSION = "2026-04-20-v10-bist-up-mult-1.08"
 REMARKABLES_REFRESH_LOCK = threading.Lock()
 REMARKABLES_REFRESH_IN_PROGRESS = False
 REMARKABLES_MEMORY_CACHE = None
@@ -1271,7 +1271,25 @@ UNDERVALUED_CACHE_PATH = os.path.join(_DATA_DIR, "cache", "undervalued_stocks.js
 _UNDERVALUED_MEM: list | None = None
 _UNDERVALUED_MEM_DAY: str | None = None
 
+MARKET_RULE_VERSION = "2026-04-20-v2-up-mult-1.08-fill-fix"
 LSE_CACHE_PATH      = os.path.join(_DATA_DIR, "cache", "remarkables_lse.json")
+
+# ── Bottom market ticker bar ──────────────────────────────────────────────────
+MARKET_TICKER_DEFS = [
+    {"label": "S&P 500",   "sym": "^GSPC",    "invert": False, "fmt": ",.0f"},
+    {"label": "Nasdaq",    "sym": "^IXIC",    "invert": False, "fmt": ",.0f"},
+    {"label": "FTSE 100",  "sym": "^FTSE",    "invert": False, "fmt": ",.0f"},
+    {"label": "BIST 100",  "sym": "XU100.IS", "invert": False, "fmt": ",.0f"},
+    {"label": "Gold",      "sym": "GC=F",     "invert": False, "fmt": ",.1f"},
+    {"label": "Bitcoin",   "sym": "BTC-USD",  "invert": False, "fmt": ",.0f"},
+    {"label": "Crude Oil", "sym": "CL=F",     "invert": False, "fmt": ",.2f"},
+    {"label": "USD/EUR",   "sym": "EURUSD=X", "invert": True,  "fmt": ".4f"},
+    {"label": "USD/TRY",   "sym": "USDTRY=X", "invert": False, "fmt": ".4f"},
+    {"label": "USD/GBP",   "sym": "GBPUSD=X", "invert": True,  "fmt": ".4f"},
+    {"label": "GBP/TRY",   "sym": "GBPTRY=X", "invert": False, "fmt": ".4f"},
+]
+_TICKER_CACHE: dict = {"data": None, "ts": 0.0}
+_TICKER_TTL = 300  # 5-minute cache
 BIST_CACHE_PATH     = os.path.join(_DATA_DIR, "cache", "remarkables_bist.json")
 INDUSTRY_DB_PATH    = os.path.join(_DATA_DIR, "cache", "industry_db.json")
 _UNDERVALUED_REFRESH_LOCK = threading.Lock()
@@ -1439,6 +1457,19 @@ def fetch_nasdaq_symbols():
 
 def fetch_ftse100_symbols():
     """Return FTSE 100 tickers with .L suffix for Yahoo Finance."""
+    # 1) Local file — avoids Wikipedia on every call
+    try:
+        local_list = os.path.join(os.path.dirname(__file__), 'data', 'ftse100_symbols.txt')
+        if os.path.exists(local_list):
+            with open(local_list, 'r', encoding='utf-8') as f:
+                symbols = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+            if symbols:
+                logger.info(f"Loaded {len(symbols)} FTSE 100 symbols from local list")
+                return symbols
+    except Exception as e:
+        logger.warning(f"Could not read local FTSE 100 list: {e}")
+
+    # 2) Wikipedia fallback
     try:
         headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Safari/537.36"}
         resp = requests.get("https://en.wikipedia.org/wiki/FTSE_100_Index", headers=headers, timeout=10)
@@ -1455,7 +1486,7 @@ def fetch_ftse100_symbols():
                     return symbols
     except Exception as e:
         logger.warning(f"FTSE 100 Wikipedia fetch failed: {e}")
-    # Hardcoded fallback — full FTSE 100 constituents
+    # 3) Hardcoded fallback — full FTSE 100 constituents
     return [
         "AHT.L","AAL.L","ABDN.L","ABF.L","ADM.L","AV.L","AZN.L","AUTO.L",
         "BA.L","BARC.L","BATS.L","BEZ.L","BKG.L","BME.L","BNZL.L","BP.L",
@@ -1473,16 +1504,50 @@ def fetch_ftse100_symbols():
     ]
 
 def fetch_bist_symbols():
-    """Return BIST 50 tickers with .IS suffix for Yahoo Finance."""
+    """Return BIST tickers with .IS suffix — targets all listed stocks (~500)."""
+    headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Safari/537.36"}
+
+    # 1) Local file — fastest path, no external dependency
     try:
-        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Safari/537.36"}
+        local_list = os.path.join(os.path.dirname(__file__), 'data', 'bist_symbols.txt')
+        if os.path.exists(local_list):
+            with open(local_list, 'r', encoding='utf-8') as f:
+                symbols = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+            if symbols:
+                logger.info(f"Loaded {len(symbols)} BIST symbols from local list")
+                return symbols
+    except Exception as e:
+        logger.warning(f"Could not read local BIST list: {e}")
+
+    # 2) isyatirim.com.tr — returns full BIST listing as JSON
+    try:
+        resp = requests.get(
+            "https://www.isyatirim.com.tr/_layouts/15/Isyatirim.Website/Common/Data.aspx/HisseSenedi",
+            headers=headers, timeout=12
+        )
+        if resp.ok and resp.text.strip().startswith("{"):
+            data = resp.json()
+            items = data.get("value") or data.get("d") or []
+            symbols = []
+            for item in items:
+                kod = (item.get("kod") or item.get("Kod") or item.get("SEMBOL") or "").strip().upper()
+                if re.fullmatch(r"[A-Z0-9]{2,6}", kod):
+                    symbols.append(kod + ".IS")
+            if len(symbols) >= 100:
+                logger.info(f"Fetched {len(symbols)} BIST symbols from isyatirim")
+                return sorted(set(symbols))
+    except Exception as e:
+        logger.warning(f"BIST isyatirim fetch failed: {e}")
+
+    # 3) Wikipedia BIST 100
+    try:
         resp = requests.get("https://en.wikipedia.org/wiki/BIST_100", headers=headers, timeout=10)
         resp.raise_for_status()
         tables = pd.read_html(StringIO(resp.text))
         for df in tables:
             cols = [str(c).lower() for c in df.columns]
             if any("ticker" in c or "symbol" in c or "code" in c for c in cols):
-                col = next(c for c in df.columns if any(k in str(c).lower() for k in ("ticker","symbol","code")))
+                col = next(c for c in df.columns if any(k in str(c).lower() for k in ("ticker", "symbol", "code")))
                 symbols = [str(s).strip().upper() + ".IS" for s in df[col].dropna()
                            if str(s).strip() and not str(s).strip().endswith(".IS")
                            and re.fullmatch(r"[A-Z0-9]{2,6}", str(s).strip().upper())]
@@ -1491,25 +1556,64 @@ def fetch_bist_symbols():
                     return symbols
     except Exception as e:
         logger.warning(f"BIST Wikipedia fetch failed: {e}")
-    # Hardcoded fallback — full BIST 100 constituents
+
+    # 4) Comprehensive hardcoded fallback — ~500 BIST listed stocks
     return [
-        "ACSEL.IS","ADEL.IS","AEFES.IS","AGESA.IS","AGHOL.IS","AHGAZ.IS",
-        "AKBNK.IS","AKCNS.IS","AKFEN.IS","AKGRT.IS","AKSA.IS","AKSEN.IS",
-        "ALARK.IS","ALBRK.IS","ALCAR.IS","ALFAS.IS","ALKIM.IS","ANSGR.IS",
-        "ARCLK.IS","ARDYZ.IS","ARSAN.IS","ASELS.IS","ASUZU.IS","AYGAZ.IS",
-        "BAGFS.IS","BANVT.IS","BIMAS.IS","BIOEN.IS","BRISA.IS","BRSAN.IS",
-        "BRYAT.IS","BUCIM.IS","CCOLA.IS","CIMSA.IS","CLEBI.IS","CMENT.IS",
-        "DOAS.IS","DOHOL.IS","ECILC.IS","EGEEN.IS","EKGYO.IS","ENKAI.IS",
-        "EREGL.IS","EUPWR.IS","FENER.IS","FROTO.IS","GARAN.IS","GESAN.IS",
-        "GUBRF.IS","GWIND.IS","HALKB.IS","HEKTS.IS","HURGZ.IS","INDES.IS",
-        "IPEKE.IS","ISCTR.IS","ISGYO.IS","ISMEN.IS","KARSN.IS","KCHOL.IS",
-        "KLGYO.IS","KLNMA.IS","KONTR.IS","KONYA.IS","KOZAA.IS","KOZAL.IS",
-        "KRDMD.IS","LOGO.IS","MAVI.IS","MGROS.IS","MIATK.IS","NETAS.IS",
-        "ODAS.IS","OTKAR.IS","OYAKC.IS","PETKM.IS","PGSUS.IS","POLHO.IS",
-        "SAHOL.IS","SASA.IS","SISE.IS","SKBNK.IS","SNGYO.IS","SOKM.IS",
-        "TABGD.IS","TAVHL.IS","TCELL.IS","THYAO.IS","TKFEN.IS","TOASO.IS",
-        "TSKB.IS","TTKOM.IS","TTRAK.IS","TUPRS.IS","TURSG.IS","ULKER.IS",
-        "VAKBN.IS","VESTL.IS","YKBNK.IS","YYLGD.IS"
+        "ACSEL.IS","ADEL.IS","ADGYO.IS","AEFES.IS","AGESA.IS","AGHOL.IS","AHGAZ.IS","AHSGY.IS",
+        "AKBNK.IS","AKCNS.IS","AKFEN.IS","AKGRT.IS","AKISA.IS","AKSA.IS","AKSEN.IS","AKSGY.IS",
+        "AKSUE.IS","AKYHO.IS","ALARK.IS","ALBRK.IS","ALCAR.IS","ALFAS.IS","ALKIM.IS","ALKLC.IS",
+        "ALTNY.IS","ALVES.IS","ANELE.IS","ANGEN.IS","ANHYT.IS","ANSGR.IS","ARCLK.IS","ARDYZ.IS",
+        "ARENA.IS","ARSAN.IS","ASELS.IS","ASUZU.IS","ATAGY.IS","ATAKP.IS","ATESG.IS","ATPET.IS",
+        "AVISA.IS","AVOD.IS","AVTUR.IS","AYCES.IS","AYEN.IS","AYGAZ.IS","AZTEK.IS",
+        "BAGFS.IS","BALAT.IS","BANVT.IS","BARMA.IS","BASGZ.IS","BESTE.IS","BFREN.IS","BIGCH.IS",
+        "BIOEN.IS","BIZIM.IS","BLCYT.IS","BMEKS.IS","BMSTL.IS","BNTAS.IS","BOSSA.IS","BRISA.IS",
+        "BRKO.IS","BRMEN.IS","BRSAN.IS","BSOKE.IS","BTCIM.IS","BUCIM.IS","BURCE.IS","BURVA.IS",
+        "BVSAN.IS","BRYAT.IS",
+        "CANTE.IS","CARFA.IS","CCOLA.IS","CEMAS.IS","CIMSA.IS","CLEBI.IS","CMENT.IS","CPKEL.IS",
+        "CUSAN.IS","CWENE.IS",
+        "DAGHL.IS","DAGI.IS","DAPGM.IS","DENGE.IS","DERHL.IS","DERIM.IS","DESA.IS","DESPC.IS",
+        "DEVA.IS","DGKLB.IS","DITAS.IS","DMSAS.IS","DOAS.IS","DOBUR.IS","DOCO.IS","DOGUB.IS",
+        "DOHOL.IS","DOKTA.IS","DURDO.IS","DYOBY.IS",
+        "ECILC.IS","ECZYT.IS","EDATA.IS","EGEEN.IS","EGEPO.IS","EGSER.IS","EKGYO.IS","EMKEL.IS",
+        "EMNIS.IS","ENKAI.IS","EPLAS.IS","ERBOS.IS","ERCB.IS","ERSU.IS","ESCAR.IS","ESCOM.IS",
+        "ETILR.IS","EUPWR.IS",
+        "FADE.IS","FEMAS.IS","FENER.IS","FLAP.IS","FONET.IS","FORMT.IS","FROTO.IS",
+        "GARAN.IS","GEDZA.IS","GEREL.IS","GESAN.IS","GLBMD.IS","GLCVY.IS","GLRYH.IS","GLYHO.IS",
+        "GMTAS.IS","GOKNR.IS","GOLTS.IS","GOODY.IS","GRSEL.IS","GRTRK.IS","GUBRF.IS","GULER.IS",
+        "GWIND.IS","GZNMI.IS",
+        "HALKB.IS","HATEK.IS","HEKTS.IS","HLGYO.IS","HOROZ.IS","HTTBT.IS","HUNER.IS","HURGZ.IS",
+        "ICBCT.IS","IDGYO.IS","IHEVA.IS","IHGZT.IS","IHLAS.IS","IHLGM.IS","IHYAY.IS","IMASM.IS",
+        "INDES.IS","INDO.IS","INTEM.IS","INVEO.IS","IPEKE.IS","IPMAT.IS","ISCTR.IS","ISFIN.IS",
+        "ISGYO.IS","ISGYU.IS","ISMEN.IS","ITTFH.IS","IZFAS.IS",
+        "JANTS.IS",
+        "KAPLM.IS","KARBA.IS","KARSN.IS","KARTN.IS","KATMR.IS","KAYSE.IS","KBORU.IS","KCHOL.IS",
+        "KCAER.IS","KERVN.IS","KERVT.IS","KLGYO.IS","KLKIM.IS","KLNMA.IS","KLRHO.IS","KLSYN.IS",
+        "KNFRT.IS","KONKA.IS","KONTR.IS","KONYA.IS","KOPOL.IS","KORDS.IS","KOZAA.IS","KOZAL.IS",
+        "KRDMA.IS","KRDMB.IS","KRDMD.IS","KRGYO.IS","KRONT.IS","KRSAN.IS","KTLEV.IS","KUYAS.IS",
+        "KZBGY.IS",
+        "LIDER.IS","LIDFA.IS","LINK.IS","LKMNH.IS","LOGO.IS","LRELO.IS","LUKSK.IS",
+        "MAALT.IS","MACKO.IS","MAGEN.IS","MAKIM.IS","MAKTK.IS","MANAS.IS","MARKA.IS","MAVI.IS",
+        "MEDTR.IS","MERIT.IS","MERKO.IS","METRO.IS","MGLOB.IS","MGROS.IS","MHRTN.IS","MIATK.IS",
+        "MNDRS.IS","MNVAT.IS","MOBTL.IS","MOGAN.IS","MPARK.IS","MRGYO.IS","MRSHL.IS","MUTLU.IS",
+        "NATEN.IS","NETAS.IS","NIBAS.IS","NTHOL.IS","NTGAZ.IS","NUHCM.IS","NUGYO.IS","NWSAF.IS",
+        "ODAS.IS","ODEYO.IS","OFSYM.IS","ONCSM.IS","ONRYT.IS","ORGE.IS","ORION.IS","ORKSS.IS",
+        "OSAS.IS","OTKAR.IS","OYAKC.IS","OYLUM.IS","OZGYO.IS","OZKGY.IS","OZRDN.IS","OZSUB.IS",
+        "PAGYO.IS","PAMEL.IS","PAPIL.IS","PARYO.IS","PASEU.IS","PCILT.IS","PENGD.IS","PENTA.IS",
+        "PETKM.IS","PETUN.IS","PGSUS.IS","PKART.IS","PKENT.IS","PLTUR.IS","POLHO.IS","POLTK.IS",
+        "PRKAB.IS","PRKME.IS","PSDTC.IS",
+        "REEDR.IS","RHEAG.IS","RODRG.IS","ROYAL.IS","RTALB.IS","RUBNS.IS","RYGYO.IS",
+        "SAHOL.IS","SAMAT.IS","SAMFA.IS","SANKO.IS","SARKY.IS","SASA.IS","SAYAS.IS","SELEC.IS",
+        "SEYKM.IS","SILVR.IS","SISE.IS","SKBNK.IS","SKYMD.IS","SMRTG.IS","SNGYO.IS","SNKRN.IS",
+        "SOKM.IS","SRVGY.IS",
+        "TABGD.IS","TARKM.IS","TAVHL.IS","TBORG.IS","TCELL.IS","TDGYO.IS","TEKTU.IS","TETMT.IS",
+        "THYAO.IS","TKFEN.IS","TKNSA.IS","TOASO.IS","TRCAS.IS","TRGYO.IS","TRILC.IS","TSGYO.IS",
+        "TSKB.IS","TTKOM.IS","TTRAK.IS","TUGVA.IS","TUKAS.IS","TUPRS.IS","TURHH.IS","TURSG.IS",
+        "ULUUN.IS","ULKER.IS","UNLU.IS","USAK.IS",
+        "VAKBN.IS","VAKFN.IS","VAKGY.IS","VANGD.IS","VESBE.IS","VESTL.IS","VKFYO.IS","VKING.IS",
+        "WINTE.IS",
+        "YAYLA.IS","YBTAS.IS","YGYO.IS","YKSLN.IS","YKBNK.IS","YNLCO.IS","YONGA.IS","YORSA.IS",
+        "YUNSA.IS","YYLGD.IS",
+        "ZEDUR.IS","ZRGYO.IS","ZOREN.IS","ZZSGM.IS",
     ]
 
 def _extract_close_from_batch(df_batch: pd.DataFrame, symbol: str):
@@ -1960,7 +2064,7 @@ def _compute_risk_trending_for_market(symbols: list) -> dict:
             if close_3m.empty or len(close_3m) < 40:
                 continue
             trend_3m = _trend_percent(close_3m)
-            up_hits, down_hits = _prevday_highlow_hits(close_3m, high_3m, low_3m, up_mult=1.15, down_mult=0.95)
+            up_hits, down_hits = _prevday_highlow_hits(close_3m, high_3m, low_3m, up_mult=1.08, down_mult=0.95)
             if trend_3m >= 10.0 and down_hits >= 2 and up_hits >= 2:
                 risk_candidates.append({
                     "symbol": sym, "trend_percent": round(trend_3m, 2),
@@ -1994,8 +2098,8 @@ def _compute_risk_trending_for_market(symbols: list) -> dict:
     risk_syms = {x["symbol"] for x in risk_sorted}
     steady_sorted = [x for x in steady_sorted if x["symbol"] not in risk_syms][:5]
 
-    # Fill with near-matches only if strict list is non-empty; if nothing at all, return empty.
-    if 0 < len(risk_sorted) < 5:
+    # Fill with near-matches if strict list has fewer than 5 (including zero).
+    if len(risk_sorted) < 5:
         used = {x["symbol"] for x in risk_sorted}
         for item in risk_near_sorted:
             if item["symbol"] in used:
@@ -3489,6 +3593,7 @@ def _compute_full_market(market_key: str) -> dict:
     return {
         "updated_at":       datetime.now(timezone.utc).isoformat(),
         "market":           market_key,
+        "rule_version":     MARKET_RULE_VERSION,
         "for_risk_lovers":  rt["for_risk_lovers"],
         "no_pain_but_gain": rt["no_pain_but_gain"],
         "top_dividend":     div,
@@ -3565,7 +3670,9 @@ def get_full_market_data(market_key: str, force_refresh: bool = False) -> dict:
         if os.path.exists(path):
             with open(path, "r", encoding="utf-8") as f:
                 cached = json.load(f)
-            if _full_market_cache_is_today(cached):
+            if cached.get("rule_version") != MARKET_RULE_VERSION:
+                cached = None
+            elif _full_market_cache_is_today(cached):
                 with _FULL_MARKET_LOCK:
                     _FULL_MARKET_MEM[market_key] = cached
                 return cached
@@ -3582,6 +3689,67 @@ def get_full_market_data(market_key: str, force_refresh: bool = False) -> dict:
 
     return mem or cached or empty
 
+
+@app.route('/health')
+def health():
+    return jsonify({"status": "ok"}), 200
+
+
+@app.route("/api/ticker")
+def market_ticker_api():
+    import time as _time
+    now = _time.time()
+    if _TICKER_CACHE["data"] and now - _TICKER_CACHE["ts"] < _TICKER_TTL:
+        return jsonify(_TICKER_CACHE["data"])
+
+    tickers_out = []
+    syms = [d["sym"] for d in MARKET_TICKER_DEFS]
+    try:
+        tobj = yf.Tickers(" ".join(syms))
+        for defn in MARKET_TICKER_DEFS:
+            try:
+                fi  = tobj.tickers[defn["sym"]].fast_info
+                raw = float(fi.last_price or 0)
+                prv = float(fi.previous_close or 0)
+                if not raw:
+                    raise ValueError("no price")
+                if defn["invert"]:
+                    price    = 1.0 / raw
+                    prev_val = (1.0 / prv) if prv else None
+                else:
+                    price    = raw
+                    prev_val = prv or None
+                chg = (price - prev_val) / prev_val * 100 if prev_val else None
+                tickers_out.append({
+                    "label":    defn["label"],
+                    "price":    f"{price:{defn['fmt']}}",
+                    "change":   f"{chg:+.2f}%" if chg is not None else "—",
+                    "positive": (chg >= 0) if chg is not None else None,
+                })
+            except Exception as e:
+                logger.warning(f"Ticker {defn['sym']}: {e}")
+                tickers_out.append({"label": defn["label"], "price": "—", "change": "—", "positive": None})
+    except Exception as e:
+        logger.error(f"Ticker batch failed: {e}")
+        tickers_out = [{"label": d["label"], "price": "—", "change": "—", "positive": None}
+                       for d in MARKET_TICKER_DEFS]
+
+    news_out = []
+    try:
+        raw_news = yf.Ticker("^GSPC").news or []
+        for item in raw_news[:12]:
+            content = item.get("content") or {}
+            title = content.get("title") or item.get("title", "")
+            url   = (content.get("canonicalUrl") or {}).get("url") or \
+                    content.get("url") or item.get("link") or item.get("url") or ""
+            if title:
+                news_out.append({"title": title, "url": url})
+    except Exception:
+        pass
+
+    data = {"tickers": tickers_out, "news": news_out}
+    _TICKER_CACHE.update({"data": data, "ts": now})
+    return jsonify(data)
 
 @app.route('/privacy')
 def privacy():
@@ -4396,9 +4564,11 @@ def run_prediction(symbol: str):
                 lows=df['Low'].astype(float).tolist()
             )
 
-        # RSI chart (last ~1 month)
+        # RSI chart — pass 45 days so RSI has enough warm-up before the 22-day display window
+        df_rsi = df.tail(45) if len(df) > 45 else df.copy()
+        rsi_dates = [pd.Timestamp(ts).tz_localize(None).isoformat() for ts in df_rsi.index]
         rsi_chart_json = _build_rsi_chart_from_series(
-            symbol, last1_dates, df_1m['Close'].astype(float).tolist()
+            symbol, rsi_dates, df_rsi['Close'].astype(float).tolist()
         )
         t_charts = time.monotonic()
 
