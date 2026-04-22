@@ -593,6 +593,211 @@
             transition: opacity 0.15s;
         }
         .auth-modal-close:hover { opacity: 1; }
+
+        /* ── Welcome / onboarding modal ── */
+        .welcome-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(4, 8, 16, 0.88);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1400;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
+        .welcome-modal.is-visible { display: flex; }
+        .wm-card {
+            width: min(540px, 94vw);
+            background: var(--parliament-blue-soft);
+            border: 1px solid var(--panel-border);
+            border-radius: 22px;
+            padding: 36px 32px 28px;
+            box-shadow: 0 28px 70px rgba(0,0,0,0.55);
+            position: relative;
+            max-height: 92vh;
+            overflow-y: auto;
+        }
+        .wm-close {
+            position: absolute;
+            top: 16px;
+            right: 18px;
+            background: transparent;
+            border: none;
+            color: var(--panel-muted);
+            font-size: 1rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px;
+            transition: color 0.15s;
+        }
+        .wm-close:hover { color: var(--panel-text); }
+        .wm-logo-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+        .wm-tagline {
+            text-align: center;
+            font-size: 0.88rem;
+            color: var(--panel-muted);
+            margin-bottom: 24px;
+        }
+        /* Plan grid */
+        .wm-plans {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 22px;
+        }
+        .wm-plan {
+            background: rgba(0,0,0,0.22);
+            border: 1px solid var(--panel-border);
+            border-radius: 13px;
+            padding: 12px 8px 10px;
+            text-align: center;
+        }
+        .wm-plan-highlight {
+            border-color: rgba(0,200,232,0.4);
+            background: rgba(0,200,232,0.06);
+        }
+        .wm-plan-name {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--panel-muted);
+            margin-bottom: 5px;
+        }
+        .wm-plan-highlight .wm-plan-name { color: var(--accent); }
+        .wm-plan-quota {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--panel-text);
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+        .wm-plan-quota sup {
+            font-size: 0.6rem;
+            font-weight: 500;
+            color: var(--panel-muted);
+        }
+        .wm-plan-feats {
+            font-size: 0.66rem;
+            color: var(--panel-muted);
+            line-height: 1.6;
+        }
+        .wm-sep {
+            border: none;
+            border-top: 1px solid var(--panel-border);
+            margin: 4px 0 20px;
+        }
+        /* Action buttons */
+        .wm-btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 11px;
+            width: 100%;
+            padding: 12px 18px;
+            background: #ffffff;
+            color: #3c4043;
+            border: 1px solid #dadce0;
+            border-radius: 11px;
+            font-size: 0.94rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.15s, box-shadow 0.15s;
+            margin-bottom: 10px;
+        }
+        .wm-btn-google:hover {
+            background: #f8f9fa;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+            color: #3c4043;
+            text-decoration: none;
+        }
+        .wm-btn-email {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 11px;
+            width: 100%;
+            padding: 12px 18px;
+            background: transparent;
+            color: var(--panel-text);
+            border: 1px solid rgba(200,238,255,0.22);
+            border-radius: 11px;
+            font-size: 0.94rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            margin-bottom: 12px;
+        }
+        .wm-btn-email:hover {
+            background: rgba(200,238,255,0.06);
+            border-color: rgba(200,238,255,0.42);
+        }
+        .wm-btn-guest {
+            display: block;
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--panel-muted);
+            font-size: 0.82rem;
+            text-align: center;
+            cursor: pointer;
+            padding: 6px 0;
+            transition: color 0.15s;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            text-decoration-color: transparent;
+        }
+        .wm-btn-guest:hover {
+            color: var(--panel-text);
+            text-decoration-color: var(--panel-muted);
+        }
+        .wm-plan-cta {
+            cursor: pointer;
+            transition: border-color 0.18s, transform 0.18s, background 0.18s;
+        }
+        .wm-plan-cta:hover {
+            transform: translateY(-2px);
+        }
+        .wm-plan-cta[data-tier="pro"]:hover {
+            border-color: rgba(79,142,247,0.55);
+            background: rgba(79,142,247,0.1);
+        }
+        .wm-plan-cta[data-tier="premium"]:hover {
+            border-color: rgba(247,192,79,0.55);
+            background: rgba(247,192,79,0.08);
+        }
+        .wm-plan-cta-label {
+            margin-top: 7px;
+            font-size: 0.67rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            opacity: 0.7;
+            transition: opacity 0.15s;
+        }
+        .wm-plan-cta[data-tier="pro"] .wm-plan-cta-label { color: #4f8ef7; }
+        .wm-plan-cta[data-tier="premium"] .wm-plan-cta-label { color: #f7c04f; }
+        .wm-plan-cta:hover .wm-plan-cta-label { opacity: 1; }
+        .wm-terms {
+            text-align: center;
+            font-size: 0.73rem;
+            color: var(--panel-muted);
+            margin-top: 14px;
+            line-height: 1.6;
+        }
+        .wm-terms a { color: var(--accent); text-decoration: none; }
+        .wm-terms a:hover { text-decoration: underline; }
+        @media (max-width: 480px) {
+            .wm-plans { grid-template-columns: repeat(2, 1fr); }
+            .wm-card { padding: 28px 18px 22px; }
+        }
         #auth-view-email .form-control {
             background: var(--parliament-blue-deep);
             border: 1px solid var(--panel-border);
@@ -1132,7 +1337,7 @@
             text-decoration: none;
         }
         .toolbar-logo {
-            height: 46px;
+            height: 54px;
             width: auto;
             display: block;
         }
@@ -1875,9 +2080,256 @@
             border-radius: 20px;
         }
         .tb-anon-badge.warning { color: #f7c04f; border-color: rgba(247,192,79,0.35); }
+
+        /* ── Market ticker bar (fixed bottom) ─────────────────────────────── */
+        .mkt-ticker {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 900;
+            background: var(--parliament-blue-deep);
+            border-top: 1px solid var(--panel-border);
+            box-shadow: 0 -4px 28px rgba(0,0,0,0.55);
+            transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+            font-family: 'SF Mono', 'Consolas', 'Menlo', monospace;
+        }
+        .mkt-ticker.mkt-hidden { transform: translateY(100%); }
+        .mkt-data {
+            display: grid;
+            grid-template-columns: repeat(11, 1fr);
+            padding: 6px 44px 4px 10px;
+            gap: 0;
+            border-bottom: 1px solid var(--panel-border);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .mkt-data::-webkit-scrollbar { display: none; }
+        .mkt-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 3px 6px;
+            border-right: 1px solid var(--panel-border);
+            min-width: 78px;
+        }
+        .mkt-item:last-child { border-right: none; }
+        .mkt-lbl {
+            font-size: 0.6rem;
+            color: var(--panel-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            line-height: 1;
+            white-space: nowrap;
+        }
+        .mkt-price {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--panel-text);
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        .mkt-chg {
+            font-size: 0.65rem;
+            font-weight: 600;
+            line-height: 1;
+            white-space: nowrap;
+        }
+        .mkt-chg.pos { color: #3ddc84; }
+        .mkt-chg.neg { color: #ff5f5f; }
+        .mkt-chg.neu { color: var(--panel-muted); }
+        /* News bar */
+        .mkt-news {
+            display: flex;
+            align-items: center;
+            height: 22px;
+            padding: 0 44px 0 10px;
+            overflow: hidden;
+            gap: 10px;
+        }
+        .mkt-news-badge {
+            font-size: 0.58rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--parliament-blue-deep);
+            background: var(--accent);
+            padding: 2px 5px;
+            border-radius: 3px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            line-height: 1.4;
+        }
+        .mkt-news-wrap {
+            flex: 1;
+            overflow: hidden;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            cursor: default;
+        }
+        .mkt-news-text {
+            white-space: nowrap;
+            font-size: 0.68rem;
+            color: var(--panel-muted);
+            display: inline-block;
+            animation: mkt-scroll 80s linear infinite;
+            font-family: inherit;
+        }
+        .mkt-news-wrap:hover .mkt-news-text {
+            color: var(--panel-text);
+        }
+        .mkt-news-link {
+            color: inherit;
+            text-decoration: none;
+        }
+        .mkt-news-link:hover {
+            color: var(--accent);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .mkt-news-sep {
+            color: var(--panel-border);
+        }
+        @keyframes mkt-scroll {
+            0%   { transform: translateX(100vw); }
+            100% { transform: translateX(-100%); }
+        }
+        /* Toggle tab */
+        .mkt-toggle {
+            position: absolute;
+            top: -24px;
+            right: 14px;
+            background: var(--parliament-blue-deep);
+            border: 1px solid var(--panel-border);
+            border-bottom: none;
+            color: var(--panel-muted);
+            font-size: 0.65rem;
+            padding: 4px 10px 5px;
+            cursor: pointer;
+            border-radius: 6px 6px 0 0;
+            line-height: 1;
+            transition: color 0.15s, background 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .mkt-toggle:hover { color: var(--panel-text); background: var(--parliament-blue-soft); }
+        /* Collapsed stub — shown when ticker is hidden */
+        .mkt-stub {
+            position: fixed;
+            bottom: 0;
+            right: 14px;
+            z-index: 901;
+            background: var(--parliament-blue-deep);
+            border: 1px solid var(--panel-border);
+            border-bottom: none;
+            color: var(--panel-muted);
+            font-size: 0.65rem;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 6px 6px 0 0;
+            display: none;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.15s;
+            font-family: 'SF Mono', monospace;
+        }
+        .mkt-stub:hover { color: var(--panel-text); }
+        .mkt-stub.visible { display: flex; }
+        @media (max-width: 600px) {
+            .mkt-data { grid-template-columns: repeat(11, minmax(72px, 1fr)); }
+        }
     </style>
 </head>
 <body>
+    <!-- ── Welcome / Onboarding Modal (shown on page load for guests) ── -->
+    {% if not user_email %}
+    <div class="welcome-modal" id="welcome-modal" role="dialog" aria-modal="true" aria-labelledby="wm-title">
+        <div class="wm-card">
+            <button class="wm-close" id="wm-close" aria-label="Continue as guest"><i class="fas fa-times"></i></button>
+
+            <div class="wm-logo-wrap">
+                <img src="{{ url_for('static', filename='stocker_logo.png') }}" alt="Stocker" style="height:68px;width:auto;">
+            </div>
+            <p class="wm-tagline" id="wm-title">AI-powered stock prediction &amp; technical analysis</p>
+
+            <!-- Plan comparison -->
+            <div class="wm-plans">
+                <div class="wm-plan">
+                    <div class="wm-plan-name">Guest</div>
+                    <div class="wm-plan-quota">1<sup>/day</sup></div>
+                    <div class="wm-plan-feats">
+                        Basic charts<br>
+                        No sign-up
+                    </div>
+                </div>
+                <div class="wm-plan wm-plan-highlight">
+                    <div class="wm-plan-name">Logged-in User</div>
+                    <div class="wm-plan-quota" style="font-size:0.95rem;">£0<sup style="font-size:0.55rem;">/mo</sup></div>
+                    <div class="wm-plan-feats">
+                        3 analyses/day<br>
+                        ML predictions<br>
+                        Pattern detection<br>
+                        News &amp; sentiment
+                    </div>
+                </div>
+                <div class="wm-plan wm-plan-cta" data-tier="pro" role="button" tabindex="0" title="Choose Pro — sign in to subscribe">
+                    <div class="wm-plan-name" style="color:#4f8ef7;">Pro</div>
+                    <div class="wm-plan-quota" style="font-size:0.95rem;">£3.99<sup style="font-size:0.55rem;">/mo</sup></div>
+                    <div class="wm-plan-feats">
+                        Unlimited analyses<br>
+                        Everything in Free<br>
+                        Watchlist<br>
+                        AI Trade Thesis<br>
+                        Peer comparison
+                    </div>
+                    <div class="wm-plan-cta-label">Get Pro <i class="fas fa-arrow-right" style="font-size:0.6rem;"></i></div>
+                </div>
+                <div class="wm-plan wm-plan-cta" data-tier="premium" role="button" tabindex="0" title="Choose Premium — sign in to subscribe">
+                    <div class="wm-plan-name" style="color:#f7c04f;">Premium</div>
+                    <div class="wm-plan-quota" style="font-size:0.95rem;">£5.99<sup style="font-size:0.55rem;">/mo</sup></div>
+                    <div class="wm-plan-feats">
+                        Everything in Pro<br>
+                        AI Portfolio Advisor<br>
+                        Earnings Summarizer
+                    </div>
+                    <div class="wm-plan-cta-label">Get Premium <i class="fas fa-arrow-right" style="font-size:0.6rem;"></i></div>
+                </div>
+            </div>
+
+            <hr class="wm-sep">
+
+            <a class="wm-btn-google" href="/login/google?prompt=consent&select_account=1">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continue with Google
+            </a>
+
+            <button class="wm-btn-email" id="wm-email-btn" type="button">
+                <i class="fas fa-envelope"></i>
+                Continue with Email
+            </button>
+
+            <button class="wm-btn-guest" id="wm-guest-btn" type="button">
+                Continue as Guest &mdash; 1 free analysis today
+            </button>
+
+            <p class="wm-terms">
+                By continuing you agree to our
+                <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>.
+                Free account: 3 analyses/day &bull; No credit card required.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="auth-modal" id="auth-modal" aria-hidden="true">
         <div class="auth-modal-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -3020,7 +3472,7 @@
         <!-- Results Section -->
         <div id="results" style="display:none; margin-top:12px;">
             <div class="row g-3">
-                <div class="col-lg-8">
+                <div class="col-lg-8 order-2 order-lg-1">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span><i class="fas fa-chart-area"></i> Stock Price Chart</span>
@@ -3104,7 +3556,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4 d-flex flex-column">
+                <div class="col-lg-4 d-flex flex-column order-1 order-lg-2">
                     <!-- 1. Prediction Results -->
                     <div class="card predictions-card mb-3">
                         <div class="card-header">
@@ -3335,6 +3787,63 @@
             if (el) { el.classList.add('is-visible'); el.setAttribute('aria-hidden', 'false'); }
         }
 
+        /* ---------- welcome modal (page-load popup for anonymous users) ---------- */
+        (function() {
+            var wm = document.getElementById('welcome-modal');
+            if (!wm) return;
+            var WM_KEY = 'stocker_wm_seen';
+
+            function closeWelcome() {
+                wm.classList.remove('is-visible');
+                wm.setAttribute('aria-hidden', 'true');
+                try { sessionStorage.setItem(WM_KEY, '1'); } catch(_) {}
+            }
+
+            if (!sessionStorage.getItem(WM_KEY)) {
+                setTimeout(function() {
+                    wm.classList.add('is-visible');
+                    wm.setAttribute('aria-hidden', 'false');
+                }, 350);
+            }
+
+            var wmClose = document.getElementById('wm-close');
+            if (wmClose) wmClose.addEventListener('click', closeWelcome);
+
+            wm.addEventListener('click', function(e) { if (e.target === wm) closeWelcome(); });
+
+            var guestBtn = document.getElementById('wm-guest-btn');
+            if (guestBtn) guestBtn.addEventListener('click', closeWelcome);
+
+            var emailBtn = document.getElementById('wm-email-btn');
+            if (emailBtn) emailBtn.addEventListener('click', function() {
+                closeWelcome();
+                var authEl = document.getElementById('auth-modal');
+                var viewP  = document.getElementById('auth-view-providers');
+                var viewE  = document.getElementById('auth-view-email');
+                if (authEl) { authEl.classList.add('is-visible'); authEl.setAttribute('aria-hidden', 'false'); }
+                if (viewP)  viewP.style.display = 'none';
+                if (viewE)  viewE.style.display = '';
+            });
+
+            // Pro / Premium cards — store tier, open auth modal; checkout fires after login
+            document.querySelectorAll('.wm-plan-cta').forEach(function(card) {
+                function handlePlanClick() {
+                    var tier = card.getAttribute('data-tier');
+                    if (!tier) return;
+                    try { sessionStorage.setItem('stocker_pending_tier', tier); } catch(_) {}
+                    closeWelcome();
+                    var authEl = document.getElementById('auth-modal');
+                    var viewP  = document.getElementById('auth-view-providers');
+                    var viewE  = document.getElementById('auth-view-email');
+                    if (viewE)  viewE.style.display = 'none';
+                    if (viewP)  viewP.style.display = '';
+                    if (authEl) { authEl.classList.add('is-visible'); authEl.setAttribute('aria-hidden', 'false'); }
+                }
+                card.addEventListener('click', handlePlanClick);
+                card.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handlePlanClick(); } });
+            });
+        })();
+
         /* ---------- toolbar button wiring (DOM is already built at this point) ---------- */
         (function() {
             var profileBtn = document.getElementById('profile-trigger');
@@ -3424,6 +3933,28 @@
     <script>
             $(document).ready(function() {
             try { if (window.__stockerLog) window.__stockerLog('ready'); } catch(_) {}
+
+            // ── Auto-checkout after login (from welcome modal plan click) ──
+            (function() {
+                {% if user_email %}
+                var pendingTier = null;
+                try { pendingTier = sessionStorage.getItem('stocker_pending_tier'); } catch(_) {}
+                if (pendingTier === 'pro' || pendingTier === 'premium') {
+                    try { sessionStorage.removeItem('stocker_pending_tier'); } catch(_) {}
+                    fetch('/create-checkout-session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ tier: pendingTier })
+                    }).then(function(r) { return r.json(); }).then(function(data) {
+                        if (data.url) {
+                            window.location.href = data.url;
+                        } else if (data.upgraded) {
+                            window.location.href = '/?subscribed=1';
+                        }
+                    }).catch(function() {});
+                }
+                {% endif %}
+            })();
 
             // Lazy-load Plotly only when needed (served from jsDelivr with long cache TTL)
             let plotlyPromise = null;
@@ -5230,6 +5761,131 @@
                 if (e.target === overlay) overlay.style.display = 'none';
             });
         })();
+    </script>
+
+    <!-- ── Market Ticker Bar ── -->
+    <div id="mkt-ticker" class="mkt-ticker">
+        <div class="mkt-data" id="mkt-data">
+            <!-- populated by JS -->
+            <div class="mkt-item"><span class="mkt-lbl">S&amp;P 500</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
+            <div class="mkt-item"><span class="mkt-lbl">Nasdaq</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
+            <div class="mkt-item"><span class="mkt-lbl">FTSE 100</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
+            <div class="mkt-item"><span class="mkt-lbl">BIST 100</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
+            <div class="mkt-item"><span class="mkt-lbl">Gold</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
+            <div class="mkt-item"><span class="mkt-lbl">Bitcoin</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
+            <div class="mkt-item"><span class="mkt-lbl">Crude Oil</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
+            <div class="mkt-item"><span class="mkt-lbl">USD/EUR</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
+            <div class="mkt-item"><span class="mkt-lbl">USD/TRY</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
+            <div class="mkt-item"><span class="mkt-lbl">USD/GBP</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
+            <div class="mkt-item"><span class="mkt-lbl">GBP/TRY</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
+        </div>
+        <div class="mkt-news">
+            <span class="mkt-news-badge">NEWS</span>
+            <div class="mkt-news-wrap">
+                <span class="mkt-news-text" id="mkt-news-text">Loading market data…</span>
+            </div>
+        </div>
+        <button class="mkt-toggle" id="mkt-toggle" title="Hide ticker">
+            <i class="fas fa-chart-bar" style="font-size:0.6rem;opacity:0.6;"></i>
+            <i class="fas fa-chevron-down" id="mkt-toggle-icon"></i>
+        </button>
+    </div>
+    <!-- Collapsed stub shown when ticker is hidden -->
+    <button class="mkt-stub" id="mkt-stub" title="Show market ticker">
+        <i class="fas fa-chart-bar" style="font-size:0.6rem;opacity:0.6;"></i>
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <script>
+    (function() {
+        var ticker   = document.getElementById('mkt-ticker');
+        var toggleBtn= document.getElementById('mkt-toggle');
+        var stub     = document.getElementById('mkt-stub');
+        var dataEl   = document.getElementById('mkt-data');
+        var newsEl   = document.getElementById('mkt-news-text');
+        var newsWrap = newsEl ? newsEl.closest('.mkt-news-wrap') : null;
+        var iconEl   = document.getElementById('mkt-toggle-icon');
+        var HIDDEN_KEY = 'stocker_ticker_hidden';
+        var hidden   = localStorage.getItem(HIDDEN_KEY) === '1';
+
+        function setBodyPad() {
+            document.body.style.paddingBottom = hidden ? '0' : (ticker.offsetHeight + 2) + 'px';
+        }
+
+        function applyState(animate) {
+            if (hidden) {
+                ticker.classList.add('mkt-hidden');
+                stub.classList.add('visible');
+                iconEl.className = 'fas fa-chevron-up';
+            } else {
+                ticker.classList.remove('mkt-hidden');
+                stub.classList.remove('visible');
+                iconEl.className = 'fas fa-chevron-down';
+            }
+            if (animate) {
+                setTimeout(setBodyPad, 310);
+            } else {
+                setBodyPad();
+            }
+        }
+
+        function toggle() {
+            hidden = !hidden;
+            try { localStorage.setItem(HIDDEN_KEY, hidden ? '1' : '0'); } catch(_) {}
+            applyState(true);
+        }
+
+        toggleBtn.addEventListener('click', toggle);
+        stub.addEventListener('click', toggle);
+        applyState(false);
+
+        function renderTicker(data) {
+            if (data.tickers && data.tickers.length) {
+                dataEl.innerHTML = data.tickers.map(function(t) {
+                    var cls = t.positive === true ? 'pos' : t.positive === false ? 'neg' : 'neu';
+                    return '<div class="mkt-item">' +
+                        '<span class="mkt-lbl">' + t.label + '</span>' +
+                        '<span class="mkt-price">' + t.price + '</span>' +
+                        '<span class="mkt-chg ' + cls + '">' + t.change + '</span>' +
+                    '</div>';
+                }).join('');
+            }
+            if (data.news && data.news.length) {
+                var parts = data.news.map(function(n) {
+                    var title = typeof n === 'string' ? n : n.title;
+                    var url   = typeof n === 'string' ? '' : (n.url || '');
+                    if (url) {
+                        return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="mkt-news-link">' + title + '</a>';
+                    }
+                    return '<span>' + title + '</span>';
+                });
+                newsEl.innerHTML = parts.join('<span class="mkt-news-sep">  ·  </span>');
+                var totalLen = data.news.reduce(function(s, n) { return s + (typeof n === 'string' ? n : n.title).length; }, 0);
+                newsEl.style.animationDuration = Math.max(50, totalLen * 0.075) + 's';
+            }
+            setBodyPad();
+        }
+
+        function fetchTicker() {
+            fetch('/api/ticker')
+                .then(function(r) { return r.json(); })
+                .then(renderTicker)
+                .catch(function() {});
+        }
+
+        fetchTicker();
+        setInterval(fetchTicker, 5 * 60 * 1000);
+
+        // Hover slow-down via Web Animations API playbackRate (no position reset)
+        if (newsWrap && newsEl.getAnimations) {
+            newsWrap.addEventListener('mouseenter', function() {
+                newsEl.getAnimations().forEach(function(a) { a.playbackRate = 0.15; });
+            });
+            newsWrap.addEventListener('mouseleave', function() {
+                newsEl.getAnimations().forEach(function(a) { a.playbackRate = 1; });
+            });
+        }
+    })();
     </script>
 </body>
 </html>
