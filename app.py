@@ -5061,6 +5061,131 @@ def _require_admin():
         return None, (jsonify({"error": "Forbidden"}), 403)
     return email, None
 
+def _send_broadcast_email(to_email: str, subject: str, header: str, content_text: str) -> None:
+    """Send a broadcast email using the standard Stocker template. Never raises."""
+    if not SMTP_HOST or not SMTP_PASS:
+        logger.warning("SMTP not configured — broadcast email skipped for %s", to_email)
+        return
+    logo_url = f"{SITE_BASE_URL}/static/stocker_logo.png"
+    site_url = SITE_BASE_URL
+
+    # Convert plain-text content: blank lines → paragraphs
+    paragraphs = [p.strip() for p in content_text.strip().split("\n\n") if p.strip()]
+    body_html = "".join(
+        f'<p style="margin:0 0 16px;color:rgba(200,238,255,0.80);font-size:15px;line-height:1.75;">'
+        + p.replace("\n", "<br>") +
+        "</p>"
+        for p in paragraphs
+    )
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>{subject}</title></head>
+<body style="margin:0;padding:0;background:#051520;font-family:'Helvetica Neue',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#051520;padding:40px 0;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+      <!-- Header -->
+      <tr>
+        <td align="center" style="background:#0a2535;border:1px solid rgba(0,200,232,0.25);border-bottom:none;border-radius:16px 16px 0 0;padding:32px 40px 24px;">
+          <img src="{logo_url}" alt="Stocker" width="180" style="display:block;max-width:180px;height:auto;margin:0 auto 20px;"/>
+          <h1 style="margin:0;color:#c8eeff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">{header}</h1>
+        </td>
+      </tr>
+      <!-- Body -->
+      <tr>
+        <td style="background:#0d3048;border-left:1px solid rgba(0,200,232,0.25);border-right:1px solid rgba(0,200,232,0.25);padding:32px 40px;">
+          {body_html}
+          <table cellpadding="0" cellspacing="0" width="100%" style="margin-top:28px;">
+            <tr><td align="center">
+              <a href="{site_url}" style="display:inline-block;background:#00c8e8;color:#051520;text-decoration:none;font-size:15px;font-weight:700;padding:14px 36px;border-radius:10px;">
+                Go to Stocker →
+              </a>
+            </td></tr>
+          </table>
+          <p style="margin:24px 0 0;color:rgba(200,238,255,0.35);font-size:13px;line-height:1.6;">
+            Questions? Reply to this email or visit
+            <a href="{site_url}" style="color:#00c8e8;text-decoration:none;">{site_url}</a>
+          </p>
+        </td>
+      </tr>
+      <!-- Footer -->
+      <tr>
+        <td align="center" style="background:#071a28;border:1px solid rgba(0,200,232,0.25);border-top:none;border-radius:0 0 16px 16px;padding:20px 40px;">
+          <p style="margin:0;color:rgba(200,238,255,0.25);font-size:12px;">
+            © 2025 Stocker · Gultechs · info@gultechs.net &nbsp;·&nbsp;
+            <a href="{site_url}/privacy" style="color:rgba(200,238,255,0.4);text-decoration:none;">Privacy Policy</a>
+          </p>
+          <p style="margin:6px 0 0;color:rgba(200,238,255,0.2);font-size:11px;">
+            You received this as a registered Stocker user.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>"""
+
+    plain = f"{header}\n\n{content_text}\n\nVisit {site_url}\nQuestions? info@gultechs.net"
+
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"]    = subject
+        msg["From"]       = f"Stocker <{SMTP_USER}>"
+        msg["To"]         = to_email
+        msg["Date"]       = formatdate(localtime=False)
+        msg["Message-ID"] = make_msgid(domain="gultechs.net")
+        msg.attach(MIMEText(plain, "plain"))
+        msg.attach(MIMEText(html, "html"))
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+            server.ehlo(); server.starttls()
+            server.login(SMTP_USER, SMTP_PASS)
+            server.sendmail(SMTP_USER, to_email, msg.as_string())
+        logger.info("Broadcast email sent to %s", to_email)
+    except Exception as exc:
+        logger.warning("Broadcast email failed for %s: %s", to_email, exc)
+
+
+@app.route("/api/admin/send-mail", methods=["POST"])
+def api_admin_send_mail():
+    _, error = _require_admin()
+    if error:
+        return error
+    data    = request.get_json(silent=True) or {}
+    tiers   = [t.strip().lower() for t in (data.get("tiers") or []) if t]
+    subject = (data.get("subject") or "").strip()
+    header  = (data.get("header")  or "").strip()
+    content = (data.get("content") or "").strip()
+
+    if not tiers:
+        return jsonify({"error": "Select at least one tier."}), 400
+    if not subject or not header or not content:
+        return jsonify({"error": "Subject, header and content are all required."}), 400
+
+    users = _load_users()
+    recipients = []
+    for email, info in users.items():
+        if not isinstance(info, dict):
+            continue
+        tier   = info.get("tier", "free")
+        status = info.get("subscription_status", "active")
+        if tier != "free" and status not in ("active", "trialing"):
+            tier = "free"
+        if tier in tiers:
+            recipients.append(email)
+
+    if not recipients:
+        return jsonify({"error": "No users found for the selected tiers."}), 404
+
+    def _send_all():
+        for addr in recipients:
+            _send_broadcast_email(addr, subject, header, content)
+
+    threading.Thread(target=_send_all, daemon=True).start()
+    return jsonify({"ok": True, "count": len(recipients)})
+
+
 @app.route("/api/admin/users", methods=["GET"])
 def api_admin_users():
     _, error = _require_admin()
@@ -5094,6 +5219,39 @@ def api_admin_delete_user():
         return jsonify({"error": "User not found"}), 404
     users.pop(target, None)
     _save_users(users)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/admin/set-tier", methods=["POST"])
+def api_admin_set_tier():
+    admin_email, error = _require_admin()
+    if error:
+        return error
+    data = request.get_json(silent=True) or {}
+    target = (data.get("email") or "").strip().lower()
+    new_tier = (data.get("tier") or "").strip().lower()
+    if not target:
+        return jsonify({"error": "Email required"}), 400
+    if new_tier not in ("free", "pro", "premium", "admin"):
+        return jsonify({"error": "Invalid tier"}), 400
+    users = _load_users()
+    if target not in users:
+        return jsonify({"error": "User not found"}), 404
+    info = users[target]
+    if not isinstance(info, dict):
+        info = {"password_hash": info}
+        users[target] = info
+    info["tier"] = new_tier
+    # Ensure non-free tiers are treated as active so the display check passes
+    if new_tier == "free":
+        info.pop("subscription_status", None)
+        info.pop("stripe_subscription_id", None)
+        info.pop("stripe_customer_id", None)
+    else:
+        info["subscription_status"] = "active"
+        info["admin_granted"] = True  # marks this as an admin override, not a real Stripe sub
+    _save_users(users)
+    logger.info("Admin %s set tier for %s → %s", admin_email, target, new_tier)
     return jsonify({"ok": True})
 
 
