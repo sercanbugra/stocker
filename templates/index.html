@@ -189,6 +189,150 @@
             --text-muted-rgb: 255, 232, 232;
         }
 
+        /* ── Light Sand Theme ── */
+        [data-theme="sand"] {
+            --parliament-blue:      #ede6d8;
+            --parliament-blue-soft: #e4dbc9;
+            --parliament-blue-deep: #f5f0e8;
+            --panel-text:           #1c1208;
+            --panel-muted:          rgba(28, 18, 8, 0.52);
+            --panel-border:         rgba(100, 75, 30, 0.2);
+            --body-bg:              linear-gradient(135deg, #f5f0e8 0%, #ede6d8 55%, #e5dbc6 100%);
+            --accent:               #8b5e1a;
+            --accent-rgb:           139, 94, 26;
+            --accent-2:             rgba(139, 94, 26, 0.1);
+            --hero-bg:              linear-gradient(120deg, #f5f0e8 0%, #ede6d8 45%, #f5f0e8 100%);
+            --hero-tip-bg:          #e8dfd0;
+            --text-muted-rgb:       28, 18, 8;
+        }
+
+        /* Light Sand — override elements that use hardcoded dark-theme colors */
+        [data-theme="sand"] body { color: var(--panel-text); }
+
+        /* Panels & cards */
+        [data-theme="sand"] .card,
+        [data-theme="sand"] .predictions-card,
+        [data-theme="sand"] .news-card,
+        [data-theme="sand"] .watchlist-card,
+        [data-theme="sand"] .about-card {
+            background-color: var(--parliament-blue-soft) !important;
+            color: var(--panel-text);
+            border-color: var(--panel-border);
+        }
+
+        /* Inputs & textareas */
+        [data-theme="sand"] .form-control,
+        [data-theme="sand"] .ticker-input {
+            background: var(--parliament-blue-deep) !important;
+            color: var(--panel-text) !important;
+            border-color: var(--panel-border) !important;
+        }
+        [data-theme="sand"] .form-control::placeholder,
+        [data-theme="sand"] .ticker-input::placeholder { color: var(--panel-muted) !important; }
+
+        /* Bootstrap text-muted override for light bg */
+        [data-theme="sand"] .text-muted { color: var(--panel-muted) !important; }
+
+        /* Navbar */
+        [data-theme="sand"] .navbar { box-shadow: 0 1px 6px rgba(100,75,30,0.15); }
+
+        /* Theme dot active ring on light bg */
+        [data-theme="sand"] .theme-dot.active {
+            border-color: #1c1208;
+            box-shadow: 0 0 0 2px rgba(28,18,8,0.25);
+        }
+
+        /* Admin members list — hardcoded #e7ecff text */
+        [data-theme="sand"] .admin-user-row [style*="color:#e7ecff"],
+        [data-theme="sand"] .admin-user-row [style*="color: #e7ecff"] {
+            color: var(--panel-text) !important;
+        }
+
+        /* Cookie / prefs banner — hardcoded #c8eeff text */
+        [data-theme="sand"] #cookie-banner,
+        [data-theme="sand"] #cookie-prefs-overlay > div {
+            background: var(--parliament-blue-soft) !important;
+            color: var(--panel-text) !important;
+            border-color: var(--panel-border) !important;
+        }
+        [data-theme="sand"] #cookie-banner *,
+        [data-theme="sand"] #cookie-prefs-overlay * {
+            color: var(--panel-text) !important;
+        }
+
+        /* Market ticker */
+        [data-theme="sand"] .mkt-ticker {
+            border-top-color: var(--panel-border);
+        }
+
+        /* Tables */
+        [data-theme="sand"] #predictions-table,
+        [data-theme="sand"] .peer-table { color: var(--panel-text); }
+        [data-theme="sand"] #predictions-table th,
+        [data-theme="sand"] .peer-table th { color: var(--panel-muted); border-color: var(--panel-border); }
+        [data-theme="sand"] #predictions-table td,
+        [data-theme="sand"] .peer-table td { border-color: var(--panel-border); }
+
+        /* Welcome modal card backgrounds */
+        [data-theme="sand"] .wm-plan-card { border-color: var(--panel-border) !important; }
+
+        /* Scrollbar */
+        [data-theme="sand"] ::-webkit-scrollbar-track { background: var(--parliament-blue-deep); }
+        [data-theme="sand"] ::-webkit-scrollbar-thumb { background: rgba(100,75,30,0.35); }
+
+        /* ── Light Sand: readable semantic colors ── */
+
+        /* Positive / negative changes — remarkables, watchlist lists */
+        [data-theme="sand"] .rm-chg-pos,
+        [data-theme="sand"] .nl-chg-pos  { color: #14532d !important; }   /* dark green */
+        [data-theme="sand"] .rm-chg-neg,
+        [data-theme="sand"] .nl-chg-neg  { color: #7f1d1d !important; }   /* dark red   */
+
+        /* Prediction Results — Change column */
+        [data-theme="sand"] #predictions-table .text-success { color: #14532d !important; }
+        [data-theme="sand"] #predictions-table .text-danger  { color: #7f1d1d !important; }
+
+        /* Peer Comparison — % change cells & highlighted row */
+        [data-theme="sand"] .peer-table .text-success        { color: #14532d !important; }
+        [data-theme="sand"] .peer-table .text-danger         { color: #7f1d1d !important; }
+        [data-theme="sand"] .peer-highlighted td             { background: rgba(30,64,175,0.06) !important; }
+        [data-theme="sand"] .peer-highlighted td strong      { color: #1e3a8a !important; }
+        [data-theme="sand"] .peer-highlighted .tier-badge    { background: rgba(30,64,175,0.15) !important; color: #1e3a8a !important; }
+
+        /* AI Trade Thesis — Bull / Bear / Verdict labels */
+        [data-theme="sand"] .thesis-bull    .thesis-label    { color: #14532d !important; }
+        [data-theme="sand"] .thesis-bear    .thesis-label    { color: #7f1d1d !important; }
+        [data-theme="sand"] .thesis-verdict .thesis-label    { color: #92400e !important; }   /* dark amber */
+
+        /* Thesis sentiment bars */
+        [data-theme="sand"] .bar-bull { background: #14532d !important; }
+        [data-theme="sand"] .bar-bear { background: #7f1d1d !important; }
+
+        /* Sentiment pills on news cards */
+        [data-theme="sand"] .sentiment-bull { background: rgba(20,83,45,0.1)  !important; color: #14532d !important; }
+        [data-theme="sand"] .sentiment-bear { background: rgba(127,29,29,0.1) !important; color: #7f1d1d !important; }
+
+        /* Pro/Premium section heading icons & lock icon */
+        [data-theme="sand"] .pro-lock i    { color: #1e40af !important; }   /* dark blue */
+
+        /* Ticker / symbol links — all lists */
+        [data-theme="sand"] .remarkable-symbol          { color: var(--panel-text) !important; }
+        [data-theme="sand"] .remarkable-symbol:hover    { color: #1e40af !important; }
+        [data-theme="sand"] .nl-symbol-link             { color: var(--panel-text) !important; }
+        [data-theme="sand"] .nl-symbol-link:hover       { color: #1e40af !important; }
+
+        /* Dividend Yield badge → dark orange */
+        [data-theme="sand"] .rm-yield-badge {
+            color: #92400e !important;
+            background: rgba(146, 64, 14, 0.1) !important;
+        }
+
+        /* FCF Yield badge → dark blue */
+        [data-theme="sand"] .rm-fcf-badge {
+            color: #1e3a8a !important;
+            background: rgba(30, 58, 138, 0.1) !important;
+        }
+
         body {
             background: var(--body-bg);
             font-family: 'Inter', 'Arial', sans-serif;
@@ -221,6 +365,7 @@
         .theme-dot-beige   { background: radial-gradient(circle, #c08a4a, #2a1f0e); }
         .theme-dot-ocean   { background: radial-gradient(circle, #1a6b8a, #051520); }
         .theme-dot-crimson { background: radial-gradient(circle, #7a1a1a, #2a0f0f); }
+        .theme-dot-sand    { background: radial-gradient(circle, #d4a96a, #e8dfd0); border: 1px solid rgba(100,75,30,0.3); }
         .container {
             max-width: 1400px;
             padding-top: 20px;
@@ -2069,6 +2214,117 @@
             font-weight: 700;
             letter-spacing: 0.04em;
         }
+        /* ── Admin broadcast mail modal ── */
+        .admin-mail-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(4,8,16,0.82);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1500;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        .admin-mail-modal.is-visible { display: flex; }
+        .admin-mail-card {
+            width: min(580px, 95vw);
+            max-height: 92vh;
+            overflow-y: auto;
+            background: var(--parliament-blue-soft);
+            border: 1px solid var(--panel-border);
+            border-radius: 18px;
+            padding: 28px 28px 24px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .admin-mail-card h5 {
+            color: var(--panel-text);
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0 0 18px;
+        }
+        /* Tier filter pills */
+        .admin-tier-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        .admin-tier-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 13px;
+            border-radius: 20px;
+            border: 1px solid var(--panel-border);
+            background: rgba(0,0,0,0.2);
+            color: var(--panel-muted);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            transition: border-color 0.15s, background 0.15s, color 0.15s;
+        }
+        .admin-tier-pill input { display: none; }
+        .admin-tier-pill.checked-admin   { border-color: #f74f4f; background: rgba(247,79,79,0.12); color: #f74f4f; }
+        .admin-tier-pill.checked-premium { border-color: #f7c04f; background: rgba(247,192,79,0.1); color: #f7c04f; }
+        .admin-tier-pill.checked-pro     { border-color: #4f8ef7; background: rgba(79,142,247,0.1); color: #4f8ef7; }
+        .admin-tier-pill.checked-free    { border-color: rgba(200,238,255,0.4); background: rgba(200,238,255,0.06); color: var(--panel-text); }
+        /* Recipient count badge */
+        .admin-mail-recip {
+            font-size: 0.78rem;
+            color: var(--panel-muted);
+            margin-bottom: 14px;
+        }
+        .admin-mail-recip strong { color: var(--accent); }
+        /* Tab nav */
+        .admin-mail-tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--panel-border);
+            margin-bottom: 14px;
+        }
+        .admin-mail-tab {
+            padding: 6px 16px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--panel-muted);
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: color 0.15s;
+            margin-bottom: -1px;
+        }
+        .admin-mail-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+        .admin-mail-tab-pane { display: none; }
+        .admin-mail-tab-pane.active { display: block; }
+        .admin-mail-card .form-control {
+            background: var(--parliament-blue-deep);
+            border: 1px solid var(--panel-border);
+            color: var(--panel-text);
+            border-radius: 8px;
+            font-size: 0.88rem;
+        }
+        .admin-mail-card .form-control:focus {
+            background: var(--parliament-blue-deep);
+            color: var(--panel-text);
+            border-color: var(--accent);
+            box-shadow: none;
+        }
+        .admin-mail-card .form-control::placeholder { color: var(--panel-muted); }
+        .admin-mail-card textarea.form-control { min-height: 140px; resize: vertical; }
+        .admin-mail-actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            margin-top: 18px;
+        }
         /* Guest anon badge in toolbar */
         .tb-anon-badge {
             font-size: 0.72rem;
@@ -2517,6 +2773,7 @@
                         <div class="theme-dot theme-dot-ocean"   data-theme=""        title="Ocean Blue"></div>
                         <div class="theme-dot theme-dot-beige"   data-theme="beige"   title="Warm Beige"></div>
                         <div class="theme-dot theme-dot-crimson" data-theme="crimson" title="Dark Crimson"></div>
+                        <div class="theme-dot theme-dot-sand"    data-theme="sand"    title="Light Sand"></div>
                         <span class="small" style="color:var(--panel-muted);" id="profile-theme-name">Ocean Blue</span>
                     </div>
 
@@ -2611,6 +2868,11 @@
                     </div>
                     <div id="admin-members-list" class="small" style="max-height:220px; overflow-y:auto; border:1px solid var(--panel-border); border-radius:10px; padding:10px; background:rgba(255,255,255,0.02);">
                         <div class="text-muted">Loading members…</div>
+                    </div>
+                    <div class="mt-3 d-flex justify-content-end">
+                        <button class="btn btn-sm btn-primary px-3" id="admin-open-mail-btn">
+                            <i class="fas fa-paper-plane me-1"></i> Send Mail
+                        </button>
                     </div>
                     {% endif %}
                 </div>
@@ -4032,11 +4294,12 @@
                     const el = document.getElementById(id);
                     if (!el || !el._fullLayout) return;
                     if (!window.Plotly) return;
+                    const isLight   = theme === 'sand';
                     const chartText = getCssVar('--panel-text') || '#e7ecff';
                     const paperBg   = getCssVar('--parliament-blue-soft') || '#24346a';
                     const plotBg    = getCssVar('--parliament-blue') || '#1b2a57';
-                    const gridColor = 'rgba(255,255,255,0.1)';
-                    const zeroColor = 'rgba(255,255,255,0.2)';
+                    const gridColor = isLight ? 'rgba(0,0,0,0.1)'   : 'rgba(255,255,255,0.1)';
+                    const zeroColor = isLight ? 'rgba(0,0,0,0.18)'  : 'rgba(255,255,255,0.2)';
                     Plotly.relayout(el, {
                         paper_bgcolor: paperBg,
                         plot_bgcolor:  plotBg,
@@ -4131,7 +4394,7 @@
 
             // Theme in profile modal (syncs with footer dots via existing handler)
             // After theme changes, also update the profile label and save server-side
-            const themeNames = { '': 'Ocean Blue', 'beige': 'Warm Beige', 'crimson': 'Dark Crimson' };
+            const themeNames = { '': 'Ocean Blue', 'beige': 'Warm Beige', 'crimson': 'Dark Crimson', 'sand': 'Light Sand' };
             function updateProfileThemeName(theme) {
                 $('#profile-theme-name').text(themeNames[theme] || 'Ocean Blue');
             }
@@ -4178,6 +4441,8 @@
             }
 
             // Admin: load/refresh members list
+            const TIER_COLORS = { admin:'#f74f4f', premium:'#f7c04f', pro:'#4f8ef7', free:'rgba(200,238,255,0.35)' };
+
             function loadAdminMembers() {
                 if (userTier !== 'admin' || !$adminMembersList.length) return;
                 $adminMembersList.html('<div class="text-muted">Loading members…</div>');
@@ -4188,16 +4453,27 @@
                     }
                     const rows = users.map(u => {
                         const email = u.email || 'unknown';
-                        const tier = u.tier || 'free';
+                        const tier  = u.tier  || 'free';
+                        const tiers = ['free','pro','premium','admin'];
+                        const opts  = tiers.map(t =>
+                            `<option value="${t}"${t === tier ? ' selected' : ''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`
+                        ).join('');
+                        const col = TIER_COLORS[tier] || TIER_COLORS.free;
                         return `
                             <div class="d-flex justify-content-between align-items-center mb-2 admin-user-row">
-                                <div>
-                                    <div style="color:#e7ecff;">${email}</div>
-                                    <div class="text-muted" style="font-size:0.75rem;">${tier}</div>
+                                <div style="min-width:0; flex:1; margin-right:8px;">
+                                    <div style="color:#e7ecff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${email}</div>
                                 </div>
-                                <button class="btn btn-sm btn-outline-danger admin-delete-user" data-email="${email}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                                <div class="d-flex align-items-center gap-2" style="flex-shrink:0;">
+                                    <select class="admin-tier-select" data-email="${email}" data-current="${tier}"
+                                        style="font-size:0.72rem; font-weight:600; border-radius:20px; border:1px solid ${col};
+                                               color:${col}; background:rgba(0,0,0,0.4); padding:2px 6px; cursor:pointer; outline:none;">
+                                        ${opts}
+                                    </select>
+                                    <button class="btn btn-sm btn-outline-danger admin-delete-user" data-email="${email}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>`;
                     }).join('') || '<div class="text-muted">No members found.</div>';
                     $adminMembersList.html(rows);
@@ -4205,6 +4481,38 @@
                     $adminMembersList.html('<div class="text-muted">Could not load members.</div>');
                 });
             }
+
+            // Admin change tier
+            $(document).on('change', '.admin-tier-select', async function() {
+                const $sel    = $(this);
+                const email   = $sel.data('email');
+                const current = $sel.data('current');
+                const newTier = $sel.val();
+                if (newTier === current) return;
+                if (!confirm(`Change tier for ${email}\n\n${current.toUpperCase()} → ${newTier.toUpperCase()}\n\nNo charge will be made. Confirm?`)) {
+                    $sel.val(current); // revert
+                    return;
+                }
+                try {
+                    const resp = await fetch('/api/admin/set-tier', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, tier: newTier })
+                    });
+                    const res = await resp.json();
+                    if (res && res.ok) {
+                        $sel.data('current', newTier);
+                        const col = TIER_COLORS[newTier] || TIER_COLORS.free;
+                        $sel.css({ borderColor: col, color: col });
+                    } else {
+                        alert(res.error || 'Failed to change tier.');
+                        $sel.val(current);
+                    }
+                } catch (e) {
+                    alert('Failed to change tier.');
+                    $sel.val(current);
+                }
+            });
 
             // Admin delete user
             $(document).on('click', '.admin-delete-user', async function() {
@@ -4219,7 +4527,7 @@
                     });
                     const res = await resp.json();
                     if (res && res.ok) {
-                        loadAdminMembers(); // reload full list after deletion
+                        loadAdminMembers();
                     } else {
                         alert(res.error || 'Failed to delete user.');
                     }
@@ -4227,6 +4535,131 @@
                     alert('Failed to delete user.');
                 }
             });
+
+            // ---------------------------------------------------------------
+            // Admin broadcast mail
+            // ---------------------------------------------------------------
+            (function() {
+                if (userTier !== 'admin') return;
+
+                const $modal   = $('#admin-mail-modal');
+                const $recip   = $('#admin-mail-recip');
+                const $subject = $('#admin-mail-subject');
+                const $header  = $('#admin-mail-header');
+                const $content = $('#admin-mail-content');
+                const $status  = $('#admin-mail-status');
+                const $sendBtn = $('#admin-mail-send');
+
+                let allUsers = [];
+
+                function openMailModal() {
+                    $modal.addClass('is-visible');
+                    $subject.val(''); $header.val(''); $content.val('');
+                    $status.text('');
+                    // reset tier pills — select all by default
+                    $('#admin-mail-modal .admin-tier-pill').each(function() {
+                        const tier = $(this).find('input[type=checkbox]').val();
+                        $(this).addClass('checked-' + tier);
+                        $(this).find('input[type=checkbox]').prop('checked', true);
+                    });
+                    updateRecipCount();
+                }
+
+                function closeMailModal() {
+                    $modal.removeClass('is-visible');
+                }
+
+                function selectedTiers() {
+                    return $('#admin-mail-modal .admin-tier-pill input:checked')
+                        .map(function() { return $(this).val(); }).get();
+                }
+
+                function updateRecipCount() {
+                    const tiers = selectedTiers();
+                    if (!tiers.length) {
+                        $recip.html('No tiers selected — no recipients.');
+                        return;
+                    }
+                    if (!allUsers.length) {
+                        fetch('/api/admin/users').then(r => r.json()).then(users => {
+                            allUsers = Array.isArray(users) ? users : [];
+                            updateRecipCount();
+                        }).catch(() => { $recip.text('Could not load user list.'); });
+                        return;
+                    }
+                    const count = allUsers.filter(u => tiers.includes(u.tier || 'free')).length;
+                    const tierLabels = tiers.map(t => `<strong>${t.charAt(0).toUpperCase()+t.slice(1)}</strong>`).join(', ');
+                    $recip.html(`Will send to <strong>${count}</strong> user${count !== 1 ? 's' : ''} (${tierLabels}).`);
+                }
+
+                // Open modal
+                $('#admin-open-mail-btn').on('click', function() {
+                    allUsers = [];
+                    openMailModal();
+                });
+
+                // Close buttons
+                $('#admin-mail-close, #admin-mail-cancel').on('click', closeMailModal);
+                $modal.on('click', function(e) {
+                    if ($(e.target).is($modal)) closeMailModal();
+                });
+
+                // Tier pill toggle
+                $('#admin-mail-modal').on('click', '.admin-tier-pill', function(e) {
+                    e.preventDefault();
+                    const $cb  = $(this).find('input[type=checkbox]');
+                    const tier = $cb.val();
+                    const nowChecked = !$cb.prop('checked');
+                    $cb.prop('checked', nowChecked);
+                    $(this).toggleClass('checked-' + tier, nowChecked);
+                    updateRecipCount();
+                });
+
+                // Tab switching
+                $('#admin-mail-modal').on('click', '.admin-mail-tab', function() {
+                    const pane = $(this).data('pane');
+                    $('.admin-mail-tab').removeClass('active');
+                    $(this).addClass('active');
+                    $('.admin-mail-tab-pane').removeClass('active');
+                    $('#admin-mail-pane-' + pane).addClass('active');
+                });
+
+                // Send
+                $sendBtn.on('click', async function() {
+                    const tiers   = selectedTiers();
+                    const subject = $subject.val().trim();
+                    const header  = $header.val().trim();
+                    const content = $content.val().trim();
+
+                    if (!tiers.length)  { $status.text('Select at least one tier.').css('color','#f87171'); return; }
+                    if (!subject)       { $status.text('Subject is required.').css('color','#f87171'); return; }
+                    if (!header)        { $status.text('Header is required.').css('color','#f87171'); return; }
+                    if (!content)       { $status.text('Content is required.').css('color','#f87171'); return; }
+
+                    $sendBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Sending…');
+                    $status.text('').css('color','');
+
+                    try {
+                        const resp = await fetch('/api/admin/send-mail', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ tiers, subject, header, content })
+                        });
+                        const data = await resp.json();
+                        if (data.ok) {
+                            $status.html(`<i class="fas fa-check-circle me-1" style="color:#4ade80;"></i>Queued for ${data.count} recipient${data.count !== 1 ? 's' : ''}.`).css('color','#4ade80');
+                            $sendBtn.html('<i class="fas fa-paper-plane me-1"></i>Send');
+                            setTimeout(closeMailModal, 2200);
+                        } else {
+                            $status.text(data.error || 'Failed to send.').css('color','#f87171');
+                            $sendBtn.prop('disabled', false).html('<i class="fas fa-paper-plane me-1"></i>Send');
+                        }
+                    } catch(e) {
+                        $status.text('Network error — please try again.').css('color','#f87171');
+                        $sendBtn.prop('disabled', false).html('<i class="fas fa-paper-plane me-1"></i>Send');
+                    }
+                });
+            })();
 
             // Cancel subscription
             $('#profile-cancel-sub-btn').on('click', function() {
@@ -4857,13 +5290,14 @@
             }
 
             function applyChartTheme(layout, traceCount) {
-                const base = layout || {};
+                const base    = layout || {};
+                const isLight = document.documentElement.getAttribute('data-theme') === 'sand';
                 const legendRows = Math.ceil((traceCount || 1) / 3);
                 const chartText  = getCssVar('--panel-text') || '#e7ecff';
                 const paperBg    = getCssVar('--parliament-blue-soft') || '#24346a';
                 const plotBg     = getCssVar('--parliament-blue') || '#1b2a57';
-                const gridColor  = 'rgba(255,255,255,0.1)';
-                const zeroColor  = 'rgba(255,255,255,0.2)';
+                const gridColor  = isLight ? 'rgba(0,0,0,0.1)'  : 'rgba(255,255,255,0.1)';
+                const zeroColor  = isLight ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.2)';
                 const axisTheme  = b => ({ ...(b || {}), gridcolor: gridColor, zerolinecolor: zeroColor, color: chartText });
                 return {
                     ...base,
@@ -5184,6 +5618,7 @@
                         $('#analyst-reco-source').text(`Source: ${insights.recommendations_source || 'N/A'}`);
 
                         let predictionsHtml = '';
+                        const cs = currencySymbol(symbol);
                         const currentPrice = response.current_price;
                         const confidences = {
                             'XGBoost': 0.82,
@@ -5202,7 +5637,7 @@
                                     <td>
                                         <span class="badge bg-primary model-badge">${model}</span>
                                     </td>
-                                    <td>$${lastPrediction.toFixed(2)}</td>
+                                    <td>${cs}${lastPrediction.toFixed(2)}</td>
                                     <td class="${changeClass}">
                                         <i class="fas ${changePercent >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
                                         ${changePercent}%
@@ -5360,12 +5795,19 @@
             // ---------------------------------------------------------------
             // Peer Comparison
             // ---------------------------------------------------------------
-            function fmtMktCap(v) {
+            function currencySymbol(sym) {
+                if (/\.IS$/i.test(sym)) return '₺';
+                if (/\.L$/i.test(sym))  return '£';
+                return '$';
+            }
+
+            function fmtMktCap(v, cs) {
+                cs = cs || '$';
                 if (!v) return '—';
-                if (v >= 1e12) return '$' + (v / 1e12).toFixed(2) + 'T';
-                if (v >= 1e9)  return '$' + (v / 1e9).toFixed(1) + 'B';
-                if (v >= 1e6)  return '$' + (v / 1e6).toFixed(1) + 'M';
-                return '$' + v;
+                if (v >= 1e12) return cs + (v / 1e12).toFixed(2) + 'T';
+                if (v >= 1e9)  return cs + (v / 1e9).toFixed(1) + 'B';
+                if (v >= 1e6)  return cs + (v / 1e6).toFixed(1) + 'M';
+                return cs + v;
             }
 
             function fmtPct(v) {
@@ -5379,15 +5821,16 @@
                 return v + (suffix || '');
             }
 
-            function peerRow(p, isTarget) {
+            function peerRow(p, isTarget, cs) {
+                cs = cs || '$';
                 const rowCls = isTarget ? 'peer-highlighted' : '';
                 const nameBadge = isTarget
                     ? ' <span class="tier-badge" style="background:rgba(79,142,247,0.2);color:#9ec3ff;font-size:0.5rem;">you</span>'
                     : '';
                 return '<tr class="' + rowCls + '">'
                     + '<td><strong>' + p.symbol + '</strong>' + nameBadge + '<br><small class="text-muted" style="font-size:0.7rem">' + escHtml((p.name || '').substring(0,22)) + '</small></td>'
-                    + '<td>$' + (p.price || 0).toFixed(2) + '</td>'
-                    + '<td>' + fmtMktCap(p.market_cap) + '</td>'
+                    + '<td>' + cs + (p.price || 0).toFixed(2) + '</td>'
+                    + '<td>' + fmtMktCap(p.market_cap, cs) + '</td>'
                     + '<td>' + fmtPct(p.chg_1w) + '</td>'
                     + '<td>' + fmtPct(p.chg_1m) + '</td>'
                     + '<td>' + fmtPct(p.chg_3m) + '</td>'
@@ -5426,7 +5869,8 @@
                         + '<th>Rev Growth</th><th>Net Margin</th>'
                         + '</tr></thead>';
 
-                    const rows = peerRow(target, true) + peers.map(p => peerRow(p, false)).join('');
+                    const cs = currencySymbol(sym);
+                    const rows = peerRow(target, true, cs) + peers.map(p => peerRow(p, false, cs)).join('');
 
                     $('#peers-container').html(
                         '<div class="px-3 pt-2 pb-1"><small class="text-muted">Industry: <strong>' + escHtml(industry) + '</strong> · ranked by market-cap proximity</small></div>'
@@ -5764,6 +6208,64 @@
     </script>
 
     <!-- ── Market Ticker Bar ── -->
+    <!-- ── Admin Broadcast Mail Modal ── -->
+    {% if user_tier == 'admin' %}
+    <div class="admin-mail-modal" id="admin-mail-modal" role="dialog" aria-modal="true">
+        <div class="admin-mail-card">
+            <button class="auth-modal-close" id="admin-mail-close" aria-label="Close" style="position:absolute;top:14px;right:16px;"><i class="fas fa-times"></i></button>
+            <h5><i class="fas fa-paper-plane me-2" style="color:var(--accent);"></i>Send Broadcast Email</h5>
+
+            <!-- Tier filter -->
+            <div class="small text-muted mb-2">Send to:</div>
+            <div class="admin-tier-filters" id="admin-tier-filters">
+                <label class="admin-tier-pill" id="pill-admin">
+                    <input type="checkbox" value="admin"> <i class="fas fa-shield-alt"></i> Admin
+                </label>
+                <label class="admin-tier-pill" id="pill-premium">
+                    <input type="checkbox" value="premium"> <i class="fas fa-crown"></i> Premium
+                </label>
+                <label class="admin-tier-pill" id="pill-pro">
+                    <input type="checkbox" value="pro"> <i class="fas fa-star"></i> Pro
+                </label>
+                <label class="admin-tier-pill" id="pill-free">
+                    <input type="checkbox" value="free"> <i class="fas fa-user"></i> Free
+                </label>
+            </div>
+
+            <div class="admin-mail-recip" id="admin-mail-recip">Select tiers to see recipient count.</div>
+
+            <!-- Subject (always visible) -->
+            <div class="mb-3">
+                <label class="form-label small text-muted mb-1">Subject</label>
+                <input type="text" class="form-control" id="admin-mail-subject" placeholder="e.g. New features in Stocker">
+            </div>
+
+            <!-- Header / Content tabs -->
+            <div class="admin-mail-tabs">
+                <button class="admin-mail-tab active" data-pane="header">Header</button>
+                <button class="admin-mail-tab" data-pane="content">Content</button>
+            </div>
+
+            <div class="admin-mail-tab-pane active" id="admin-mail-pane-header">
+                <input type="text" class="form-control" id="admin-mail-header" placeholder="e.g. Exciting new features are here!">
+                <div class="small text-muted mt-1">Shown as the large title below the logo.</div>
+            </div>
+            <div class="admin-mail-tab-pane" id="admin-mail-pane-content">
+                <textarea class="form-control" id="admin-mail-content" placeholder="Write your message here…&#10;&#10;Blank lines create new paragraphs."></textarea>
+                <div class="small text-muted mt-1">Plain text. Blank lines = new paragraphs.</div>
+            </div>
+
+            <div class="admin-mail-actions">
+                <span class="small text-muted" id="admin-mail-status"></span>
+                <button class="btn btn-outline-secondary btn-sm" id="admin-mail-cancel">Cancel</button>
+                <button class="btn btn-primary btn-sm px-4" id="admin-mail-send">
+                    <i class="fas fa-paper-plane me-1"></i> Send
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <div id="mkt-ticker" class="mkt-ticker">
         <div class="mkt-data" id="mkt-data">
             <!-- populated by JS -->
