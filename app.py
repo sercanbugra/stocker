@@ -1272,21 +1272,17 @@ _UNDERVALUED_MEM: list | None = None
 _UNDERVALUED_MEM_DAY: str | None = None
 
 MARKET_RULE_VERSION = "2026-04-20-v2-up-mult-1.08-fill-fix"
-LSE_CACHE_PATH      = os.path.join(_DATA_DIR, "cache", "remarkables_lse.json")
 
 # ── Bottom market ticker bar ──────────────────────────────────────────────────
 MARKET_TICKER_DEFS = [
     {"label": "S&P 500",   "sym": "^GSPC",    "invert": False, "fmt": ",.0f"},
     {"label": "Nasdaq",    "sym": "^IXIC",    "invert": False, "fmt": ",.0f"},
-    {"label": "FTSE 100",  "sym": "^FTSE",    "invert": False, "fmt": ",.0f"},
     {"label": "BIST 100",  "sym": "XU100.IS", "invert": False, "fmt": ",.0f"},
     {"label": "Gold",      "sym": "GC=F",     "invert": False, "fmt": ",.1f"},
     {"label": "Bitcoin",   "sym": "BTC-USD",  "invert": False, "fmt": ",.0f"},
     {"label": "Crude Oil", "sym": "CL=F",     "invert": False, "fmt": ",.2f"},
     {"label": "USD/EUR",   "sym": "EURUSD=X", "invert": True,  "fmt": ".4f"},
     {"label": "USD/TRY",   "sym": "USDTRY=X", "invert": False, "fmt": ".4f"},
-    {"label": "USD/GBP",   "sym": "GBPUSD=X", "invert": True,  "fmt": ".4f"},
-    {"label": "GBP/TRY",   "sym": "GBPTRY=X", "invert": False, "fmt": ".4f"},
 ]
 _TICKER_CACHE: dict = {"data": None, "ts": 0.0}
 _TICKER_TTL = 300  # 5-minute cache
@@ -1454,54 +1450,6 @@ def fetch_nasdaq_symbols():
             continue
         symbols.append(symbol)
     return sorted(set(symbols))
-
-def fetch_ftse100_symbols():
-    """Return FTSE 100 tickers with .L suffix for Yahoo Finance."""
-    # 1) Local file — avoids Wikipedia on every call
-    try:
-        local_list = os.path.join(os.path.dirname(__file__), 'data', 'ftse100_symbols.txt')
-        if os.path.exists(local_list):
-            with open(local_list, 'r', encoding='utf-8') as f:
-                symbols = [line.strip() for line in f if line.strip() and not line.startswith('#')]
-            if symbols:
-                logger.info(f"Loaded {len(symbols)} FTSE 100 symbols from local list")
-                return symbols
-    except Exception as e:
-        logger.warning(f"Could not read local FTSE 100 list: {e}")
-
-    # 2) Wikipedia fallback
-    try:
-        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) Safari/537.36"}
-        resp = requests.get("https://en.wikipedia.org/wiki/FTSE_100_Index", headers=headers, timeout=10)
-        resp.raise_for_status()
-        tables = pd.read_html(StringIO(resp.text))
-        for df in tables:
-            cols = [str(c).lower() for c in df.columns]
-            if any("ticker" in c or "epic" in c or "symbol" in c for c in cols):
-                col = next(c for c in df.columns if any(k in str(c).lower() for k in ("ticker","epic","symbol")))
-                symbols = [str(s).strip().upper() + ".L" for s in df[col].dropna()
-                           if str(s).strip() and re.fullmatch(r"[A-Z0-9]{1,5}", str(s).strip().upper())]
-                if len(symbols) >= 50:
-                    logger.info(f"Fetched {len(symbols)} FTSE 100 symbols from Wikipedia")
-                    return symbols
-    except Exception as e:
-        logger.warning(f"FTSE 100 Wikipedia fetch failed: {e}")
-    # 3) Hardcoded fallback — full FTSE 100 constituents
-    return [
-        "AHT.L","AAL.L","ABDN.L","ABF.L","ADM.L","AV.L","AZN.L","AUTO.L",
-        "BA.L","BARC.L","BATS.L","BEZ.L","BKG.L","BME.L","BNZL.L","BP.L",
-        "BRBY.L","BHP.L","CCH.L","CNA.L","CPG.L","CRDA.L","DCC.L","DGE.L",
-        "DPLM.L","EZJ.L","ENT.L","EXPN.L","FCIT.L","FRAS.L","FRES.L","GAW.L",
-        "GLEN.L","GSK.L","HALEON.L","HLMA.L","HLN.L","HSBA.L","HSX.L","HIK.L",
-        "HWDN.L","IAG.L","IHG.L","III.L","IMB.L","INF.L","ITRK.L","JD.L",
-        "KGF.L","LAND.L","LGEN.L","LLOY.L","LSEG.L","MKS.L","MNG.L","MNDI.L",
-        "MRO.L","NG.L","NWG.L","NXT.L","OCDO.L","PCG.L","PHNX.L","PRU.L",
-        "PSH.L","PSN.L","PSON.L","REL.L","RIO.L","RKT.L","RMV.L","RR.L",
-        "RS1.L","SGE.L","SBRY.L","SDR.L","SGRO.L","SHEL.L","SKG.L","SKY.L",
-        "SLA.L","SMDS.L","SMIN.L","SMT.L","SN.L","SPX.L","SSE.L","STAN.L",
-        "STJ.L","SVT.L","TSCO.L","TW.L","ULVR.L","UU.L","VOD.L","WPP.L",
-        "WTB.L","WDS.L"
-    ]
 
 def fetch_bist_symbols():
     """Return BIST tickers with .IS suffix — targets all listed stocks (~500)."""
@@ -2002,7 +1950,7 @@ def _compute_remarkables_from_local_cache():
 
 
 def _compute_risk_trending_for_market(symbols: list) -> dict:
-    """Generic risk-lovers / trending scanner for any symbol list (LSE, BIST, etc.)."""
+    """Generic risk-lovers / trending scanner for a symbol list (BIST, etc.)."""
     risk_candidates = []
     steady_candidates = []
     risk_near = []
@@ -3337,20 +3285,6 @@ _UNDERVALUED_CANDIDATES = [
     "F", "GM", "TSLA", "VZ", "T", "CMCSA", "CHTR", "NFLX",
 ]
 
-_LSE_DIVIDEND_CANDIDATES = [
-    "BATS.L","IMB.L","LGEN.L","AVIVA.L","VOD.L","BHP.L","RIO.L","ULVR.L",
-    "DGE.L","GSK.L","AZN.L","BP.L","SHEL.L","HSBA.L","BARC.L","LLOY.L",
-    "NWG.L","MNG.L","PHNX.L","SLA.L","ADM.L","LAND.L","BLND.L","SGE.L",
-    "NG.L","SSE.L","BWY.L","CNA.L","PRU.L","III.L",
-]
-
-_LSE_UNDERVALUED_CANDIDATES = [
-    "HSBA.L","AZN.L","SHEL.L","ULVR.L","BP.L","RIO.L","GSK.L","BATS.L",
-    "DGE.L","BHP.L","LLOY.L","BARC.L","NG.L","VOD.L","REL.L","NWG.L",
-    "LSEG.L","III.L","WPP.L","IMB.L","STAN.L","EXPN.L","AAL.L","FLTR.L",
-    "TSCO.L","PRU.L","MNG.L","SSE.L","CNA.L","AVIVA.L","LGEN.L","RKT.L",
-]
-
 _BIST_DIVIDEND_CANDIDATES = [
     "THYAO.IS","EREGL.IS","TOASO.IS","FROTO.IS","SASA.IS","KRDMD.IS",
     "VESTL.IS","TAVHL.IS","BIMAS.IS","MGROS.IS","TUPRS.IS","ENKAI.IS",
@@ -3569,7 +3503,7 @@ def _fetch_undervalued_for_symbols(symbols: list, max_results: int = 5) -> list:
 
 
 # ---------------------------------------------------------------------------
-# Full market data (Risk + Trending + Dividend + Undervalued) for LSE / BIST
+# Full market data (Risk + Trending + Dividend + Undervalued) for BIST
 # ---------------------------------------------------------------------------
 _FULL_MARKET_MEM:  dict = {}
 _FULL_MARKET_LOCK = threading.Lock()
@@ -3577,14 +3511,9 @@ _FULL_MARKET_REFRESHING: set = set()
 
 
 def _compute_full_market(market_key: str) -> dict:
-    if market_key == "lse":
-        rt_symbols  = fetch_ftse100_symbols()
-        div_symbols = _LSE_DIVIDEND_CANDIDATES
-        uv_symbols  = _LSE_UNDERVALUED_CANDIDATES
-    else:  # bist
-        rt_symbols  = fetch_bist_symbols()
-        div_symbols = _BIST_DIVIDEND_CANDIDATES
-        uv_symbols  = _BIST_UNDERVALUED_CANDIDATES
+    rt_symbols  = fetch_bist_symbols()
+    div_symbols = _BIST_DIVIDEND_CANDIDATES
+    uv_symbols  = _BIST_UNDERVALUED_CANDIDATES
 
     rt  = _compute_risk_trending_for_market(rt_symbols)
     div = _fetch_dividend_for_symbols(div_symbols)
@@ -3616,7 +3545,7 @@ def _full_market_cache_is_today(payload: dict | None) -> bool:
 
 
 def _full_market_cache_path(market_key: str) -> str:
-    return LSE_CACHE_PATH if market_key == "lse" else BIST_CACHE_PATH
+    return BIST_CACHE_PATH
 
 
 def _full_market_refresh_worker(market_key: str) -> None:
@@ -3638,7 +3567,7 @@ def _full_market_refresh_worker(market_key: str) -> None:
 
 
 def get_full_market_data(market_key: str, force_refresh: bool = False) -> dict:
-    """Return today's 4-list market data for 'lse' or 'bist'. Background refresh when stale."""
+    """Return today's 4-list market data for 'bist'. Background refresh when stale."""
     global _FULL_MARKET_MEM
 
     empty = {"market": market_key, "for_risk_lovers": [], "no_pain_but_gain": [],
@@ -3805,7 +3734,6 @@ def home():
         if isinstance(info_tmp, dict):
             user_markets = info_tmp.get("markets") or []
     subscribed = request.args.get("subscribed") == "1"
-    lse_data  = get_full_market_data("lse")
     bist_data = get_full_market_data("bist")
 
     # Build autocomplete list from industry DB (symbol + name + market)
@@ -3866,7 +3794,6 @@ def home():
         free_daily_limit=FREE_DAILY_LIMIT,
         anon_used=anon_used,
         anon_daily_limit=ANON_DAILY_LIMIT,
-        lse_data=lse_data,
         bist_data=bist_data,
         autocomplete_symbols=autocomplete_symbols,
         sub_cancel_at_period_end=sub_cancel_at_period_end,
@@ -3878,7 +3805,6 @@ def home():
 def remarkables_api():
     refresh = request.args.get('refresh') == '1'
     payload = get_remarkables(force_refresh=refresh)
-    payload["lse_data"]  = get_full_market_data("lse",  force_refresh=refresh)
     payload["bist_data"] = get_full_market_data("bist", force_refresh=refresh)
     return jsonify(payload)
 
