@@ -2317,6 +2317,42 @@
         }
         .admin-mail-card .form-control::placeholder { color: var(--panel-muted); }
         .admin-mail-card textarea.form-control { min-height: 140px; resize: vertical; }
+        /* Mail mode toggle */
+        .admin-mail-mode-toggle {
+            display: flex; gap: 4px; margin-bottom: 12px;
+            background: rgba(255,255,255,0.04); border-radius: 8px; padding: 3px;
+        }
+        .admin-mail-mode-btn {
+            flex: 1; padding: 6px 10px; font-size: 0.75rem;
+            border: none; border-radius: 6px;
+            background: transparent; color: var(--panel-muted); cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .admin-mail-mode-btn.active { background: rgba(0,200,232,0.15); color: #00c8e8; font-weight: 600; }
+        /* Individual user select */
+        .admin-user-select-wrap { display: none; }
+        .admin-user-select-wrap.visible { display: block; }
+        .admin-user-search {
+            width: 100%; padding: 7px 10px; font-size: 0.78rem; box-sizing: border-box;
+            background: rgba(255,255,255,0.04); border: 1px solid var(--panel-border);
+            border-radius: 7px; color: var(--panel-text); margin-bottom: 6px;
+        }
+        .admin-user-search::placeholder { color: var(--panel-muted); }
+        .admin-user-list {
+            max-height: 170px; overflow-y: auto;
+            border: 1px solid var(--panel-border); border-radius: 8px; padding: 4px;
+        }
+        .admin-user-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 8px; border-radius: 6px; cursor: pointer;
+            font-size: 0.75rem; color: var(--panel-muted); transition: background 0.1s;
+        }
+        .admin-user-item:hover { background: rgba(255,255,255,0.04); }
+        .admin-user-item.selected { background: rgba(0,200,232,0.08); color: var(--panel-text); }
+        .admin-user-item input[type=checkbox] { accent-color: #00c8e8; margin: 0; flex-shrink: 0; }
+        .admin-user-tier-dot {
+            width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-left: auto;
+        }
         .admin-mail-actions {
             display: flex;
             justify-content: flex-end;
@@ -2528,7 +2564,8 @@
                         3 analyses/day<br>
                         ML predictions<br>
                         Pattern detection<br>
-                        News &amp; sentiment
+                        News &amp; sentiment<br>
+                        Watchlist
                     </div>
                 </div>
                 <div class="wm-plan wm-plan-cta" data-tier="pro" role="button" tabindex="0" title="Choose Pro — sign in to subscribe">
@@ -2537,7 +2574,6 @@
                     <div class="wm-plan-feats">
                         Unlimited analyses<br>
                         Everything in Free<br>
-                        Watchlist<br>
                         AI Trade Thesis<br>
                         Peer comparison
                     </div>
@@ -2683,6 +2719,7 @@
                         <li>ML price predictions</li>
                         <li>Pattern detection</li>
                         <li>News &amp; sentiment</li>
+                        <li>Watchlist (save &amp; track tickers)</li>
                     </ul>
                     <button class="btn btn-outline-secondary btn-sm" disabled>Current plan</button>
                 </div>
@@ -2695,7 +2732,6 @@
                     <ul>
                         <li>Unlimited analyses</li>
                         <li>Everything in Free</li>
-                        <li>Watchlist (save &amp; track tickers)</li>
                         <li>AI Trade Thesis</li>
                         <li>Peer comparison</li>
                     </ul>
@@ -2817,9 +2853,9 @@
                             {% elif user_tier == 'premium' %}
                             <span>Unlimited analyses</span><span>AI Portfolio Advisor</span><span>Earnings Summarizer</span>
                             {% elif user_tier == 'pro' %}
-                            <span>Unlimited analyses</span><span>Watchlist</span><span>AI Trade Thesis</span>
+                            <span>Unlimited analyses</span><span>AI Trade Thesis</span><span>Peer comparison</span>
                             {% else %}
-                            <span>{{ free_daily_limit }} analyses / day</span><span>ML predictions</span><span>Pattern detection</span>
+                            <span>{{ free_daily_limit }} analyses / day</span><span>Watchlist</span><span>ML predictions</span>
                             {% endif %}
                         </div>
                         {% if user_tier in ('pro', 'premium') %}
@@ -2867,7 +2903,10 @@
                     <div id="admin-members-list" class="small" style="max-height:220px; overflow-y:auto; border:1px solid var(--panel-border); border-radius:10px; padding:10px; background:rgba(255,255,255,0.02);">
                         <div class="text-muted">Loading members…</div>
                     </div>
-                    <div class="mt-3 d-flex justify-content-end">
+                    <div class="mt-3 d-flex justify-content-end gap-2">
+                        <button class="btn btn-sm btn-outline-info px-3" id="admin-watchlist-mail-btn">
+                            <i class="fas fa-star me-1"></i> Watchlist Mails
+                        </button>
                         <button class="btn btn-sm btn-primary px-3" id="admin-open-mail-btn">
                             <i class="fas fa-paper-plane me-1"></i> Send Mail
                         </button>
@@ -2896,6 +2935,7 @@
                                 <li>ML price predictions</li>
                                 <li>Pattern detection</li>
                                 <li>News &amp; sentiment</li>
+                                <li>Watchlist (save &amp; track tickers)</li>
                             </ul>
                             <button class="btn btn-outline-secondary btn-sm" disabled>
                                 {% if not user or user_tier == 'free' %}Current plan{% else %}Free plan{% endif %}
@@ -2910,7 +2950,6 @@
                             <ul>
                                 <li>Unlimited analyses</li>
                                 <li>Everything in Free</li>
-                                <li>Watchlist (save &amp; track tickers)</li>
                                 <li>AI Trade Thesis</li>
                                 <li>Peer comparison</li>
                             </ul>
@@ -3111,7 +3150,7 @@
                             <span class="hero-pill-tip">Daily scan of 4,300+ US and Turkish symbols to surface top movers, trending stocks, high dividends and undervalued picks.</span>
                         </span>
                         <span class="hero-feat-pill"><i class="fas fa-star"></i> Watchlist
-                            <span class="hero-pill-tip">Save any analysed ticker to your personal watchlist for one-click reload — available on Pro and Premium plans.</span>
+                            <span class="hero-pill-tip">Save any analysed ticker to your personal watchlist for one-click reload — free for all registered users.</span>
                         </span>
                     </div>
                     <div class="hero-try-now">
@@ -4153,8 +4192,7 @@
             const premiumTiers = ['premium', 'admin'];
             const hasProAccess = isLoggedIn && proTiers.includes(userTier);
             const hasPremiumAccess = isLoggedIn && premiumTiers.includes(userTier);
-            const watchlistTiers = proTiers;
-            const hasWatchlistAccess = hasProAccess;
+            const hasWatchlistAccess = isLoggedIn;
             const $riskList = $('#risk-lovers-list');
             const $noPainList = $('#no-pain-list');
             const $remarkablesUpdated = $('#remarkables-updated');
@@ -4274,10 +4312,18 @@
                             `<option value="${t}"${t === tier ? ' selected' : ''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`
                         ).join('');
                         const col = TIER_COLORS[tier] || TIER_COLORS.free;
+                        let regLabel = '—';
+                        if (u.registered_at) {
+                            try {
+                                const d = new Date(u.registered_at);
+                                regLabel = d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+                            } catch(e) {}
+                        }
                         return `
                             <div class="d-flex justify-content-between align-items-center mb-2 admin-user-row">
                                 <div style="min-width:0; flex:1; margin-right:8px;">
                                     <div style="color:#e7ecff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${email}</div>
+                                    <div style="font-size:0.68rem; color:rgba(200,220,255,0.45); margin-top:1px;">Joined: ${regLabel}</div>
                                 </div>
                                 <div class="d-flex align-items-center gap-2" style="flex-shrink:0;">
                                     <select class="admin-tier-select" data-email="${email}" data-current="${tier}"
@@ -4364,14 +4410,17 @@
                 const $content = $('#admin-mail-content');
                 const $status  = $('#admin-mail-status');
                 const $sendBtn = $('#admin-mail-send');
+                const TIER_COLORS = { admin:'#f74f4f', premium:'#f7c04f', pro:'#4f8ef7', free:'rgba(200,238,255,0.4)' };
 
-                let allUsers = [];
+                let allUsers   = [];
+                let mailMode   = 'tiers'; // 'tiers' | 'users'
+                let selectedUserEmails = new Set();
 
                 function openMailModal() {
                     $modal.addClass('is-visible');
                     $subject.val(''); $header.val(''); $content.val('');
-                    $status.text('');
-                    // reset tier pills — select all by default
+                    $status.text(''); mailMode = 'tiers'; selectedUserEmails = new Set();
+                    setMode('tiers');
                     $('#admin-mail-modal .admin-tier-pill').each(function() {
                         const tier = $(this).find('input[type=checkbox]').val();
                         $(this).addClass('checked-' + tier);
@@ -4380,8 +4429,52 @@
                     updateRecipCount();
                 }
 
-                function closeMailModal() {
-                    $modal.removeClass('is-visible');
+                function closeMailModal() { $modal.removeClass('is-visible'); }
+
+                function setMode(mode) {
+                    mailMode = mode;
+                    $('.admin-mail-mode-btn').removeClass('active')
+                        .filter(`[data-mode="${mode}"]`).addClass('active');
+                    if (mode === 'tiers') {
+                        $('#admin-mode-tiers').show();
+                        $('#admin-mode-users').removeClass('visible');
+                    } else {
+                        $('#admin-mode-tiers').hide();
+                        $('#admin-mode-users').addClass('visible');
+                        if (!allUsers.length) loadAndRenderUsers();
+                        else renderUserList($('#admin-user-search').val());
+                    }
+                    updateRecipCount();
+                }
+
+                function loadAndRenderUsers() {
+                    $('#admin-user-list').html('<div class="text-muted small p-2">Loading…</div>');
+                    fetch('/api/admin/users').then(r => r.json()).then(users => {
+                        allUsers = Array.isArray(users) ? users : [];
+                        renderUserList('');
+                        updateRecipCount();
+                    }).catch(() => {
+                        $('#admin-user-list').html('<div class="text-muted small p-2">Could not load users.</div>');
+                    });
+                }
+
+                function renderUserList(query) {
+                    const q = (query || '').toLowerCase();
+                    const filtered = allUsers.filter(u => !q || u.email.includes(q));
+                    if (!filtered.length) {
+                        $('#admin-user-list').html('<div class="text-muted small p-2">No users found.</div>');
+                        return;
+                    }
+                    const html = filtered.map(u => {
+                        const checked = selectedUserEmails.has(u.email);
+                        const color   = TIER_COLORS[u.tier] || TIER_COLORS.free;
+                        return `<div class="admin-user-item${checked ? ' selected' : ''}" data-email="${u.email}">
+                            <input type="checkbox" ${checked ? 'checked' : ''}>
+                            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.email}</span>
+                            <span class="admin-user-tier-dot" style="background:${color};"></span>
+                        </div>`;
+                    }).join('');
+                    $('#admin-user-list').html(html);
                 }
 
                 function selectedTiers() {
@@ -4390,11 +4483,14 @@
                 }
 
                 function updateRecipCount() {
-                    const tiers = selectedTiers();
-                    if (!tiers.length) {
-                        $recip.html('No tiers selected — no recipients.');
+                    if (mailMode === 'users') {
+                        const n = selectedUserEmails.size;
+                        $recip.html(n ? `Will send to <strong>${n}</strong> selected user${n !== 1 ? 's' : ''}.`
+                                      : 'No users selected.');
                         return;
                     }
+                    const tiers = selectedTiers();
+                    if (!tiers.length) { $recip.html('No tiers selected — no recipients.'); return; }
                     if (!allUsers.length) {
                         fetch('/api/admin/users').then(r => r.json()).then(users => {
                             allUsers = Array.isArray(users) ? users : [];
@@ -4408,57 +4504,74 @@
                 }
 
                 // Open modal
-                $('#admin-open-mail-btn').on('click', function() {
-                    allUsers = [];
-                    openMailModal();
+                $('#admin-open-mail-btn').on('click', function() { allUsers = []; openMailModal(); });
+
+                // Close
+                $('#admin-mail-close, #admin-mail-cancel').on('click', closeMailModal);
+                $modal.on('click', function(e) { if ($(e.target).is($modal)) closeMailModal(); });
+
+                // Mode toggle
+                $modal.on('click', '.admin-mail-mode-btn', function() { setMode($(this).data('mode')); });
+
+                // User item toggle
+                $modal.on('click', '.admin-user-item', function() {
+                    const email = $(this).data('email');
+                    if (selectedUserEmails.has(email)) selectedUserEmails.delete(email);
+                    else selectedUserEmails.add(email);
+                    $(this).toggleClass('selected', selectedUserEmails.has(email));
+                    $(this).find('input[type=checkbox]').prop('checked', selectedUserEmails.has(email));
+                    updateRecipCount();
                 });
 
-                // Close buttons
-                $('#admin-mail-close, #admin-mail-cancel').on('click', closeMailModal);
-                $modal.on('click', function(e) {
-                    if ($(e.target).is($modal)) closeMailModal();
-                });
+                // User search
+                $('#admin-user-search').on('input', function() { renderUserList($(this).val()); });
 
                 // Tier pill toggle
-                $('#admin-mail-modal').on('click', '.admin-tier-pill', function(e) {
+                $modal.on('click', '.admin-tier-pill', function(e) {
                     e.preventDefault();
-                    const $cb  = $(this).find('input[type=checkbox]');
+                    const $cb = $(this).find('input[type=checkbox]');
                     const tier = $cb.val();
-                    const nowChecked = !$cb.prop('checked');
-                    $cb.prop('checked', nowChecked);
-                    $(this).toggleClass('checked-' + tier, nowChecked);
+                    const now = !$cb.prop('checked');
+                    $cb.prop('checked', now);
+                    $(this).toggleClass('checked-' + tier, now);
                     updateRecipCount();
                 });
 
                 // Tab switching
-                $('#admin-mail-modal').on('click', '.admin-mail-tab', function() {
+                $modal.on('click', '.admin-mail-tab', function() {
                     const pane = $(this).data('pane');
-                    $('.admin-mail-tab').removeClass('active');
-                    $(this).addClass('active');
+                    $('.admin-mail-tab').removeClass('active'); $(this).addClass('active');
                     $('.admin-mail-tab-pane').removeClass('active');
                     $('#admin-mail-pane-' + pane).addClass('active');
                 });
 
                 // Send
                 $sendBtn.on('click', async function() {
-                    const tiers   = selectedTiers();
                     const subject = $subject.val().trim();
                     const header  = $header.val().trim();
                     const content = $content.val().trim();
+                    if (!subject) { $status.text('Subject is required.').css('color','#f87171'); return; }
+                    if (!header)  { $status.text('Header is required.').css('color','#f87171'); return; }
+                    if (!content) { $status.text('Content is required.').css('color','#f87171'); return; }
 
-                    if (!tiers.length)  { $status.text('Select at least one tier.').css('color','#f87171'); return; }
-                    if (!subject)       { $status.text('Subject is required.').css('color','#f87171'); return; }
-                    if (!header)        { $status.text('Header is required.').css('color','#f87171'); return; }
-                    if (!content)       { $status.text('Content is required.').css('color','#f87171'); return; }
+                    let body;
+                    if (mailMode === 'users') {
+                        if (!selectedUserEmails.size) {
+                            $status.text('Select at least one user.').css('color','#f87171'); return;
+                        }
+                        body = { recipients: [...selectedUserEmails], subject, header, content };
+                    } else {
+                        const tiers = selectedTiers();
+                        if (!tiers.length) { $status.text('Select at least one tier.').css('color','#f87171'); return; }
+                        body = { tiers, subject, header, content };
+                    }
 
                     $sendBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Sending…');
                     $status.text('').css('color','');
-
                     try {
                         const resp = await fetch('/api/admin/send-mail', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ tiers, subject, header, content })
+                            method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(body)
                         });
                         const data = await resp.json();
                         if (data.ok) {
@@ -4472,6 +4585,27 @@
                     } catch(e) {
                         $status.text('Network error — please try again.').css('color','#f87171');
                         $sendBtn.prop('disabled', false).html('<i class="fas fa-paper-plane me-1"></i>Send');
+                    }
+                });
+
+                // Watchlist Mails button
+                $('#admin-watchlist-mail-btn').on('click', async function() {
+                    if (!confirm('Send watchlist news digest to all users with a non-empty watchlist?\n\nThis will fetch last 10 days of headlines per symbol and dispatch personalised emails.')) return;
+                    const $btn = $(this);
+                    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Sending…');
+                    try {
+                        const resp = await fetch('/api/admin/send-watchlist-mails', { method: 'POST' });
+                        const data = await resp.json();
+                        if (data.ok) {
+                            $btn.html('<i class="fas fa-check me-1"></i>Queued (' + data.count + ')');
+                            setTimeout(() => $btn.prop('disabled', false).html('<i class="fas fa-star me-1"></i> Watchlist Mails'), 3000);
+                        } else {
+                            alert(data.error || 'Failed.');
+                            $btn.prop('disabled', false).html('<i class="fas fa-star me-1"></i> Watchlist Mails');
+                        }
+                    } catch(e) {
+                        alert('Network error.');
+                        $btn.prop('disabled', false).html('<i class="fas fa-star me-1"></i> Watchlist Mails');
                     }
                 });
             })();
@@ -4712,10 +4846,7 @@
 
             async function renderWatchlist() {
                 if (!hasWatchlistAccess) {
-                    const msg = isLoggedIn
-                        ? '⭐ Watchlist is a Pro feature (£5/mo). Upgrade to save &amp; track tickers.'
-                        : '⭐ Sign in with a Pro account to use your watchlist.';
-                    $watchlistBody.html(`<div class="col-12 text-muted small">${msg}</div>`);
+                    $watchlistBody.html('<div class="col-12 text-muted small">⭐ Sign in to use your watchlist.</div>');
                     $watchlistNotice.text('');
                     return;
                 }
@@ -6027,21 +6158,38 @@
             <button class="auth-modal-close" id="admin-mail-close" aria-label="Close" style="position:absolute;top:14px;right:16px;"><i class="fas fa-times"></i></button>
             <h5><i class="fas fa-paper-plane me-2" style="color:var(--accent);"></i>Send Broadcast Email</h5>
 
-            <!-- Tier filter -->
-            <div class="small text-muted mb-2">Send to:</div>
-            <div class="admin-tier-filters" id="admin-tier-filters">
-                <label class="admin-tier-pill" id="pill-admin">
-                    <input type="checkbox" value="admin"> <i class="fas fa-shield-alt"></i> Admin
-                </label>
-                <label class="admin-tier-pill" id="pill-premium">
-                    <input type="checkbox" value="premium"> <i class="fas fa-crown"></i> Premium
-                </label>
-                <label class="admin-tier-pill" id="pill-pro">
-                    <input type="checkbox" value="pro"> <i class="fas fa-star"></i> Pro
-                </label>
-                <label class="admin-tier-pill" id="pill-free">
-                    <input type="checkbox" value="free"> <i class="fas fa-user"></i> Free
-                </label>
+            <!-- Mode toggle -->
+            <div class="admin-mail-mode-toggle">
+                <button class="admin-mail-mode-btn active" data-mode="tiers"><i class="fas fa-layer-group me-1"></i>By Tier</button>
+                <button class="admin-mail-mode-btn" data-mode="users"><i class="fas fa-user-check me-1"></i>Specific Users</button>
+            </div>
+
+            <!-- Tier filter (mode = tiers) -->
+            <div id="admin-mode-tiers">
+                <div class="small text-muted mb-2">Send to:</div>
+                <div class="admin-tier-filters" id="admin-tier-filters">
+                    <label class="admin-tier-pill" id="pill-admin">
+                        <input type="checkbox" value="admin"> <i class="fas fa-shield-alt"></i> Admin
+                    </label>
+                    <label class="admin-tier-pill" id="pill-premium">
+                        <input type="checkbox" value="premium"> <i class="fas fa-crown"></i> Premium
+                    </label>
+                    <label class="admin-tier-pill" id="pill-pro">
+                        <input type="checkbox" value="pro"> <i class="fas fa-star"></i> Pro
+                    </label>
+                    <label class="admin-tier-pill" id="pill-free">
+                        <input type="checkbox" value="free"> <i class="fas fa-user"></i> Free
+                    </label>
+                </div>
+            </div>
+
+            <!-- User select (mode = users) -->
+            <div id="admin-mode-users" class="admin-user-select-wrap">
+                <div class="small text-muted mb-2">Select recipients:</div>
+                <input type="text" class="admin-user-search" id="admin-user-search" placeholder="Search by email…">
+                <div class="admin-user-list" id="admin-user-list">
+                    <div class="text-muted small p-2">Loading…</div>
+                </div>
             </div>
 
             <div class="admin-mail-recip" id="admin-mail-recip">Select tiers to see recipient count.</div>
