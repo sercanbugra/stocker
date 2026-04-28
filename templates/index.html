@@ -2073,7 +2073,6 @@
             flex-shrink: 0;
         }
         .ticker-ac-market.US { background: rgba(52,211,153,0.12); color: #34d399; }
-        .ticker-ac-market.UK { background: rgba(79,142,247,0.12); color: #4f8ef7; }
         .ticker-ac-market.TR { background: rgba(251,146,60,0.12); color: #fb923c; }
         .ticker-ac-empty {
             padding: 14px;
@@ -2781,7 +2780,6 @@
                     <div class="profile-section-label">Markets</div>
                     <div class="d-flex flex-wrap gap-2 mb-3" id="profile-markets">
                         <button type="button" class="btn btn-sm btn-outline-light profile-market-chip" data-market="us">US</button>
-                        <button type="button" class="btn btn-sm btn-outline-light profile-market-chip" data-market="uk">UK</button>
                         <button type="button" class="btn btn-sm btn-outline-light profile-market-chip" data-market="tr">Turkey</button>
                     </div>
 
@@ -3036,7 +3034,7 @@
             <div class="toolbar-search" style="position:relative;">
                 <div class="ticker-input-wrap" style="position:relative;">
                     <i class="fas fa-search ticker-search-icon"></i>
-                    <input id="stock-input" type="text" class="ticker-input" placeholder="e.g. AAPL, BP.L" autocomplete="off" spellcheck="false" />
+                    <input id="stock-input" type="text" class="ticker-input" placeholder="e.g. AAPL, THYAO.IS" autocomplete="off" spellcheck="false" />
                     <!-- Autocomplete dropdown -->
                     <div class="ticker-autocomplete" id="ticker-ac"></div>
                 </div>
@@ -3110,7 +3108,7 @@
                             <span class="hero-pill-tip">Ranks the stock side-by-side with its closest industry peers across valuation, growth, margins and return metrics.</span>
                         </span>
                         <span class="hero-feat-pill"><i class="fas fa-bolt"></i> Remarkables Scanner
-                            <span class="hero-pill-tip">Daily scan of 4,400+ US, UK and Turkish symbols to surface top movers, trending stocks, high dividends and undervalued picks.</span>
+                            <span class="hero-pill-tip">Daily scan of 4,300+ US and Turkish symbols to surface top movers, trending stocks, high dividends and undervalued picks.</span>
                         </span>
                         <span class="hero-feat-pill"><i class="fas fa-star"></i> Watchlist
                             <span class="hero-pill-tip">Save any analysed ticker to your personal watchlist for one-click reload — available on Pro and Premium plans.</span>
@@ -3122,7 +3120,6 @@
                             <div class="hero-tickers">
                                 <button class="hero-ticker-btn" data-ticker="NVDA">NVDA</button>
                                 <button class="hero-ticker-btn" data-ticker="AMZN">AMZN</button>
-                                <button class="hero-ticker-btn" data-ticker="BP.L">BP.L</button>
                                 <button class="hero-ticker-btn" data-ticker="THYAO.IS">THYAO.IS</button>
                             </div>
                         </div>
@@ -3133,7 +3130,7 @@
                 <div class="hero-right">
                     <div class="hero-stat-cluster">
                         <div class="hero-stat">
-                            <div class="hero-stat-val green">4,426</div>
+                            <div class="hero-stat-val green">4,326</div>
                             <div class="hero-stat-lbl">Symbols Scanned</div>
                         </div>
                         <div class="hero-stat">
@@ -3163,9 +3160,6 @@
                 <span class="rm-picker-label">Show market:</span>
                 <button class="rm-mkt-chip" data-market="us">
                     <span class="rm-chip-flag">🇺🇸</span> US &mdash; S&amp;P 500
-                </button>
-                <button class="rm-mkt-chip" data-market="uk">
-                    <span class="rm-chip-flag">🇬🇧</span> UK &mdash; FTSE 100
                 </button>
                 <button class="rm-mkt-chip" data-market="tr">
                     <span class="rm-chip-flag">🇹🇷</span> Turkey &mdash; BIST
@@ -3359,183 +3353,6 @@
 
                 </div><!-- /rm-section-us -->
 
-                <!-- UK Market section -->
-                <div id="rm-section-uk" style="display:none;">
-                <div class="rm-market-section-header" style="border-top:1px solid var(--panel-border);">
-                    <span class="rm-market-flag-lg">🇬🇧</span>
-                    <span class="rm-market-section-title">UK Markets &mdash; FTSE 100</span>
-                </div>
-                <div class="row g-0" style="border-bottom:1px solid var(--panel-border);">
-
-                    <!-- LSE Risk Lovers -->
-                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
-                        <div class="rm-col-header">
-                            <div class="rm-col-icon rm-col-icon-risk"><i class="fas fa-fire"></i></div>
-                            <div>
-                                <div class="rm-col-title">Risk Lovers</div>
-                                <div class="rm-col-subtitle">High volatility movers</div>
-                            </div>
-                        </div>
-                        <div class="rm-col-labels">
-                            <span class="rm-lbl-rank">#</span>
-                            <span class="rm-lbl-ticker">Ticker</span>
-                            <span class="rm-lbl-info"></span>
-                            <span class="rm-lbl-val">Change (%)</span>
-                        </div>
-                        <ol class="rm-list">
-                            {% if lse_data and lse_data.for_risk_lovers is defined %}
-                                {% for item in lse_data.for_risk_lovers %}
-                                <li>
-                                    <span class="rm-rank">{{ loop.index }}</span>
-                                    <a href="#" class="remarkable-symbol" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.L','') }}</a>
-                                    <span class="rm-info-wrap">
-                                        <span class="rm-info-icon">i</span>
-                                        <span class="rm-tooltip">
-                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend (3M)</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
-                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Low hits</span><span class="rm-tooltip-val">{{ item.down_hits }}</span></div>
-                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">High hits</span><span class="rm-tooltip-val">{{ item.up_hits }}</span></div>
-                                        </span>
-                                    </span>
-                                    {% set d = item.day_change_pct if item.day_change_pct is defined else none %}
-                                    {% if d is not none %}
-                                        {% if d > 0 %}<span class="rm-chg-pos">+{{ d }}%</span>
-                                        {% elif d < 0 %}<span class="rm-chg-neg">{{ d }}%</span>
-                                        {% else %}<span class="rm-chg-flat">0.00%</span>{% endif %}
-                                    {% endif %}
-                                </li>
-                                {% endfor %}
-                            {% endif %}
-                        </ol>
-                        <div style="height:10px;"></div>
-                    </div>
-
-                    <!-- LSE Trending Stocks -->
-                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
-                        <div class="rm-col-header">
-                            <div class="rm-col-icon rm-col-icon-trend"><i class="fas fa-chart-line"></i></div>
-                            <div>
-                                <div class="rm-col-title">Trending Stocks</div>
-                                <div class="rm-col-subtitle">Steady upward momentum</div>
-                            </div>
-                        </div>
-                        <div class="rm-col-labels">
-                            <span class="rm-lbl-rank">#</span>
-                            <span class="rm-lbl-ticker">Ticker</span>
-                            <span class="rm-lbl-info"></span>
-                            <span class="rm-lbl-val">Change (%)</span>
-                        </div>
-                        <ol class="rm-list">
-                            {% if lse_data and lse_data.no_pain_but_gain %}
-                                {% for item in lse_data.no_pain_but_gain %}
-                                <li>
-                                    <span class="rm-rank">{{ loop.index }}</span>
-                                    <a href="#" class="remarkable-symbol" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.L','') }}</a>
-                                    <span class="rm-info-wrap">
-                                        <span class="rm-info-icon">i</span>
-                                        <span class="rm-tooltip">
-                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend (6M)</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
-                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Max daily drop</span><span class="rm-tooltip-val">{{ item.max_daily_drop_percent }}%</span></div>
-                                        </span>
-                                    </span>
-                                    {% set d = item.day_change_pct if item.day_change_pct is defined else none %}
-                                    {% if d is not none %}
-                                        {% if d > 0 %}<span class="rm-chg-pos">+{{ d }}%</span>
-                                        {% elif d < 0 %}<span class="rm-chg-neg">{{ d }}%</span>
-                                        {% else %}<span class="rm-chg-flat">0.00%</span>{% endif %}
-                                    {% endif %}
-                                </li>
-                                {% endfor %}
-                            {% else %}
-                                <li><span class="text-muted small">Loading…</span></li>
-                            {% endif %}
-                        </ol>
-                        <div style="height:10px;"></div>
-                    </div>
-
-                    <!-- LSE Dividend -->
-                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
-                        <div class="rm-col-header">
-                            <div class="rm-col-icon rm-col-icon-dividend"><i class="fas fa-hand-holding-usd"></i></div>
-                            <div>
-                                <div class="rm-col-title">Top Dividend Stocks</div>
-                                <div class="rm-col-subtitle">Highest yield payers</div>
-                            </div>
-                        </div>
-                        {% if lse_data and lse_data.top_dividend %}
-                        <div class="rm-col-labels">
-                            <span class="rm-lbl-rank">#</span>
-                            <span class="rm-lbl-ticker">Ticker</span>
-                            <span class="rm-lbl-info"></span>
-                            <span class="rm-lbl-val">Yield (%)</span>
-                        </div>
-                        <ul class="rm-list">
-                            {% for item in lse_data.top_dividend %}
-                            <li>
-                                <span class="rm-rank">{{ loop.index }}</span>
-                                <a href="#" class="remarkable-symbol nl-symbol-link" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.L','') }}</a>
-                                <span class="rm-info-wrap">
-                                    <span class="rm-info-icon">i</span>
-                                    <span class="rm-tooltip">
-                                        <div class="rm-tooltip-row"><span class="rm-tooltip-key">Div. Yield</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.yield_pct) }}%</span></div>
-                                        <div class="rm-tooltip-row"><span class="rm-tooltip-key">Annual Div.</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.annual_div) }}</span></div>
-                                        {% if item.price %}<div class="rm-tooltip-row"><span class="rm-tooltip-key">Price</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.price) }}</span></div>{% endif %}
-                                    </span>
-                                </span>
-                                <span class="rm-yield-badge">{{ "%.1f"|format(item.yield_pct) }}%</span>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        {% else %}
-                        <p class="text-muted small px-3 mt-2">Loading…</p>
-                        {% endif %}
-                        <div style="height:10px;"></div>
-                    </div>
-
-                    <!-- LSE Undervalued -->
-                    <div class="col-md-3">
-                        <div class="rm-col-header">
-                            <div class="rm-col-icon rm-col-icon-undervalued"><i class="fas fa-tags"></i></div>
-                            <div>
-                                <div class="rm-col-title">Undervalued</div>
-                                <div class="rm-col-subtitle">Top FCF yield stocks</div>
-                            </div>
-                        </div>
-                        {% if lse_data and lse_data.undervalued %}
-                        <div class="rm-col-labels">
-                            <span class="rm-lbl-rank">#</span>
-                            <span class="rm-lbl-ticker">Ticker</span>
-                            <span class="rm-lbl-info"></span>
-                            <span class="rm-lbl-val">FCF Yield</span>
-                            <span class="rm-lbl-val">Price</span>
-                        </div>
-                        <ul class="rm-list">
-                            {% for item in lse_data.undervalued %}
-                            <li>
-                                <span class="rm-rank">{{ loop.index }}</span>
-                                <a href="#" class="remarkable-symbol nl-symbol-link" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.L','') }}</a>
-                                <span class="rm-info-wrap">
-                                    <span class="rm-info-icon">i</span>
-                                    <span class="rm-tooltip">
-                                        <div class="rm-tooltip-row"><span class="rm-tooltip-key">FCF Yield</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.fcf_yield) }}%</span></div>
-                                        {% if item.pfcf %}<div class="rm-tooltip-row"><span class="rm-tooltip-key">P/FCF</span><span class="rm-tooltip-val">{{ item.pfcf }}×</span></div>{% endif %}
-                                        {% if item.price %}<div class="rm-tooltip-row"><span class="rm-tooltip-key">Price</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.price) }}</span></div>{% endif %}
-                                    </span>
-                                </span>
-                                <span class="rm-fcf-badge">{{ "%.1f"|format(item.fcf_yield) }}%</span>
-                                {% if item.price %}<span class="rm-chg-flat">{{ "%.2f"|format(item.price) }}</span>{% endif %}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        {% else %}
-                        <p class="text-muted small px-3 mt-2">Loading…</p>
-                        {% endif %}
-                        <div style="height:10px;"></div>
-                    </div>
-
-                </div>
-
-                </div><!-- /rm-section-uk -->
-
                 <!-- Turkish Market section -->
                 <div id="rm-section-tr" style="display:none;">
                 <div class="rm-market-section-header" style="border-top:1px solid var(--panel-border);">
@@ -3716,12 +3533,10 @@
                     <i class="fas fa-satellite-dish me-1" style="font-size:0.65rem;"></i>
                     {% set us_scanned = remarkables.scanned_symbols if remarkables and remarkables.scanned_symbols else 0 %}
                     {% set us_total   = remarkables.total_symbols   if remarkables and remarkables.total_symbols   else 0 %}
-                    {% set lse_scanned = lse_data.scanned_symbols if lse_data and lse_data.scanned_symbols else 0 %}
-                    {% set lse_total   = lse_data.total_symbols   if lse_data and lse_data.total_symbols   else 0 %}
                     {% set bist_scanned = bist_data.scanned_symbols if bist_data and bist_data.scanned_symbols else 0 %}
                     {% set bist_total   = bist_data.total_symbols   if bist_data and bist_data.total_symbols   else 0 %}
-                    {% set total_scanned = us_scanned + lse_scanned + bist_scanned %}
-                    {% set total_total   = us_total   + lse_total   + bist_total   %}
+                    {% set total_scanned = us_scanned + bist_scanned %}
+                    {% set total_total   = us_total   + bist_total   %}
                     {% if total_scanned %}
                     scanned {{ total_scanned }} / {{ total_total }} symbols
                     {% else %}
@@ -4856,12 +4671,10 @@
                         $remarkablesUpdated.text(`updated ${payload.updated_at}`);
                     }
                     if (payload.scanned_symbols !== undefined) {
-                        const lseScanned  = (payload.lse_data  || {}).scanned_symbols || 0;
                         const bistScanned = (payload.bist_data || {}).scanned_symbols || 0;
-                        const lseTotal    = (payload.lse_data  || {}).total_symbols   || 0;
                         const bistTotal   = (payload.bist_data || {}).total_symbols   || 0;
-                        const totalScanned = payload.scanned_symbols + lseScanned + bistScanned;
-                        const totalSymbols = payload.total_symbols   + lseTotal   + bistTotal;
+                        const totalScanned = payload.scanned_symbols + bistScanned;
+                        const totalSymbols = payload.total_symbols   + bistTotal;
                         $remarkablesMeta.text(`scanned ${totalScanned} / ${totalSymbols} symbols`);
                     }
                 } catch (e) {
@@ -5075,7 +4888,7 @@
             (function() {
                 const LS_KEY = 'stocker_rm_markets';
                 const LS_LAST_USER = 'stocker_last_user';
-                const ALL    = ['us', 'uk', 'tr'];
+                const ALL    = ['us', 'tr'];
                 window._rm_selected_markets = [];
 
                 function load() {
@@ -5797,7 +5610,6 @@
             // ---------------------------------------------------------------
             function currencySymbol(sym) {
                 if (/\.IS$/i.test(sym)) return '₺';
-                if (/\.L$/i.test(sym))  return '£';
                 return '$';
             }
 
@@ -6271,15 +6083,12 @@
             <!-- populated by JS -->
             <div class="mkt-item"><span class="mkt-lbl">S&amp;P 500</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
             <div class="mkt-item"><span class="mkt-lbl">Nasdaq</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
-            <div class="mkt-item"><span class="mkt-lbl">FTSE 100</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
             <div class="mkt-item"><span class="mkt-lbl">BIST 100</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
             <div class="mkt-item"><span class="mkt-lbl">Gold</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
             <div class="mkt-item"><span class="mkt-lbl">Bitcoin</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
             <div class="mkt-item"><span class="mkt-lbl">Crude Oil</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
             <div class="mkt-item"><span class="mkt-lbl">USD/EUR</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
             <div class="mkt-item"><span class="mkt-lbl">USD/TRY</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
-            <div class="mkt-item"><span class="mkt-lbl">USD/GBP</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
-            <div class="mkt-item"><span class="mkt-lbl">GBP/TRY</span><span class="mkt-price">—</span><span class="mkt-chg neu">—</span></div>
         </div>
         <div class="mkt-news">
             <span class="mkt-news-badge">NEWS</span>
