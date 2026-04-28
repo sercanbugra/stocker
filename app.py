@@ -3716,7 +3716,7 @@ def home():
                     # First-time Google OAuth user — create record & send welcome email
                     users = _load_users()
                     if g_email not in users:
-                        users[g_email] = {"tier": "free"}
+                        users[g_email] = {"tier": "free", "registered_at": datetime.now(timezone.utc).isoformat()}
                         _save_users(users)
                         _send_welcome_email(g_email)
         except TokenExpiredError:
@@ -3867,6 +3867,7 @@ def register_email():
     users[email] = {
         "password_hash": generate_password_hash(password),
         "tier": "free",
+        "registered_at": datetime.now(timezone.utc).isoformat(),
         "email_verified": False,
         "email_verification_token": token,
         "email_verification_expires": time.time() + 86400,
@@ -3909,9 +3910,6 @@ def watchlist_api():
     email = _get_current_user_email()
     if not email:
         return jsonify({"error": "unauthorized"}), 401
-    tier = _get_user_tier(email)
-    if TIER_RANK.get(tier, 0) < TIER_RANK["pro"]:
-        return jsonify({"error": "upgrade_required", "required_tier": "pro"}), 403
     path = _get_watchlist_path(email)
     if request.method == "GET":
         if not os.path.exists(path):
@@ -3935,6 +3933,147 @@ def watchlist_api():
     except Exception as exc:
         logger.error(f"Failed to write watchlist for {email}: {exc}")
         return jsonify({"error": "failed to save watchlist"}), 500
+
+
+def _collect_watchlist_news_for_user(email: str) -> list:
+    """Return [{symbol, items:[{title,link,publisher}]}] from last 10 days."""
+    path = _get_watchlist_path(email)
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            payload = json.load(fh)
+        symbols = [s for s in (payload.get("symbols") or []) if isinstance(s, str)]
+    except Exception:
+        return []
+    if not symbols:
+        return []
+    cutoff = time.time() - (10 * 24 * 3600)
+    result = []
+    for sym in symbols[:15]:
+        try:
+            raw_news = yf.Ticker(sym).news or []
+            sym_items = []
+            for n in raw_news:
+                if not isinstance(n, dict):
+                    continue
+                parsed = _parse_yf_news_item(n)
+                if not parsed:
+                    continue
+                pub = parsed.get("published", "")
+                if isinstance(pub, (int, float)) and float(pub) < cutoff:
+                    continue
+                sym_items.append(parsed)
+                if len(sym_items) >= 5:
+                    break
+            if sym_items:
+                result.append({"symbol": sym, "items": sym_items})
+        except Exception as exc:
+            logger.debug("Watchlist news fetch error %s %s: %s", email, sym, exc)
+    return result
+
+
+def _send_watchlist_news_email(to_email: str, news_by_symbol: list) -> None:
+    """Send a personalised watchlist news digest. Never raises."""
+    if not SMTP_HOST or not SMTP_PASS:
+        logger.warning("SMTP not configured — watchlist mail skipped for %s", to_email)
+        return
+    if not news_by_symbol:
+        logger.info("No watchlist news — skipped for %s", to_email)
+        return
+    logo_url = f"{SITE_BASE_URL}/static/stocker_logo.png"
+    site_url = SITE_BASE_URL
+    subject  = "Your Stocker Watchlist — News Digest"
+    header   = "Your Watchlist News Digest"
+
+    sections_html = ""
+    for entry in news_by_symbol:
+        sym = entry["symbol"]
+        rows = "".join(
+            f'<tr><td style="padding:6px 0;border-bottom:1px solid rgba(0,200,232,0.08);">'
+            f'<a href="{it["link"]}" style="color:#00c8e8;text-decoration:none;font-size:14px;">{it["title"]}</a>'
+            f'<span style="display:block;font-size:11px;color:rgba(200,238,255,0.4);margin-top:2px;">{it.get("publisher","")}</span>'
+            f'</td></tr>'
+            for it in entry["items"]
+        )
+        sections_html += (
+            f'<tr><td style="padding:20px 0 8px;">'
+            f'<div style="font-size:16px;font-weight:700;color:#c8eeff;border-left:3px solid #00c8e8;padding-left:10px;">{sym}</div>'
+            f'<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:6px;">{rows}</table>'
+            f'</td></tr>'
+        )
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>{subject}</title></head>
+<body style="margin:0;padding:0;background:#051520;font-family:'Helvetica Neue',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#051520;padding:40px 0;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+      <tr>
+        <td align="center" style="background:#0a2535;border:1px solid rgba(0,200,232,0.25);border-bottom:none;border-radius:16px 16px 0 0;padding:32px 40px 24px;">
+          <img src="{logo_url}" alt="Stocker" width="180" style="display:block;max-width:180px;height:auto;margin:0 auto 20px;"/>
+          <h1 style="margin:0;color:#c8eeff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">{header}</h1>
+          <p style="margin:10px 0 0;color:rgba(200,238,255,0.55);font-size:14px;">Latest headlines for your saved stocks — last 10 days</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#0d3048;border-left:1px solid rgba(0,200,232,0.25);border-right:1px solid rgba(0,200,232,0.25);padding:24px 40px;">
+          <table width="100%" cellpadding="0" cellspacing="0">{sections_html}</table>
+          <table cellpadding="0" cellspacing="0" width="100%" style="margin-top:28px;">
+            <tr><td align="center">
+              <a href="{site_url}" style="display:inline-block;background:#00c8e8;color:#051520;text-decoration:none;font-size:15px;font-weight:700;padding:14px 36px;border-radius:10px;">Open Stocker →</a>
+            </td></tr>
+          </table>
+          <p style="margin:24px 0 0;color:rgba(200,238,255,0.35);font-size:13px;">
+            Questions? <a href="{site_url}" style="color:#00c8e8;text-decoration:none;">{site_url}</a>
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td align="center" style="background:#071a28;border:1px solid rgba(0,200,232,0.25);border-top:none;border-radius:0 0 16px 16px;padding:20px 40px;">
+          <p style="margin:0;color:rgba(200,238,255,0.25);font-size:12px;">
+            © 2025 Stocker · Gultechs · info@gultechs.net &nbsp;·&nbsp;
+            <a href="{site_url}/privacy" style="color:rgba(200,238,255,0.4);text-decoration:none;">Privacy Policy</a>
+          </p>
+          <p style="margin:6px 0 0;color:rgba(200,238,255,0.2);font-size:11px;">
+            You received this because you have saved stocks in your Stocker watchlist.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>"""
+
+    plain_parts = [header, "", "Latest headlines for your saved stocks (last 10 days):", ""]
+    for entry in news_by_symbol:
+        plain_parts.append(f"--- {entry['symbol']} ---")
+        for it in entry["items"]:
+            plain_parts.append(f"• {it['title']}")
+            if it.get("link"):
+                plain_parts.append(f"  {it['link']}")
+        plain_parts.append("")
+    plain_parts.append(f"Visit {site_url}")
+
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"]    = subject
+        msg["From"]       = f"Stocker <{SMTP_USER}>"
+        msg["To"]         = to_email
+        msg["Date"]       = formatdate(localtime=False)
+        msg["Message-ID"] = make_msgid(domain="gultechs.net")
+        msg.attach(MIMEText("\n".join(plain_parts), "plain"))
+        msg.attach(MIMEText(html, "html"))
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASS)
+            server.sendmail(SMTP_USER, to_email, msg.as_string())
+        logger.info("Watchlist news email sent to %s", to_email)
+    except Exception as exc:
+        logger.warning("Watchlist news email failed for %s: %s", to_email, exc)
 
 # ---------------------------------------------------------------------------
 # AI Trade Thesis
@@ -5078,31 +5217,35 @@ def api_admin_send_mail():
     _, error = _require_admin()
     if error:
         return error
-    data    = request.get_json(silent=True) or {}
-    tiers   = [t.strip().lower() for t in (data.get("tiers") or []) if t]
+    data               = request.get_json(silent=True) or {}
+    tiers              = [t.strip().lower() for t in (data.get("tiers") or []) if t]
+    explicit_recipients = [e.strip().lower() for e in (data.get("recipients") or []) if e.strip()]
     subject = (data.get("subject") or "").strip()
     header  = (data.get("header")  or "").strip()
     content = (data.get("content") or "").strip()
 
-    if not tiers:
-        return jsonify({"error": "Select at least one tier."}), 400
+    if not tiers and not explicit_recipients:
+        return jsonify({"error": "Select at least one tier or recipient."}), 400
     if not subject or not header or not content:
         return jsonify({"error": "Subject, header and content are all required."}), 400
 
-    users = _load_users()
-    recipients = []
-    for email, info in users.items():
-        if not isinstance(info, dict):
-            continue
-        tier   = info.get("tier", "free")
-        status = info.get("subscription_status", "active")
-        if tier != "free" and status not in ("active", "trialing"):
-            tier = "free"
-        if tier in tiers:
-            recipients.append(email)
+    if explicit_recipients:
+        recipients = explicit_recipients
+    else:
+        users = _load_users()
+        recipients = []
+        for email, info in users.items():
+            if not isinstance(info, dict):
+                continue
+            tier   = info.get("tier", "free")
+            status = info.get("subscription_status", "active")
+            if tier != "free" and status not in ("active", "trialing"):
+                tier = "free"
+            if tier in tiers:
+                recipients.append(email)
 
     if not recipients:
-        return jsonify({"error": "No users found for the selected tiers."}), 404
+        return jsonify({"error": "No users found for the selected recipients/tiers."}), 404
 
     def _send_all():
         for addr in recipients:
@@ -5110,6 +5253,39 @@ def api_admin_send_mail():
 
     threading.Thread(target=_send_all, daemon=True).start()
     return jsonify({"ok": True, "count": len(recipients)})
+
+
+@app.route("/api/admin/send-watchlist-mails", methods=["POST"])
+def api_admin_send_watchlist_mails():
+    _, error = _require_admin()
+    if error:
+        return error
+    users = _load_users()
+    targets = []
+    for email in users:
+        wl_path = _get_watchlist_path(email)
+        if not os.path.exists(wl_path):
+            continue
+        try:
+            with open(wl_path, "r", encoding="utf-8") as fh:
+                wl_payload = json.load(fh)
+            if wl_payload.get("symbols"):
+                targets.append(email)
+        except Exception:
+            continue
+    if not targets:
+        return jsonify({"error": "No users have a non-empty watchlist."}), 404
+
+    def _send_all():
+        for addr in targets:
+            try:
+                news = _collect_watchlist_news_for_user(addr)
+                _send_watchlist_news_email(addr, news)
+            except Exception as exc:
+                logger.warning("Watchlist mail worker error for %s: %s", addr, exc)
+
+    threading.Thread(target=_send_all, daemon=True).start()
+    return jsonify({"ok": True, "count": len(targets)})
 
 
 @app.route("/api/admin/users", methods=["GET"])
@@ -5126,7 +5302,8 @@ def api_admin_users():
             status = info.get("subscription_status", "active")
             if tier != "free" and status not in ("active", "trialing"):
                 tier = "free"
-        out.append({"email": em, "tier": tier})
+        registered_at = info.get("registered_at") if isinstance(info, dict) else None
+        out.append({"email": em, "tier": tier, "registered_at": registered_at})
     return jsonify(out)
 
 @app.route("/api/admin/delete-user", methods=["POST"])
