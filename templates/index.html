@@ -1273,11 +1273,8 @@
             max-height: 90vh;
         }
         .sample-modal-inner img {
-            display: block;
-            max-width: 100%;
-            max-height: 88vh;
-            border-radius: 12px;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+            width: auto;
+            height: auto;
         }
         .sample-modal-close {
             position: absolute;
@@ -4678,14 +4675,12 @@
                         $('#profile-nickname').val(d.nickname);
                         $('#profile-btn-label').text(d.nickname.substring(0, 14));
                     }
-                    // Theme: apply server preference if localStorage has no saved value
+                    // Theme: server preference is authoritative for logged-in users
                     const serverTheme = d.theme || '';
                     updateProfileThemeName(serverTheme);
                     try {
-                        if (serverTheme) {
-                            applyTheme(serverTheme);
-                            localStorage.setItem(THEME_KEY, serverTheme);
-                        }
+                        applyTheme(serverTheme);
+                        localStorage.setItem(THEME_KEY, serverTheme);
                     } catch(_) {}
 
                     // Admin: load members list on init
@@ -6004,7 +5999,7 @@
             <button class="sample-modal-close" onclick="closeSampleModal()" aria-label="Close">
                 <i class="fas fa-times"></i>
             </button>
-            <img id="sample-modal-img" src="" alt="" width="800" height="600" loading="lazy" decoding="async">
+            <img id="sample-modal-img" src="" alt="" loading="lazy" decoding="async" style="display:block; max-width:100%; max-height:88vh; border-radius:12px; box-shadow:0 24px 60px rgba(0,0,0,0.5);">
         </div>
     </div>
 
