@@ -5075,8 +5075,8 @@ def api_me():
 
 
 _ALLOWED_AVATARS = {"fa-user", "fa-user-astronaut", "fa-user-ninja", "fa-user-secret", "fa-user-tie"}
-_ALLOWED_THEMES  = {"", "beige", "crimson"}
-_ALLOWED_MARKETS = {"us", "uk", "tr"}
+_ALLOWED_THEMES  = {"", "beige", "crimson", "sand"}
+_ALLOWED_MARKETS = {"us", "tr"}
 
 
 @app.route("/api/profile", methods=["POST"])
