@@ -5291,11 +5291,12 @@ def api_admin_send_watchlist_mails():
 
 
 _WT_TF_MAP = {
+    "5y":  ("5y",  "1d"),
     "1y":  ("1y",  "1d"),
-    "1mo": ("3mo", "1d"),
-    "5d":  ("5d",  "30m"),
-    "1h":  ("5d",  "1h"),
-    "15m": ("2d",  "15m"),
+    "6mo": ("6mo", "1d"),
+    "3mo": ("3mo", "1d"),
+    "1mo": ("1mo", "1d"),
+    "1d":  ("1d",  "1h"),
 }
 
 @app.route("/watchlist-trends")

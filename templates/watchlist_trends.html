@@ -149,11 +149,12 @@
         </div>
 
         <div class="d-flex gap-2 flex-wrap" id="tf-pills">
-            <button class="tf-pill active" data-tf="1y">Yıllık</button>
-            <button class="tf-pill"        data-tf="1mo">Aylık</button>
-            <button class="tf-pill"        data-tf="5d">Günlük</button>
-            <button class="tf-pill"        data-tf="1h">Saatlik</button>
-            <button class="tf-pill"        data-tf="15m">15 Dak</button>
+            <button class="tf-pill"        data-tf="5y">5Y</button>
+            <button class="tf-pill active" data-tf="1y">1Y</button>
+            <button class="tf-pill"        data-tf="6mo">6A</button>
+            <button class="tf-pill"        data-tf="3mo">3A</button>
+            <button class="tf-pill"        data-tf="1mo">1A</button>
+            <button class="tf-pill"        data-tf="1d">Günlük</button>
         </div>
 
         <div class="d-flex gap-3 ms-auto flex-wrap">
@@ -294,15 +295,17 @@
         var macdY  = showMacd ? (showRsi  ? 'y3' : 'y2') : null;
         var traces = [];
 
-        // Candlestick
+        // Price line
+        var lineColor = (d.c[d.c.length - 1] >= d.c[0]) ? '#4ade80' : '#f87171';
+        var fillColor = (d.c[d.c.length - 1] >= d.c[0]) ? 'rgba(74,222,128,0.07)' : 'rgba(248,113,113,0.07)';
         traces.push({
-            type: 'candlestick',
-            x: d.t, open: d.o, high: d.h, low: d.l, close: d.c,
-            increasing: { line: { color: '#4ade80', width: 1 }, fillcolor: 'rgba(74,222,128,0.7)' },
-            decreasing: { line: { color: '#f87171', width: 1 }, fillcolor: 'rgba(248,113,113,0.7)' },
+            type: 'scatter', mode: 'lines',
+            x: d.t, y: d.c,
+            line: { color: lineColor, width: 2 },
+            fill: 'tozeroy', fillcolor: fillColor,
             name: sym, showlegend: false,
             yaxis: 'y',
-            whiskerwidth: 0.3,
+            hovertemplate: '%{y:.2f}<extra></extra>',
         });
 
         // RSI
