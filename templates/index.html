@@ -4000,6 +4000,11 @@
     </script>
 
     <!-- ── JS loaded at bottom — no render blocking ── -->
+    <script>
+        function escHtml(s) {
+            return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+    </script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <!-- Fallback wiring in case jQuery or the main ready-block fails early -->
@@ -4043,7 +4048,7 @@
                     const items = (data.for_risk_lovers || []).slice(0, 5);
                     if (!items.length) return;
                     riskList.dataset.loaded = '1';
-                    riskList.innerHTML = items.map((item, idx) => `<li><span class="rm-rank">${idx+1}</span><a href="#" class="remarkable-symbol" data-symbol="${item.symbol}">${item.symbol}</a></li>`).join('');
+                    riskList.innerHTML = items.map((item, idx) => `<li><span class="rm-rank">${idx+1}</span><a href="#" class="remarkable-symbol" data-symbol="${escHtml(item.symbol)}">${escHtml(item.symbol)}</a></li>`).join('');
                 }).catch(err => {
                     if (window.__stockerLog) window.__stockerLog('remarkables-fallback-fail', String(err));
                 });
@@ -4327,16 +4332,16 @@
                         return `
                             <div class="d-flex justify-content-between align-items-center mb-2 admin-user-row">
                                 <div style="min-width:0; flex:1; margin-right:8px;">
-                                    <div style="color:#e7ecff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${email}</div>
+                                    <div style="color:#e7ecff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escHtml(email)}</div>
                                     <div style="font-size:0.68rem; color:rgba(200,220,255,0.45); margin-top:1px;">Joined: ${regLabel}</div>
                                 </div>
                                 <div class="d-flex align-items-center gap-2" style="flex-shrink:0;">
-                                    <select class="admin-tier-select" data-email="${email}" data-current="${tier}"
+                                    <select class="admin-tier-select" data-email="${escHtml(email)}" data-current="${escHtml(tier)}"
                                         style="font-size:0.72rem; font-weight:600; border-radius:20px; border:1px solid ${col};
                                                color:${col}; background:rgba(0,0,0,0.4); padding:2px 6px; cursor:pointer; outline:none;">
                                         ${opts}
                                     </select>
-                                    <button class="btn btn-sm btn-outline-danger admin-delete-user" data-email="${email}">
+                                    <button class="btn btn-sm btn-outline-danger admin-delete-user" data-email="${escHtml(email)}">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -4473,9 +4478,9 @@
                     const html = filtered.map(u => {
                         const checked = selectedUserEmails.has(u.email);
                         const color   = TIER_COLORS[u.tier] || TIER_COLORS.free;
-                        return `<div class="admin-user-item${checked ? ' selected' : ''}" data-email="${u.email}">
+                        return `<div class="admin-user-item${checked ? ' selected' : ''}" data-email="${escHtml(u.email)}">
                             <input type="checkbox" ${checked ? 'checked' : ''}>
-                            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.email}</span>
+                            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(u.email)}</span>
                             <span class="admin-user-tier-dot" style="background:${color};"></span>
                         </div>`;
                     }).join('');
@@ -5608,10 +5613,10 @@
 
                         const info = response.company_info || {};
                         const aboutHtml = `
-                            <h5 class="mb-1">${info.name || symbol}</h5>
-                            <p class="mb-1 text-muted">${info.sector || ''}${info.sector && info.industry ? ' · ' : ''}${info.industry || ''}</p>
-                            <p class="mb-1 text-muted">Source: ${response.company_info_source || 'N/A'}</p>
-                            <p class="mb-0">${info.summary || 'No description available.'}</p>
+                            <h5 class="mb-1">${escHtml(info.name || symbol)}</h5>
+                            <p class="mb-1 text-muted">${escHtml(info.sector || '')}${info.sector && info.industry ? ' · ' : ''}${escHtml(info.industry || '')}</p>
+                            <p class="mb-1 text-muted">Source: ${escHtml(response.company_info_source || 'N/A')}</p>
+                            <p class="mb-0">${escHtml(info.summary || 'No description available.')}</p>
                         `;
                         $('#about-container').html(aboutHtml);
 
@@ -5709,28 +5714,28 @@
                     });
                     const data = await resp.json();
                     if (!resp.ok || data.error) {
-                        $('#thesis-container').html(`<div class="pro-lock text-muted small">${data.error || 'Could not generate thesis.'}</div>`);
+                        $('#thesis-container').html(`<div class="pro-lock text-muted small">${escHtml(data.error || 'Could not generate thesis.')}</div>`);
                         return;
                     }
                     const s = parseThesis(data.thesis || '');
                     const fallback = data.thesis || '';
                     if (!s.bull && !s.bear && !s.verdict) {
-                        $('#thesis-container').html(`<div class="card-body"><p class="thesis-body">${fallback}</p></div>`);
+                        $('#thesis-container').html(`<div class="card-body"><p class="thesis-body">${escHtml(fallback)}</p></div>`);
                         return;
                     }
                     $('#thesis-container').html(`
                         <div class="card-body">
                             <div class="thesis-section thesis-bull">
                                 <div class="thesis-label">Bull Case</div>
-                                <div class="thesis-body">${s.bull || '—'}</div>
+                                <div class="thesis-body">${escHtml(s.bull || '—')}</div>
                             </div>
                             <div class="thesis-section thesis-bear">
                                 <div class="thesis-label">Bear Case</div>
-                                <div class="thesis-body">${s.bear || '—'}</div>
+                                <div class="thesis-body">${escHtml(s.bear || '—')}</div>
                             </div>
                             <div class="thesis-section thesis-verdict mb-0">
                                 <div class="thesis-label">Verdict</div>
-                                <div class="thesis-body">${s.verdict || '—'}</div>
+                                <div class="thesis-body">${escHtml(s.verdict || '—')}</div>
                             </div>
                         </div>
                     `);
@@ -5774,7 +5779,7 @@
                     ? ' <span class="tier-badge" style="background:rgba(79,142,247,0.2);color:#9ec3ff;font-size:0.5rem;">you</span>'
                     : '';
                 return '<tr class="' + rowCls + '">'
-                    + '<td><strong>' + p.symbol + '</strong>' + nameBadge + '<br><small class="text-muted" style="font-size:0.7rem">' + escHtml((p.name || '').substring(0,22)) + '</small></td>'
+                    + '<td><strong>' + escHtml(p.symbol) + '</strong>' + nameBadge + '<br><small class="text-muted" style="font-size:0.7rem">' + escHtml((p.name || '').substring(0,22)) + '</small></td>'
                     + '<td>' + cs + (p.price || 0).toFixed(2) + '</td>'
                     + '<td>' + fmtMktCap(p.market_cap, cs) + '</td>'
                     + '<td>' + fmtPct(p.chg_1w) + '</td>'
@@ -5797,7 +5802,7 @@
                     });
                     const data = await resp.json();
                     if (!resp.ok || data.error) {
-                        $('#peers-container').html('<div class="pro-lock text-muted small">' + (data.error || 'Could not load peers.') + '</div>');
+                        $('#peers-container').html('<div class="pro-lock text-muted small">' + escHtml(data.error || 'Could not load peers.') + '</div>');
                         return;
                     }
                     const target = data.target;
@@ -6306,18 +6311,18 @@
                 dataEl.innerHTML = data.tickers.map(function(t) {
                     var cls = t.positive === true ? 'pos' : t.positive === false ? 'neg' : 'neu';
                     return '<div class="mkt-item">' +
-                        '<span class="mkt-lbl">' + t.label + '</span>' +
-                        '<span class="mkt-price">' + t.price + '</span>' +
-                        '<span class="mkt-chg ' + cls + '">' + t.change + '</span>' +
+                        '<span class="mkt-lbl">' + escHtml(String(t.label || '')) + '</span>' +
+                        '<span class="mkt-price">' + escHtml(String(t.price || '')) + '</span>' +
+                        '<span class="mkt-chg ' + cls + '">' + escHtml(String(t.change || '')) + '</span>' +
                     '</div>';
                 }).join('');
             }
             if (data.news && data.news.length) {
                 var parts = data.news.map(function(n) {
-                    var title = typeof n === 'string' ? n : n.title;
+                    var title = escHtml(typeof n === 'string' ? n : (n.title || ''));
                     var url   = typeof n === 'string' ? '' : (n.url || '');
-                    if (url) {
-                        return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="mkt-news-link">' + title + '</a>';
+                    if (url && /^https?:\/\//.test(url)) {
+                        return '<a href="' + escHtml(url) + '" target="_blank" rel="noopener noreferrer" class="mkt-news-link">' + title + '</a>';
                     }
                     return '<span>' + title + '</span>';
                 });
