@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(fly status *)",
+      "Bash(fly logs *)",
+      "Bash(fly apps list *)",
+      "Bash(fly volumes list *)",
+      "Bash(fly machines list *)",
+      "Bash(fly machine status *)",
+      "Bash(fly checks list *)",
+      "Bash(fly ips list *)",
+      "Bash(fly secrets list *)",
+      "Bash(/home/cinar/.fly/bin/fly status *)",
+      "Bash(/home/cinar/.fly/bin/fly logs *)",
+      "Bash(/home/cinar/.fly/bin/fly apps list *)",
+      "Bash(/home/cinar/.fly/bin/fly volumes list *)",
+      "Bash(/home/cinar/.fly/bin/fly machines list *)",
+      "Bash(/home/cinar/.fly/bin/fly machine status *)",
+      "Bash(/home/cinar/.fly/bin/fly checks list *)",
+      "Bash(/home/cinar/.fly/bin/fly ips list *)",
+      "Bash(/home/cinar/.fly/bin/fly secrets list *)"
+    ]
+  }
+}
