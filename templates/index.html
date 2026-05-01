@@ -3804,7 +3804,20 @@
         <div class="card watchlist-card mt-3">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="fas fa-star"></i> Watchlist</span>
-                <small class="text-muted">Click the Save button to add any symbol to your watchlist</small>
+                <div class="d-flex align-items-center gap-2">
+                    {% if user_tier in ['pro', 'premium', 'admin'] %}
+                    <a href="/watchlist-trends" target="_blank"
+                       style="font-size:0.72rem; font-weight:600; padding:3px 11px; border-radius:20px;
+                              border:1px solid rgba(79,142,247,0.4); color:#4f8ef7; text-decoration:none;
+                              white-space:nowrap; transition:all .15s;"
+                       onmouseover="this.style.background='rgba(79,142,247,0.12)'"
+                       onmouseout="this.style.background=''"
+                       title="Open watchlist trend charts in a new window">
+                        <i class="fas fa-chart-area me-1"></i>Show Trends
+                    </a>
+                    {% endif %}
+                    <small class="text-muted">Click the Save button to add any symbol to your watchlist</small>
+                </div>
             </div>
             <div class="card-body p-2">
                 <div class="row row-cols-3 row-cols-md-5 row-cols-lg-8 g-2" id="watchlist-body">

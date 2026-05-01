@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Watchlist Trends — Stocker</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --bg:           #0a0f1e;
+            --panel-bg:     rgba(255,255,255,0.04);
+            --panel-border: rgba(255,255,255,0.08);
+            --panel-text:   #e7ecff;
+            --panel-muted:  rgba(200,220,255,0.5);
+            --accent:       #4f8ef7;
+            --green:        #4ade80;
+            --red:          #f87171;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            color: var(--panel-text);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            padding-bottom: 48px;
+        }
+        /* ── sticky header ── */
+        .wt-header {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            background: rgba(10,15,30,0.96);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--panel-border);
+            padding: 10px 20px;
+        }
+        .wt-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--accent);
+            white-space: nowrap;
+        }
+        .wt-back {
+            color: var(--panel-muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: color .15s;
+        }
+        .wt-back:hover { color: var(--panel-text); }
+        /* ── timeframe pills ── */
+        .tf-pill {
+            border: 1px solid var(--panel-border);
+            background: transparent;
+            color: var(--panel-muted);
+            padding: 4px 13px;
+            border-radius: 20px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .15s;
+            white-space: nowrap;
+        }
+        .tf-pill:hover  { border-color: var(--accent); color: var(--accent); }
+        .tf-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        /* ── indicator toggles ── */
+        .ind-toggle {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: var(--panel-muted);
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .ind-toggle input[type=checkbox] {
+            accent-color: var(--accent);
+            cursor: pointer;
+            width: 14px;
+            height: 14px;
+        }
+        .ind-toggle.rsi-on  { color: #f59e0b; }
+        .ind-toggle.macd-on { color: var(--accent); }
+        /* ── chart cards ── */
+        .chart-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+        .chart-card-hdr {
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--panel-border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .chart-sym {
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: .03em;
+        }
+        .pct-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        .pct-pos { background: rgba(74,222,128,0.13); color: #4ade80; }
+        .pct-neg { background: rgba(248,113,113,0.13); color: #f87171; }
+        .pct-neu { background: rgba(200,220,255,0.08); color: var(--panel-muted); }
+        .last-price {
+            font-size: 0.78rem;
+            color: var(--panel-muted);
+            margin-left: auto;
+        }
+        /* ── states ── */
+        .wt-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 80px 20px;
+            color: var(--panel-muted);
+            text-align: center;
+        }
+        .wt-state i { font-size: 2.2rem; opacity: .3; }
+        .wt-state p { margin: 0; font-size: 0.85rem; }
+        .spinner-border { width: 1.4rem; height: 1.4rem; border-width: 2px; color: var(--accent); }
+        /* ── scrollbar ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(79,142,247,0.25); border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div class="wt-header">
+    <div class="d-flex align-items-center flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/" class="wt-back"><i class="fas fa-arrow-left"></i></a>
+            <span class="wt-title"><i class="fas fa-chart-area me-1"></i> Watchlist Trends</span>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap" id="tf-pills">
+            <button class="tf-pill active" data-tf="1y">Yıllık</button>
+            <button class="tf-pill"        data-tf="1mo">Aylık</button>
+            <button class="tf-pill"        data-tf="5d">Günlük</button>
+            <button class="tf-pill"        data-tf="1h">Saatlik</button>
+            <button class="tf-pill"        data-tf="15m">15 Dak</button>
+        </div>
+
+        <div class="d-flex gap-3 ms-auto flex-wrap">
+            <label class="ind-toggle" id="lbl-rsi">
+                <input type="checkbox" id="toggle-rsi"> RSI (14)
+            </label>
+            <label class="ind-toggle" id="lbl-macd">
+                <input type="checkbox" id="toggle-macd"> MACD
+            </label>
+        </div>
+    </div>
+</div>
+
+<!-- ── Chart container ── -->
+<div class="container-fluid px-3 pt-3" id="charts-wrap">
+    <div class="wt-state" id="init-state">
+        <div class="spinner-border" role="status"></div>
+        <p>Watchlist yükleniyor…</p>
+    </div>
+</div>
+
+<!-- Plotly -->
+<script src="https://cdn.jsdelivr.net/npm/plotly.js@2.35.2/dist/plotly.min.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    // ── State ──────────────────────────────────────────────────────────
+    var currentTf  = '1y';
+    var showRsi    = false;
+    var showMacd   = false;
+    var allData    = {};    // { sym: {t,o,h,l,c,v} }
+    var chartDivs  = {};    // { sym: HTMLElement }
+
+    // ── Indicator math ─────────────────────────────────────────────────
+    function calcRSI(closes, period) {
+        period = period || 14;
+        var n = closes.length, rsi = new Array(n).fill(null);
+        if (n < period + 1) return rsi;
+        var g = 0, l = 0, d;
+        for (var i = 1; i <= period; i++) {
+            d = closes[i] - closes[i-1];
+            if (d > 0) g += d; else l -= d;
+        }
+        var ag = g / period, al = l / period;
+        rsi[period] = al === 0 ? 100 : 100 - 100 / (1 + ag / al);
+        for (var j = period + 1; j < n; j++) {
+            d = closes[j] - closes[j-1];
+            ag = (ag * (period - 1) + Math.max(d, 0)) / period;
+            al = (al * (period - 1) + Math.max(-d, 0)) / period;
+            rsi[j] = al === 0 ? 100 : 100 - 100 / (1 + ag / al);
+        }
+        return rsi;
+    }
+
+    function calcEMA(arr, period) {
+        var k = 2 / (period + 1), ema = new Array(arr.length).fill(null);
+        var sum = 0, count = 0, prev = null;
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i] === null || arr[i] === undefined) continue;
+            if (prev === null) {
+                sum += arr[i];
+                count++;
+                if (count === period) { prev = sum / period; ema[i] = prev; }
+            } else {
+                prev = arr[i] * k + prev * (1 - k);
+                ema[i] = prev;
+            }
+        }
+        return ema;
+    }
+
+    function calcMACD(closes) {
+        var ema12   = calcEMA(closes, 12);
+        var ema26   = calcEMA(closes, 26);
+        var macd    = closes.map(function(_, i) {
+            return ema12[i] !== null && ema26[i] !== null ? ema12[i] - ema26[i] : null;
+        });
+        var signal  = calcEMA(macd, 9);
+        var hist    = macd.map(function(v, i) {
+            return v !== null && signal[i] !== null ? v - signal[i] : null;
+        });
+        return { macd: macd, signal: signal, hist: hist };
+    }
+
+    // ── Layout builder ─────────────────────────────────────────────────
+    var GRID = 'rgba(255,255,255,0.07)';
+    var LINE = 'rgba(255,255,255,0.12)';
+
+    function axisBase(extra) {
+        return Object.assign({
+            gridcolor: GRID, linecolor: LINE,
+            tickfont: { size: 10, color: 'rgba(200,220,255,0.6)' },
+            showgrid: true,
+        }, extra || {});
+    }
+
+    function buildLayout(rows) {
+        var base = {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor:  'rgba(0,0,0,0)',
+            font:          { color: '#e7ecff', size: 11 },
+            showlegend:    false,
+            margin:        { t: 6, r: 16, b: 36, l: 62 },
+            hovermode:     'x unified',
+            hoverlabel:    { bgcolor: 'rgba(10,15,30,0.92)', font: { size: 11 } },
+        };
+        if (rows === 1) {
+            return Object.assign({}, base, {
+                height: 260,
+                xaxis:  axisBase({ rangeslider: { visible: false } }),
+                yaxis:  axisBase({ domain: [0, 1] }),
+            });
+        }
+        if (rows === 2) {
+            return Object.assign({}, base, {
+                height: 380,
+                xaxis:  axisBase({ rangeslider: { visible: false } }),
+                yaxis:  axisBase({ domain: [0.35, 1.0] }),
+                yaxis2: axisBase({ domain: [0.00, 0.30], tickfont: { size: 9, color: 'rgba(200,220,255,0.5)' } }),
+            });
+        }
+        return Object.assign({}, base, {
+            height: 490,
+            xaxis:  axisBase({ rangeslider: { visible: false } }),
+            yaxis:  axisBase({ domain: [0.46, 1.00] }),
+            yaxis2: axisBase({ domain: [0.24, 0.42], tickfont: { size: 9, color: 'rgba(200,220,255,0.5)' } }),
+            yaxis3: axisBase({ domain: [0.02, 0.20], tickfont: { size: 9, color: 'rgba(200,220,255,0.5)' } }),
+        });
+    }
+
+    // ── Trace builder ──────────────────────────────────────────────────
+    function buildTraces(sym) {
+        var d = allData[sym];
+        if (!d) return [];
+        var rows   = 1 + (showRsi ? 1 : 0) + (showMacd ? 1 : 0);
+        var rsiY   = showRsi  ? (showMacd ? 'y2' : 'y2') : null;
+        var macdY  = showMacd ? (showRsi  ? 'y3' : 'y2') : null;
+        var traces = [];
+
+        // Candlestick
+        traces.push({
+            type: 'candlestick',
+            x: d.t, open: d.o, high: d.h, low: d.l, close: d.c,
+            increasing: { line: { color: '#4ade80', width: 1 }, fillcolor: 'rgba(74,222,128,0.7)' },
+            decreasing: { line: { color: '#f87171', width: 1 }, fillcolor: 'rgba(248,113,113,0.7)' },
+            name: sym, showlegend: false,
+            yaxis: 'y',
+            whiskerwidth: 0.3,
+        });
+
+        // RSI
+        if (showRsi) {
+            var rsiVals = calcRSI(d.c);
+            var t0 = d.t[0], tN = d.t[d.t.length - 1];
+            traces.push({ type: 'scatter', mode: 'lines', x: d.t, y: rsiVals,
+                line: { color: '#f59e0b', width: 1.4 }, name: 'RSI',
+                showlegend: false, yaxis: rsiY, hovertemplate: 'RSI: %{y:.1f}<extra></extra>' });
+            traces.push({ type: 'scatter', mode: 'lines', x: [t0, tN], y: [70, 70],
+                line: { color: 'rgba(248,113,113,0.35)', width: 1, dash: 'dot' },
+                showlegend: false, yaxis: rsiY, hoverinfo: 'none' });
+            traces.push({ type: 'scatter', mode: 'lines', x: [t0, tN], y: [30, 30],
+                line: { color: 'rgba(74,222,128,0.35)', width: 1, dash: 'dot' },
+                showlegend: false, yaxis: rsiY, hoverinfo: 'none' });
+            traces.push({ type: 'scatter', mode: 'none', fill: 'tonexty',
+                x: [t0, tN], y: [70, 70],
+                fillcolor: 'rgba(248,113,113,0.05)', showlegend: false,
+                yaxis: rsiY, hoverinfo: 'none' });
+        }
+
+        // MACD
+        if (showMacd) {
+            var m = calcMACD(d.c);
+            traces.push({ type: 'scatter', mode: 'lines', x: d.t, y: m.macd,
+                line: { color: '#4f8ef7', width: 1.4 }, name: 'MACD',
+                showlegend: false, yaxis: macdY, hovertemplate: 'MACD: %{y:.3f}<extra></extra>' });
+            traces.push({ type: 'scatter', mode: 'lines', x: d.t, y: m.signal,
+                line: { color: '#f59e0b', width: 1.2 }, name: 'Signal',
+                showlegend: false, yaxis: macdY, hovertemplate: 'Signal: %{y:.3f}<extra></extra>' });
+            var barColors = m.hist.map(function(v) {
+                return v === null ? 'transparent' : v >= 0 ? 'rgba(74,222,128,0.55)' : 'rgba(248,113,113,0.55)';
+            });
+            traces.push({ type: 'bar', x: d.t, y: m.hist,
+                marker: { color: barColors }, name: 'Hist',
+                showlegend: false, yaxis: macdY, hovertemplate: 'Hist: %{y:.3f}<extra></extra>' });
+        }
+
+        return { traces: traces, layout: buildLayout(rows) };
+    }
+
+    // ── Render ─────────────────────────────────────────────────────────
+    function renderAll() {
+        Object.keys(allData).forEach(function(sym) {
+            var el = chartDivs[sym];
+            if (!el) return;
+            var result = buildTraces(sym);
+            Plotly.react(el, result.traces, result.layout, {
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['lasso2d', 'select2d', 'toImage'],
+                responsive: true,
+            });
+        });
+    }
+
+    // ── DOM helpers ────────────────────────────────────────────────────
+    function pctChange(closes) {
+        if (!closes || closes.length < 2) return null;
+        var first = closes[0];
+        if (!first) return null;
+        return (closes[closes.length - 1] - first) / first * 100;
+    }
+
+    function fmtPrice(v) {
+        if (v === null || v === undefined) return '';
+        if (v >= 1000) return v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return v.toFixed(v < 1 ? 4 : 2);
+    }
+
+    function escHtml(s) {
+        return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function buildCard(sym) {
+        var d   = allData[sym];
+        var pct = pctChange(d.c);
+        var last = d.c[d.c.length - 1];
+
+        var pctHtml = '';
+        if (pct !== null) {
+            var cls = pct > 0 ? 'pct-pos' : pct < 0 ? 'pct-neg' : 'pct-neu';
+            pctHtml = '<span class="pct-badge ' + cls + '">' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%</span>';
+        }
+
+        var card  = document.createElement('div');
+        card.className = 'chart-card';
+        card.innerHTML =
+            '<div class="chart-card-hdr">' +
+                '<span class="chart-sym">' + escHtml(sym) + '</span>' +
+                pctHtml +
+                '<span class="last-price">' + escHtml(fmtPrice(last)) + '</span>' +
+            '</div>' +
+            '<div class="chart-div" id="cdiv-' + escHtml(sym) + '"></div>';
+        return card;
+    }
+
+    // ── Fetch & render ─────────────────────────────────────────────────
+    function setState(html) {
+        document.getElementById('charts-wrap').innerHTML = html;
+    }
+
+    function loadData(tf) {
+        setState('<div class="wt-state"><div class="spinner-border" role="status"></div><p>Veriler yükleniyor…</p></div>');
+        allData   = {};
+        chartDivs = {};
+
+        fetch('/api/watchlist-trends?tf=' + encodeURIComponent(tf))
+            .then(function(r) {
+                if (r.status === 401) throw new Error('auth');
+                if (r.status === 403) throw new Error('tier');
+                if (!r.ok)             throw new Error('server');
+                return r.json();
+            })
+            .then(function(data) {
+                var symbols = data.symbols || {};
+                var keys    = Object.keys(symbols);
+
+                if (!keys.length) {
+                    setState(
+                        '<div class="wt-state">' +
+                        '<i class="fas fa-star"></i>' +
+                        '<p>Watchlist boş.</p>' +
+                        '<p style="font-size:0.75rem">Ana sayfada analiz yaptıktan sonra hisse ekleyebilirsin.</p>' +
+                        '</div>'
+                    );
+                    return;
+                }
+
+                allData = symbols;
+                var wrap = document.getElementById('charts-wrap');
+                wrap.innerHTML = '';
+
+                keys.forEach(function(sym) {
+                    var card = buildCard(sym);
+                    wrap.appendChild(card);
+                    chartDivs[sym] = card.querySelector('.chart-div');
+                });
+
+                requestAnimationFrame(renderAll);
+            })
+            .catch(function(err) {
+                var msg;
+                if (err.message === 'auth') {
+                    msg = 'Devam etmek için <a href="/" style="color:#4f8ef7">giriş yapın</a>.';
+                } else if (err.message === 'tier') {
+                    msg = 'Bu özellik <strong>Pro</strong> aboneliği gerektirir.';
+                } else {
+                    msg = 'Veri yüklenemedi. Sayfayı yenileyin.';
+                }
+                setState('<div class="wt-state"><i class="fas fa-exclamation-circle"></i><p>' + msg + '</p></div>');
+            });
+    }
+
+    // ── Event listeners ────────────────────────────────────────────────
+    document.querySelectorAll('.tf-pill').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.tf-pill').forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            currentTf = this.dataset.tf;
+            loadData(currentTf);
+        });
+    });
+
+    document.getElementById('toggle-rsi').addEventListener('change', function() {
+        showRsi = this.checked;
+        document.getElementById('lbl-rsi').classList.toggle('rsi-on', showRsi);
+        renderAll();
+    });
+
+    document.getElementById('toggle-macd').addEventListener('change', function() {
+        showMacd = this.checked;
+        document.getElementById('lbl-macd').classList.toggle('macd-on', showMacd);
+        renderAll();
+    });
+
+    // ── Boot ───────────────────────────────────────────────────────────
+    loadData(currentTf);
+})();
+</script>
+</body>
+</html>

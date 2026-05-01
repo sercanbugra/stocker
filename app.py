@@ -5290,6 +5290,62 @@ def api_admin_send_watchlist_mails():
     return jsonify({"ok": True, "count": len(targets)})
 
 
+_WT_TF_MAP = {
+    "1y":  ("1y",  "1d"),
+    "1mo": ("3mo", "1d"),
+    "5d":  ("5d",  "30m"),
+    "1h":  ("5d",  "1h"),
+    "15m": ("2d",  "15m"),
+}
+
+@app.route("/watchlist-trends")
+def watchlist_trends_page():
+    email = _get_current_user_email()
+    if not email:
+        return redirect("/")
+    tier = _get_user_tier(email)
+    if TIER_RANK.get(tier, 0) < TIER_RANK["pro"]:
+        return redirect("/")
+    return render_template("watchlist_trends.html", user_email=email, user_tier=tier)
+
+@app.route("/api/watchlist-trends")
+@subscription_required("pro")
+def api_watchlist_trends():
+    email = _get_current_user_email()
+    tf = request.args.get("tf", "1y")
+    period, interval = _WT_TF_MAP.get(tf, _WT_TF_MAP["1y"])
+    path = _get_watchlist_path(email)
+    symbols = []
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as fh:
+                payload = json.load(fh)
+            symbols = payload.get("symbols", []) if isinstance(payload, dict) else []
+        except Exception:
+            pass
+    if not symbols:
+        return jsonify({"symbols": {}})
+    result = {}
+    for sym in symbols[:20]:
+        try:
+            hist = yf.Ticker(sym).history(period=period, interval=interval)
+            if hist.empty:
+                continue
+            if hist.index.tzinfo is not None:
+                hist.index = hist.index.tz_convert(None)
+            fmt = "%Y-%m-%d %H:%M" if interval in ("15m", "30m", "1h") else "%Y-%m-%d"
+            result[sym] = {
+                "t": [d.strftime(fmt) for d in hist.index],
+                "o": [round(float(v), 4) for v in hist["Open"]],
+                "h": [round(float(v), 4) for v in hist["High"]],
+                "l": [round(float(v), 4) for v in hist["Low"]],
+                "c": [round(float(v), 4) for v in hist["Close"]],
+                "v": [int(v) for v in hist["Volume"]],
+            }
+        except Exception as exc:
+            logger.warning(f"watchlist-trends {sym}: {exc}")
+    return jsonify({"symbols": result})
+
 @app.route("/api/heartbeat", methods=["POST"])
 def api_heartbeat():
     email = _get_current_user_email()
