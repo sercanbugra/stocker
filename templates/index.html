@@ -3884,16 +3884,28 @@
         })();
 
         /* ---------- modal helpers ---------- */
+        var _adminRefreshInterval = null;
         function openProfileModal(tab) {
             var el = document.getElementById('profile-modal');
             if (el) el.style.display = 'flex';
             if (tab) switchProfileTab(tab);
             // Refresh admin members list every time the modal opens
-            if (typeof loadAdminMembers === 'function') loadAdminMembers();
+            if (typeof loadAdminMembers === 'function') {
+                loadAdminMembers();
+                if (!_adminRefreshInterval) {
+                    _adminRefreshInterval = setInterval(function() {
+                        if (el && el.style.display !== 'none') loadAdminMembers();
+                    }, 30_000);
+                }
+            }
         }
         function closeProfileModal() {
             var el = document.getElementById('profile-modal');
             if (el) el.style.display = 'none';
+            if (_adminRefreshInterval) {
+                clearInterval(_adminRefreshInterval);
+                _adminRefreshInterval = null;
+            }
         }
         function switchProfileTab(tab) {
             document.querySelectorAll('.profile-tab-btn').forEach(function(b) { b.classList.remove('active'); });
@@ -4314,6 +4326,12 @@
                         $adminMembersList.html('<div class="text-muted">Could not load members.</div>');
                         return;
                     }
+                    const onlineCount = users.filter(u => u.online).length;
+                    const onlineLabel = onlineCount > 0
+                        ? `<span style="font-size:0.7rem;color:#4ade80;margin-left:6px;">● ${onlineCount} online</span>`
+                        : '';
+                    $adminMembersList.prev('.admin-members-header').find('.admin-online-count').remove();
+                    $adminMembersList.before(`<div class="admin-members-header d-flex align-items-center mb-2" style="font-size:0.75rem;color:rgba(200,220,255,0.6);">Members${onlineLabel}</div>`);
                     const rows = users.map(u => {
                         const email = u.email || 'unknown';
                         const tier  = u.tier  || 'free';
@@ -4322,6 +4340,9 @@
                             `<option value="${t}"${t === tier ? ' selected' : ''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`
                         ).join('');
                         const col = TIER_COLORS[tier] || TIER_COLORS.free;
+                        const onlineDot = u.online
+                            ? '<span title="Online" style="width:7px;height:7px;border-radius:50%;background:#4ade80;display:inline-block;flex-shrink:0;"></span>'
+                            : '<span title="Offline" style="width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.15);display:inline-block;flex-shrink:0;"></span>';
                         let regLabel = '—';
                         if (u.registered_at) {
                             try {
@@ -4331,9 +4352,12 @@
                         }
                         return `
                             <div class="d-flex justify-content-between align-items-center mb-2 admin-user-row">
-                                <div style="min-width:0; flex:1; margin-right:8px;">
-                                    <div style="color:#e7ecff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escHtml(email)}</div>
-                                    <div style="font-size:0.68rem; color:rgba(200,220,255,0.45); margin-top:1px;">Joined: ${regLabel}</div>
+                                <div class="d-flex align-items-center gap-2" style="min-width:0; flex:1; margin-right:8px;">
+                                    ${onlineDot}
+                                    <div style="min-width:0;">
+                                        <div style="color:#e7ecff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escHtml(email)}</div>
+                                        <div style="font-size:0.68rem; color:rgba(200,220,255,0.45); margin-top:1px;">Joined: ${regLabel}</div>
+                                    </div>
                                 </div>
                                 <div class="d-flex align-items-center gap-2" style="flex-shrink:0;">
                                     <select class="admin-tier-select" data-email="${escHtml(email)}" data-current="${escHtml(tier)}"
@@ -4478,8 +4502,12 @@
                     const html = filtered.map(u => {
                         const checked = selectedUserEmails.has(u.email);
                         const color   = TIER_COLORS[u.tier] || TIER_COLORS.free;
+                        const onlineDot = u.online
+                            ? '<span title="Online" style="width:6px;height:6px;border-radius:50%;background:#4ade80;flex-shrink:0;"></span>'
+                            : '<span title="Offline" style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.15);flex-shrink:0;"></span>';
                         return `<div class="admin-user-item${checked ? ' selected' : ''}" data-email="${escHtml(u.email)}">
                             <input type="checkbox" ${checked ? 'checked' : ''}>
+                            ${onlineDot}
                             <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(u.email)}</span>
                             <span class="admin-user-tier-dot" style="background:${color};"></span>
                         </div>`;
@@ -4699,6 +4727,13 @@
                     // Admin: load members list on init
                     if (userTier === 'admin') loadAdminMembers();
                 }).catch(() => {});
+            }
+
+            // Heartbeat — keep this user marked online every 60s
+            if (isLoggedIn) {
+                const sendHeartbeat = () => fetch('/api/heartbeat', { method: 'POST' }).catch(() => {});
+                sendHeartbeat();
+                setInterval(sendHeartbeat, 60_000);
             }
 
             function updateAnonUsage(used, limit) {

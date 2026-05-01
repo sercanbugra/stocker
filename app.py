@@ -1286,6 +1286,8 @@ MARKET_TICKER_DEFS = [
 ]
 _TICKER_CACHE: dict = {"data": None, "ts": 0.0}
 _TICKER_TTL = 300  # 5-minute cache
+_ONLINE_USERS: dict = {}   # email -> last_seen unix timestamp
+_ONLINE_TTL = 180          # 3-minute window = considered online
 BIST_CACHE_PATH     = os.path.join(_DATA_DIR, "cache", "remarkables_bist.json")
 INDUSTRY_DB_PATH    = os.path.join(_DATA_DIR, "cache", "industry_db.json")
 _UNDERVALUED_REFRESH_LOCK = threading.Lock()
@@ -5288,12 +5290,20 @@ def api_admin_send_watchlist_mails():
     return jsonify({"ok": True, "count": len(targets)})
 
 
+@app.route("/api/heartbeat", methods=["POST"])
+def api_heartbeat():
+    email = _get_current_user_email()
+    if email:
+        _ONLINE_USERS[email] = time.time()
+    return "", 204
+
 @app.route("/api/admin/users", methods=["GET"])
 def api_admin_users():
     _, error = _require_admin()
     if error:
         return error
     users = _load_users()
+    now = time.time()
     out = []
     for em, info in users.items():
         tier = "free"
@@ -5303,7 +5313,8 @@ def api_admin_users():
             if tier != "free" and status not in ("active", "trialing"):
                 tier = "free"
         registered_at = info.get("registered_at") if isinstance(info, dict) else None
-        out.append({"email": em, "tier": tier, "registered_at": registered_at})
+        online = (now - _ONLINE_USERS.get(em, 0)) < _ONLINE_TTL
+        out.append({"email": em, "tier": tier, "registered_at": registered_at, "online": online})
     return jsonify(out)
 
 @app.route("/api/admin/delete-user", methods=["POST"])
