@@ -4363,6 +4363,16 @@
                                 regLabel = d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
                             } catch(e) {}
                         }
+                        let lastSeenLabel = '—';
+                        if (u.last_seen) {
+                            try {
+                                const ls = new Date(u.last_seen);
+                                const datePart = ls.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+                                const timePart = ls.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+                                lastSeenLabel = `${datePart} ${timePart}`;
+                            } catch(e) {}
+                        }
+                        const lastSeenColor = u.online ? '#4ade80' : 'rgba(200,220,255,0.45)';
                         return `
                             <div class="d-flex justify-content-between align-items-center mb-2 admin-user-row">
                                 <div class="d-flex align-items-center gap-2" style="min-width:0; flex:1; margin-right:8px;">
@@ -4370,6 +4380,7 @@
                                     <div style="min-width:0;">
                                         <div style="color:#e7ecff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escHtml(email)}</div>
                                         <div style="font-size:0.68rem; color:rgba(200,220,255,0.45); margin-top:1px;">Joined: ${regLabel}</div>
+                                        <div style="font-size:0.68rem; color:${lastSeenColor}; margin-top:1px;">Last seen: ${lastSeenLabel}</div>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center gap-2" style="flex-shrink:0;">

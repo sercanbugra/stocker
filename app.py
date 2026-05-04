@@ -1288,6 +1288,32 @@ _TICKER_CACHE: dict = {"data": None, "ts": 0.0}
 _TICKER_TTL = 300  # 5-minute cache
 _ONLINE_USERS: dict = {}   # email -> last_seen unix timestamp
 _ONLINE_TTL = 180          # 3-minute window = considered online
+
+_LAST_SEEN_FILE = os.path.join(_DATA_DIR, "last_seen.json")
+_USER_LAST_SEEN: dict = {}  # email -> unix timestamp, persisted across restarts
+
+
+def _load_last_seen() -> None:
+    global _USER_LAST_SEEN
+    try:
+        with open(_LAST_SEEN_FILE, "r", encoding="utf-8") as f:
+            _USER_LAST_SEEN = json.load(f)
+    except Exception:
+        _USER_LAST_SEEN = {}
+
+
+def _save_last_seen() -> None:
+    try:
+        os.makedirs(os.path.dirname(_LAST_SEEN_FILE), exist_ok=True)
+        tmp = _LAST_SEEN_FILE + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(_USER_LAST_SEEN, f)
+        os.replace(tmp, _LAST_SEEN_FILE)
+    except Exception:
+        pass
+
+
+_load_last_seen()
 BIST_CACHE_PATH     = os.path.join(_DATA_DIR, "cache", "remarkables_bist.json")
 INDUSTRY_DB_PATH    = os.path.join(_DATA_DIR, "cache", "industry_db.json")
 _UNDERVALUED_REFRESH_LOCK = threading.Lock()
@@ -5351,7 +5377,12 @@ def api_watchlist_trends():
 def api_heartbeat():
     email = _get_current_user_email()
     if email:
-        _ONLINE_USERS[email] = time.time()
+        now = time.time()
+        _ONLINE_USERS[email] = now
+        prev = _USER_LAST_SEEN.get(email, 0)
+        _USER_LAST_SEEN[email] = now
+        if now - prev > 300:  # flush to disk at most every 5 minutes per user
+            _save_last_seen()
     return "", 204
 
 @app.route("/api/admin/users", methods=["GET"])
@@ -5371,7 +5402,12 @@ def api_admin_users():
                 tier = "free"
         registered_at = info.get("registered_at") if isinstance(info, dict) else None
         online = (now - _ONLINE_USERS.get(em, 0)) < _ONLINE_TTL
-        out.append({"email": em, "tier": tier, "registered_at": registered_at, "online": online})
+        last_seen_ts = _USER_LAST_SEEN.get(em)
+        last_seen = (
+            datetime.fromtimestamp(last_seen_ts, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            if last_seen_ts else None
+        )
+        out.append({"email": em, "tier": tier, "registered_at": registered_at, "online": online, "last_seen": last_seen})
     return jsonify(out)
 
 @app.route("/api/admin/delete-user", methods=["POST"])
