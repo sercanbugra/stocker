@@ -8,6 +8,8 @@ LABEL fly_launch_runtime="flask"
 
 WORKDIR /code
 
+RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
