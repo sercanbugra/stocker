@@ -19,7 +19,8 @@ import pandas as pd
 import yfinance as yf
 import plotly.graph_objs as go
 import xgboost as xgb
-from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
+import lightgbm as lgb
+from sklearn.ensemble import ExtraTreesRegressor
 import requests
 from datetime import datetime, timezone
 from requests.exceptions import HTTPError
@@ -281,7 +282,7 @@ def _send_welcome_email(to_email: str) -> None:
               ✓ &nbsp;3 stock analyses per day
             </td></tr>
             <tr><td style="padding:5px 0;color:rgba(200,238,255,0.6);font-size:14px;">
-              ✓ &nbsp;ML price predictions (XGBoost + RandomForest ensemble)
+              ✓ &nbsp;ML price predictions (XGBoost + LightGBM + ExtraTrees ensemble)
             </td></tr>
             <tr><td style="padding:5px 0;color:rgba(200,238,255,0.6);font-size:14px;">
               ✓ &nbsp;Technical pattern detection &amp; charts
@@ -3133,30 +3134,41 @@ def train_prediction_models(close_values, forecast_horizon=30, time_steps=30):
         logger.error(f"ExtraTrees model error: {e}")
     t_et = time.monotonic()
 
-    # RandomForest Model
+    # LightGBM Model
     try:
-        rf_model = RandomForestRegressor(
-            n_estimators=160,
+        lgbm_model = lgb.LGBMRegressor(
+            n_estimators=200,
+            learning_rate=0.03,
+            max_depth=5,
+            num_leaves=31,
+            subsample=0.9,
+            colsample_bytree=0.9,
+            min_child_samples=5,
             random_state=42,
             n_jobs=1,
-            max_depth=None,
-            max_features='sqrt',
-            min_samples_leaf=2
+            verbose=-1,
         )
-        rf_model.fit(flat_X, y)
-        rf_forecast = _forecast_tree_recursive(
-            rf_model, close_values, feature_scaler, close_scaler, time_steps, forecast_horizon
+        lgbm_model.fit(flat_X, y)
+        lgbm_forecast = _forecast_tree_recursive(
+            lgbm_model, close_values, feature_scaler, close_scaler, time_steps, forecast_horizon
         )
-        predictions['RandomForest'] = rf_forecast
+        predictions['LightGBM'] = lgbm_forecast
     except Exception as e:
-        logger.error(f"RandomForest model error: {e}")
+        logger.error(f"LightGBM model error: {e}")
+    t_lgbm = time.monotonic()
+
+    # Ensemble average of all available model forecasts
+    available = [np.asarray(v).reshape(-1) for v in predictions.values()]
+    if len(available) >= 2:
+        ensemble = np.mean(np.stack(available, axis=0), axis=0).reshape(-1, 1)
+        predictions['Ensemble'] = ensemble
 
     try:
         logger.info(
-            "train timings xgb=%.2fs et=%.2fs rf=%.2fs total=%.2fs",
+            "train timings xgb=%.2fs et=%.2fs lgbm=%.2fs total=%.2fs",
             t_xgb - t0,
             t_et - t_xgb,
-            time.monotonic() - t_et,
+            t_lgbm - t_et,
             time.monotonic() - t0,
         )
     except Exception:
@@ -4611,14 +4623,24 @@ def run_prediction(symbol: str):
             close=df['Close'].astype(float).tolist(),
             name="OHLC (1Y)"
         )
-        prediction_traces = [
-            go.Scatter(
-                x=future_dates_iso,
-                y=vals,
-                mode='lines',
-                name=f'{model_name} Prediction'
-            ) for model_name, vals in normalized_predictions.items()
-        ]
+        prediction_traces = []
+        for model_name, vals in normalized_predictions.items():
+            if model_name == 'Ensemble':
+                trace = go.Scatter(
+                    x=future_dates_iso,
+                    y=vals,
+                    mode='lines',
+                    name='Ensemble Avg',
+                    line=dict(color='#ffffff', width=3, dash='dash'),
+                )
+            else:
+                trace = go.Scatter(
+                    x=future_dates_iso,
+                    y=vals,
+                    mode='lines',
+                    name=f'{model_name} Prediction',
+                )
+            prediction_traces.append(trace)
         fig = go.Figure(data=[candlestick] + prediction_traces)
         fig.update_layout(
             title=f'{symbol} Stock Price Prediction (Last 1 Year)',
