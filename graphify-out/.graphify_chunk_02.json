@@ -1,0 +1,587 @@
+{
+  "nodes": [
+    {
+      "id": "quick_validate_validate_skill",
+      "label": "validate_skill() — validates SKILL.md frontmatter (name, description, compatibility, allowed properties)",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/quick_validate.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "package_skill_package_skill",
+      "label": "package_skill() — validates then zips a skill folder into a distributable .skill file",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/package_skill.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "improve_description_improve_description",
+      "label": "improve_description() — calls claude -p to rewrite a skill's description based on eval failures and history",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/improve_description.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "improve_description_call_claude",
+      "label": "_call_claude() — spawns `claude -p` subprocess with prompt on stdin; strips CLAUDECODE env var for nesting safety",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/improve_description.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "aggregate_benchmark_generate_benchmark",
+      "label": "generate_benchmark() — aggregates grading.json run results into benchmark.json with pass-rate stats and delta",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/aggregate_benchmark.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "aggregate_benchmark_calculate_stats",
+      "label": "calculate_stats() — computes mean, stddev, min, max for benchmark metric lists",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/aggregate_benchmark.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "run_loop_run_loop",
+      "label": "run_loop() — iterative eval+improve loop; splits train/test, runs eval, improves description, picks best by test score",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/run_loop.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "run_loop_split_eval_set",
+      "label": "split_eval_set() — stratified train/test split on should_trigger field with configurable holdout fraction",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/run_loop.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "generate_report_generate_html",
+      "label": "generate_html() — produces standalone HTML optimization report with per-iteration train/test pass/fail grid",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/generate_report.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "eval_viewer_generate_review",
+      "label": "generate_review.py — HTTP server + HTML generator for reviewing eval run outputs with per-run feedback",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/eval-viewer/generate_review.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "eval_viewer_review_handler",
+      "label": "ReviewHandler — stdlib HTTP handler; regenerates HTML on each GET /, saves/loads feedback.json via POST /api/feedback",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/eval-viewer/generate_review.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "security_guidance_hook",
+      "label": "security_reminder_hook.py — PreToolUse hook that checks Edit/Write/MultiEdit for dangerous patterns (command injection, XSS, pickle, eval)",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/security-guidance/hooks/security_reminder_hook.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "security_guidance_patterns",
+      "label": "SECURITY_PATTERNS — list of 9 rules covering: GitHub Actions injection, child_process.exec, new Function, eval, dangerouslySetInnerHTML, document.write, innerHTML, pickle, os.system",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/security-guidance/hooks/security_reminder_hook.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "session_report_analyze_sessions",
+      "label": "analyze-sessions.mjs — scans ~/.claude/projects/**/*.jsonl; reports token usage, cache breaks, subagent calls, skill invocations per session/project/day",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/session-report/skills/session-report/analyze-sessions.mjs",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "hookify_config_loader",
+      "label": "config_loader.py — loads .claude/hookify.*.local.md rule files; parses YAML frontmatter into Rule/Condition dataclasses",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/core/config_loader.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "hookify_rule_dataclass",
+      "label": "Rule — hookify rule dataclass: name, enabled, event, pattern, conditions, action (warn|block), tool_matcher, message",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/core/config_loader.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "hookify_condition_dataclass",
+      "label": "Condition — hookify condition dataclass: field, operator (regex_match|contains|equals|not_contains|starts_with|ends_with), pattern",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/core/config_loader.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "hookify_rule_engine",
+      "label": "RuleEngine — evaluates hookify rules; blocking rules deny tool execution, warning rules inject systemMessage",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/core/rule_engine.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "hookify_pretooluse",
+      "label": "pretooluse.py — PreToolUse hook entry point; routes Bash→bash event, Edit/Write/MultiEdit→file event, loads+evaluates rules",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/hooks/pretooluse.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "hookify_posttooluse",
+      "label": "posttooluse.py — PostToolUse hook entry point; same event-routing as pretooluse.py",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/hooks/posttooluse.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "hookify_userpromptsubmit",
+      "label": "userpromptsubmit.py — UserPromptSubmit hook entry point; loads rules with event='prompt'",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/hooks/userpromptsubmit.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "hookify_stop",
+      "label": "stop.py — Stop hook entry point; loads rules with event='stop'",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/hooks/stop.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "fakechat_server",
+      "label": "fakechat/server.ts — MCP server + Bun HTTP+WebSocket UI; provides reply/edit_message tools for testing the channel contract locally",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/fakechat/server.ts",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "discord_server",
+      "label": "discord/server.ts — MCP server backed by discord.js; access-controlled via pairing/allowlist; exposes reply, react, edit_message, fetch_messages, download_attachment tools",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/server.ts",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "discord_access_control",
+      "label": "Discord Access Control — pairing|allowlist|disabled dmPolicy; guild-channel group policies; pending codes with 1h expiry; static mode snapshot",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/server.ts",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skill_md_frontmatter",
+      "label": "SKILL.md frontmatter schema — allowed keys: name (kebab-case, max 64), description (max 1024, no angle brackets), license, allowed-tools, metadata, compatibility",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/quick_validate.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "package_skill_package_skill",
+      "target": "quick_validate_validate_skill",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/package_skill.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "quick_validate_validate_skill",
+      "target": "skill_md_frontmatter",
+      "relation": "validates",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/quick_validate.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "improve_description_improve_description",
+      "target": "improve_description_call_claude",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/improve_description.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "run_loop_run_loop",
+      "target": "improve_description_improve_description",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/run_loop.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "run_loop_run_loop",
+      "target": "generate_report_generate_html",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/run_loop.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "run_loop_run_loop",
+      "target": "run_loop_split_eval_set",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/run_loop.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "aggregate_benchmark_generate_benchmark",
+      "target": "aggregate_benchmark_calculate_stats",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/aggregate_benchmark.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_pretooluse",
+      "target": "hookify_config_loader",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/hooks/pretooluse.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_pretooluse",
+      "target": "hookify_rule_engine",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/hooks/pretooluse.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_posttooluse",
+      "target": "hookify_config_loader",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/hooks/posttooluse.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_posttooluse",
+      "target": "hookify_rule_engine",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/hooks/posttooluse.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_userpromptsubmit",
+      "target": "hookify_config_loader",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/hooks/userpromptsubmit.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_userpromptsubmit",
+      "target": "hookify_rule_engine",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/hooks/userpromptsubmit.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_stop",
+      "target": "hookify_config_loader",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/hooks/stop.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_stop",
+      "target": "hookify_rule_engine",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/hooks/stop.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_rule_engine",
+      "target": "hookify_rule_dataclass",
+      "relation": "evaluates",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/core/rule_engine.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_rule_engine",
+      "target": "hookify_condition_dataclass",
+      "relation": "evaluates",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/core/rule_engine.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_config_loader",
+      "target": "hookify_rule_dataclass",
+      "relation": "produces",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/core/config_loader.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_config_loader",
+      "target": "hookify_condition_dataclass",
+      "relation": "produces",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/core/config_loader.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "security_guidance_hook",
+      "target": "security_guidance_patterns",
+      "relation": "applies",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/security-guidance/hooks/security_reminder_hook.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "security_guidance_hook",
+      "target": "hookify_pretooluse",
+      "relation": "similar_role_as",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/security-guidance/hooks/security_reminder_hook.py",
+      "source_location": null,
+      "weight": 0.75
+    },
+    {
+      "source": "discord_server",
+      "target": "discord_access_control",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/server.ts",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "fakechat_server",
+      "target": "discord_server",
+      "relation": "test_double_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/fakechat/server.ts",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "eval_viewer_generate_review",
+      "target": "eval_viewer_review_handler",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/eval-viewer/generate_review.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "improve_description_improve_description",
+      "target": "skill_md_frontmatter",
+      "relation": "reads_description_from",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/improve_description.py",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "run_loop_run_loop",
+      "target": "aggregate_benchmark_generate_benchmark",
+      "relation": "produces_input_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/run_loop.py",
+      "source_location": null,
+      "weight": 0.75
+    },
+    {
+      "source": "session_report_analyze_sessions",
+      "target": "improve_description_call_claude",
+      "relation": "tracks_token_usage_of",
+      "confidence": "INFERRED",
+      "confidence_score": 0.65,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/session-report/skills/session-report/analyze-sessions.mjs",
+      "source_location": null,
+      "weight": 0.65
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "hookify_dispatch_pipeline",
+      "label": "Hookify dispatch pipeline: each hook entry point loads rules from config_loader then evaluates via rule_engine",
+      "members": ["hookify_pretooluse", "hookify_posttooluse", "hookify_userpromptsubmit", "hookify_stop", "hookify_config_loader", "hookify_rule_engine"],
+      "relation": "forms_pipeline",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/hooks/pretooluse.py"
+    },
+    {
+      "id": "skill_optimization_loop",
+      "label": "Skill description optimization loop: run_loop orchestrates split_eval_set, run_eval, improve_description, and generate_html into an iterative improvement cycle",
+      "members": ["run_loop_run_loop", "run_loop_split_eval_set", "improve_description_improve_description", "generate_report_generate_html"],
+      "relation": "forms_pipeline",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/run_loop.py"
+    },
+    {
+      "id": "skill_packaging_pipeline",
+      "label": "Skill packaging pipeline: package_skill calls validate_skill against the SKILL.md frontmatter schema before creating the .skill zip",
+      "members": ["package_skill_package_skill", "quick_validate_validate_skill", "skill_md_frontmatter"],
+      "relation": "forms_pipeline",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/skill-creator/skills/skill-creator/scripts/package_skill.py"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

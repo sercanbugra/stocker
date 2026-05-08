@@ -1,0 +1,915 @@
+{
+  "nodes": [
+    {
+      "id": "gopls_lsp_plugin",
+      "label": "gopls-lsp Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/gopls-lsp/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "gopls_language_server",
+      "label": "gopls (Go Language Server)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/gopls-lsp/README.md",
+      "source_location": null,
+      "source_url": "https://pkg.go.dev/golang.org/x/tools/gopls",
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "php_lsp_plugin",
+      "label": "php-lsp Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/php-lsp/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "intelephense_language_server",
+      "label": "Intelephense (PHP Language Server)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/php-lsp/README.md",
+      "source_location": null,
+      "source_url": "https://intelephense.com/",
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "csharp_lsp_plugin",
+      "label": "csharp-lsp Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/csharp-lsp/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "csharp_ls_language_server",
+      "label": "csharp-ls (C# Language Server)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/csharp-lsp/README.md",
+      "source_location": null,
+      "source_url": "https://github.com/razzmatazz/csharp-language-server",
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "cwc_makers_plugin",
+      "label": "cwc-makers Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/README.md",
+      "source_location": null,
+      "source_url": "https://claude.com/cwc-makers",
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "maker_setup_command",
+      "label": "/maker-setup Command",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/commands/maker-setup.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "m5_onboard_skill",
+      "label": "m5-onboard Skill",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/skills/m5-onboard/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "cardputer_buddy_skill",
+      "label": "cardputer-buddy Skill",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/skills/cardputer-buddy/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "m5stack_cardputer_adv",
+      "label": "M5Stack Cardputer-Adv Device",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/skills/m5-onboard/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "build_with_claude_repo",
+      "label": "moremas/build-with-claude GitHub Repository",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/README.md",
+      "source_location": null,
+      "source_url": "https://github.com/moremas/build-with-claude",
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "uiflow2_firmware",
+      "label": "UIFlow 2.0 Firmware",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/skills/m5-onboard/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "onboard_py_script",
+      "label": "onboard.py Orchestrator Script",
+      "file_type": "code",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/skills/m5-onboard/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "esptool_dependency",
+      "label": "esptool (ESP32 Flash Tool)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/skills/m5-onboard/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "pyserial_dependency",
+      "label": "pyserial (Serial Port Library)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/skills/m5-onboard/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "claude_buddy_app",
+      "label": "Claude Buddy MicroPython App",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/skills/cardputer-buddy/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "playground_plugin",
+      "label": "Playground Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/playground/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "playground_skill",
+      "label": "playground Skill",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/playground/skills/playground/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "design_playground_template",
+      "label": "Design Playground Template",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/playground/skills/playground/templates/design-playground.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "concept_map_template",
+      "label": "Concept Map Template",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/playground/skills/playground/templates/concept-map.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "document_critique_template",
+      "label": "Document Critique Template",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/playground/skills/playground/templates/document-critique.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "code_map_template",
+      "label": "Code Map Template",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/playground/skills/playground/templates/code-map.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "data_explorer_template",
+      "label": "Data Explorer Template",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/playground/skills/playground/templates/data-explorer.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "diff_review_template",
+      "label": "Diff Review Template",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/playground/skills/playground/templates/diff-review.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mcp_server_dev_plugin",
+      "label": "mcp-server-dev Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "build_mcp_server_skill",
+      "label": "build-mcp-server Skill",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mcp_resources_prompts_ref",
+      "label": "MCP Resources & Prompts Reference",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/references/resources-and-prompts.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mcp_tool_design_ref",
+      "label": "MCP Tool Design Reference",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/references/tool-design.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mcp_elicitation_ref",
+      "label": "MCP Elicitation Reference",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/references/elicitation.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "cloudflare_workers_deploy_ref",
+      "label": "Deploy to Cloudflare Workers Reference",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/references/deploy-cloudflare-workers.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mcp_server_capabilities_ref",
+      "label": "MCP Server Capabilities Reference",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/references/server-capabilities.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mcp_remote_http_deployment",
+      "label": "Remote Streamable-HTTP MCP Deployment Model",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mcp_mcpb_deployment",
+      "label": "MCPB (Bundled Local) MCP Deployment Model",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mcp_local_stdio_deployment",
+      "label": "Local stdio MCP Deployment Model",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ts_mcp_sdk",
+      "label": "Official TypeScript MCP SDK (@modelcontextprotocol/sdk)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "fastmcp_python_framework",
+      "label": "FastMCP 3.x Python Framework",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "claude_code_platform",
+      "label": "Claude Code Platform",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/gopls-lsp/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "gopls_lsp_plugin",
+      "target": "gopls_language_server",
+      "relation": "provides",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/gopls-lsp/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "gopls_lsp_plugin",
+      "target": "claude_code_platform",
+      "relation": "integrates_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/gopls-lsp/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "php_lsp_plugin",
+      "target": "intelephense_language_server",
+      "relation": "provides",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/php-lsp/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "php_lsp_plugin",
+      "target": "claude_code_platform",
+      "relation": "integrates_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/php-lsp/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "csharp_lsp_plugin",
+      "target": "csharp_ls_language_server",
+      "relation": "provides",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/csharp-lsp/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "csharp_lsp_plugin",
+      "target": "claude_code_platform",
+      "relation": "integrates_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/csharp-lsp/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cwc_makers_plugin",
+      "target": "maker_setup_command",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cwc_makers_plugin",
+      "target": "m5_onboard_skill",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cwc_makers_plugin",
+      "target": "cardputer_buddy_skill",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "maker_setup_command",
+      "target": "m5_onboard_skill",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/commands/maker-setup.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "maker_setup_command",
+      "target": "build_with_claude_repo",
+      "relation": "clones",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/commands/maker-setup.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "m5_onboard_skill",
+      "target": "m5stack_cardputer_adv",
+      "relation": "provisions",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/skills/m5-onboard/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "m5_onboard_skill",
+      "target": "onboard_py_script",
+      "relation": "uses",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/skills/m5-onboard/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "m5_onboard_skill",
+      "target": "uiflow2_firmware",
+      "relation": "flashes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/skills/m5-onboard/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "m5_onboard_skill",
+      "target": "esptool_dependency",
+      "relation": "depends_on",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/skills/m5-onboard/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "m5_onboard_skill",
+      "target": "pyserial_dependency",
+      "relation": "depends_on",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/skills/m5-onboard/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cardputer_buddy_skill",
+      "target": "claude_buddy_app",
+      "relation": "manages",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/skills/cardputer-buddy/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cardputer_buddy_skill",
+      "target": "m5stack_cardputer_adv",
+      "relation": "targets",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/skills/cardputer-buddy/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "m5_onboard_skill",
+      "target": "claude_buddy_app",
+      "relation": "installs",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/skills/m5-onboard/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "playground_plugin",
+      "target": "playground_skill",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/playground/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "playground_skill",
+      "target": "design_playground_template",
+      "relation": "uses_template",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/playground/skills/playground/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "playground_skill",
+      "target": "concept_map_template",
+      "relation": "uses_template",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/playground/skills/playground/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "playground_skill",
+      "target": "document_critique_template",
+      "relation": "uses_template",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/playground/skills/playground/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "playground_skill",
+      "target": "code_map_template",
+      "relation": "uses_template",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/playground/skills/playground/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "playground_skill",
+      "target": "data_explorer_template",
+      "relation": "uses_template",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/playground/skills/playground/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "playground_skill",
+      "target": "diff_review_template",
+      "relation": "uses_template",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/playground/skills/playground/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mcp_server_dev_plugin",
+      "target": "build_mcp_server_skill",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "build_mcp_server_skill",
+      "target": "mcp_resources_prompts_ref",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "build_mcp_server_skill",
+      "target": "mcp_tool_design_ref",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "build_mcp_server_skill",
+      "target": "mcp_elicitation_ref",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "build_mcp_server_skill",
+      "target": "cloudflare_workers_deploy_ref",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "build_mcp_server_skill",
+      "target": "mcp_server_capabilities_ref",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "build_mcp_server_skill",
+      "target": "mcp_remote_http_deployment",
+      "relation": "recommends",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "build_mcp_server_skill",
+      "target": "mcp_mcpb_deployment",
+      "relation": "describes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "build_mcp_server_skill",
+      "target": "mcp_local_stdio_deployment",
+      "relation": "describes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "build_mcp_server_skill",
+      "target": "ts_mcp_sdk",
+      "relation": "recommends",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "build_mcp_server_skill",
+      "target": "fastmcp_python_framework",
+      "relation": "recommends",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mcp_remote_http_deployment",
+      "target": "cloudflare_workers_deploy_ref",
+      "relation": "documented_by",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mcp_elicitation_ref",
+      "target": "ts_mcp_sdk",
+      "relation": "uses",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/references/elicitation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mcp_elicitation_ref",
+      "target": "fastmcp_python_framework",
+      "relation": "uses",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/references/elicitation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mcp_tool_design_ref",
+      "target": "ts_mcp_sdk",
+      "relation": "uses",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/references/tool-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cloudflare_workers_deploy_ref",
+      "target": "ts_mcp_sdk",
+      "relation": "uses",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/references/deploy-cloudflare-workers.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "onboard_py_script",
+      "target": "build_with_claude_repo",
+      "relation": "part_of",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/skills/m5-onboard/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cwc_makers_plugin",
+      "target": "build_with_claude_repo",
+      "relation": "vendors_content_from",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "gopls_lsp_plugin",
+      "target": "php_lsp_plugin",
+      "relation": "sibling_plugin",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/gopls-lsp/README.md",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "gopls_lsp_plugin",
+      "target": "csharp_lsp_plugin",
+      "relation": "sibling_plugin",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/gopls-lsp/README.md",
+      "source_location": null,
+      "weight": 0.85
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "lsp_plugins_group",
+      "label": "LSP Plugins for Claude Code",
+      "nodes": ["gopls_lsp_plugin", "php_lsp_plugin", "csharp_lsp_plugin", "claude_code_platform"],
+      "relation": "provide_language_intelligence_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/gopls-lsp/README.md"
+    },
+    {
+      "id": "cwc_makers_onboarding_flow",
+      "label": "CWC Makers Onboarding Flow",
+      "nodes": ["maker_setup_command", "m5_onboard_skill", "cardputer_buddy_skill", "m5stack_cardputer_adv"],
+      "relation": "collectively_provision_device",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/cwc-makers/README.md"
+    },
+    {
+      "id": "mcp_server_build_path",
+      "label": "MCP Server Build Path",
+      "nodes": ["build_mcp_server_skill", "mcp_remote_http_deployment", "mcp_mcpb_deployment", "mcp_local_stdio_deployment"],
+      "relation": "define_deployment_options_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/mcp-server-dev/skills/build-mcp-server/SKILL.md"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

@@ -1,0 +1,692 @@
+{
+  "nodes": [
+    {
+      "id": "configure_telegram_configure_skill",
+      "label": "Telegram Configure Skill",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/skills/configure/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "configure_telegram_bot_token",
+      "label": "Telegram Bot Token",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/skills/configure/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "configure_telegram_access_policy",
+      "label": "Telegram Access Policy",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/skills/configure/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "configure_telegram_pairing_mode",
+      "label": "Telegram Pairing Mode",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/skills/configure/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "configure_telegram_allowlist_mode",
+      "label": "Telegram Allowlist Mode",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/skills/configure/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "project_tradingbot_project",
+      "label": "Trading212 Bot Project",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/memory/project_tradingbot.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "project_tradingbot_fastapi_backend",
+      "label": "FastAPI Backend",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/memory/project_tradingbot.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "project_tradingbot_trading212_api",
+      "label": "Trading212 API",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/memory/project_tradingbot.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "project_tradingbot_strategy_engine",
+      "label": "Trading Strategy Engine",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/memory/project_tradingbot.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "project_tradingbot_yfinance_feed",
+      "label": "yfinance Price Feed",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/memory/project_tradingbot.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "project_tradingbot_websocket_dashboard",
+      "label": "WebSocket Dashboard",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/memory/project_tradingbot.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "b1yr7c8po_trading212_openapi_spec",
+      "label": "Trading212 Public API OpenAPI Spec",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/1f79a556-d466-4d38-aa5c-d580d83dde57/tool-results/b1yr7c8po.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "b1yr7c8po_trading212_market_order",
+      "label": "Trading212 Market Order",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/1f79a556-d466-4d38-aa5c-d580d83dde57/tool-results/b1yr7c8po.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "b1yr7c8po_trading212_limit_order",
+      "label": "Trading212 Limit Order",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/1f79a556-d466-4d38-aa5c-d580d83dde57/tool-results/b1yr7c8po.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "b1yr7c8po_trading212_stop_order",
+      "label": "Trading212 Stop Order",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/1f79a556-d466-4d38-aa5c-d580d83dde57/tool-results/b1yr7c8po.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "b1yr7c8po_trading212_account_summary",
+      "label": "Trading212 Account Summary",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/1f79a556-d466-4d38-aa5c-d580d83dde57/tool-results/b1yr7c8po.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "b1yr7c8po_trading212_demo_environment",
+      "label": "Trading212 Demo Environment",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/1f79a556-d466-4d38-aa5c-d580d83dde57/tool-results/b1yr7c8po.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "b6m83q7mt_trading212_fly_deploy",
+      "label": "Trading212 Bot Fly.io Deployment",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/e2228672-5e1b-412a-a874-0bfec14e09ac/tool-results/b6m83q7mt.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "project_stocker_overview",
+      "label": "Stocker Project Overview",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-my-code-space/memory/project_stocker.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "project_stocker_flask_app",
+      "label": "Stocker Flask App",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-my-code-space/memory/project_stocker.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "project_stocker_ml_ensemble",
+      "label": "Stocker ML Ensemble",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-my-code-space/memory/project_stocker.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "project_stocker_stripe_payments",
+      "label": "Stocker Stripe Payments",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-my-code-space/memory/project_stocker.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "project_stack_fpl_dashboard",
+      "label": "FPL Dashboard Project",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-FPL-fpl-portal-dj/memory/project_stack.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "project_stack_django_app",
+      "label": "FPL Django App",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-FPL-fpl-portal-dj/memory/project_stack.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "project_stack_fpl_forecast",
+      "label": "FPL Next-GW Forecast",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-FPL-fpl-portal-dj/memory/project_stack.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skill_graphify",
+      "label": "Graphify Skill",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/skills/graphify/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skill_graphify_pipeline",
+      "label": "Graphify Extraction Pipeline",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/skills/graphify/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skill_graphify_community_detection",
+      "label": "Graphify Community Detection",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/skills/graphify/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skill_graphify_ast_extraction",
+      "label": "Graphify AST Extraction",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/skills/graphify/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skill_graphify_semantic_extraction",
+      "label": "Graphify Semantic Extraction",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/skills/graphify/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "configure_telegram_configure_skill",
+      "target": "configure_telegram_bot_token",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/skills/configure/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "configure_telegram_configure_skill",
+      "target": "configure_telegram_access_policy",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/skills/configure/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "configure_telegram_access_policy",
+      "target": "configure_telegram_pairing_mode",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/skills/configure/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "configure_telegram_access_policy",
+      "target": "configure_telegram_allowlist_mode",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/skills/configure/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "configure_telegram_pairing_mode",
+      "target": "configure_telegram_allowlist_mode",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/skills/configure/SKILL.md",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "project_tradingbot_project",
+      "target": "project_tradingbot_fastapi_backend",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/memory/project_tradingbot.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "project_tradingbot_project",
+      "target": "project_tradingbot_trading212_api",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/memory/project_tradingbot.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "project_tradingbot_project",
+      "target": "project_tradingbot_strategy_engine",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/memory/project_tradingbot.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "project_tradingbot_project",
+      "target": "project_tradingbot_yfinance_feed",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/memory/project_tradingbot.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "project_tradingbot_project",
+      "target": "project_tradingbot_websocket_dashboard",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/memory/project_tradingbot.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "project_tradingbot_project",
+      "target": "b1yr7c8po_trading212_openapi_spec",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/memory/project_tradingbot.md",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "b1yr7c8po_trading212_openapi_spec",
+      "target": "b1yr7c8po_trading212_market_order",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/1f79a556-d466-4d38-aa5c-d580d83dde57/tool-results/b1yr7c8po.txt",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "b1yr7c8po_trading212_openapi_spec",
+      "target": "b1yr7c8po_trading212_limit_order",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/1f79a556-d466-4d38-aa5c-d580d83dde57/tool-results/b1yr7c8po.txt",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "b1yr7c8po_trading212_openapi_spec",
+      "target": "b1yr7c8po_trading212_stop_order",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/1f79a556-d466-4d38-aa5c-d580d83dde57/tool-results/b1yr7c8po.txt",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "b1yr7c8po_trading212_openapi_spec",
+      "target": "b1yr7c8po_trading212_account_summary",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/1f79a556-d466-4d38-aa5c-d580d83dde57/tool-results/b1yr7c8po.txt",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "b1yr7c8po_trading212_openapi_spec",
+      "target": "b1yr7c8po_trading212_demo_environment",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/1f79a556-d466-4d38-aa5c-d580d83dde57/tool-results/b1yr7c8po.txt",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "project_tradingbot_project",
+      "target": "b6m83q7mt_trading212_fly_deploy",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/e2228672-5e1b-412a-a874-0bfec14e09ac/tool-results/b6m83q7mt.txt",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "project_tradingbot_fastapi_backend",
+      "target": "b6m83q7mt_trading212_fly_deploy",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/e2228672-5e1b-412a-a874-0bfec14e09ac/tool-results/b6m83q7mt.txt",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "project_stocker_overview",
+      "target": "project_stocker_flask_app",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-my-code-space/memory/project_stocker.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "project_stocker_overview",
+      "target": "project_stocker_ml_ensemble",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-my-code-space/memory/project_stocker.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "project_stocker_overview",
+      "target": "project_stocker_stripe_payments",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-my-code-space/memory/project_stocker.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "project_stocker_flask_app",
+      "target": "project_tradingbot_yfinance_feed",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-my-code-space/memory/project_stocker.md",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "project_stack_fpl_dashboard",
+      "target": "project_stack_django_app",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-FPL-fpl-portal-dj/memory/project_stack.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "project_stack_fpl_dashboard",
+      "target": "project_stack_fpl_forecast",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-FPL-fpl-portal-dj/memory/project_stack.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skill_graphify",
+      "target": "skill_graphify_pipeline",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/skills/graphify/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skill_graphify",
+      "target": "skill_graphify_community_detection",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/skills/graphify/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skill_graphify_pipeline",
+      "target": "skill_graphify_ast_extraction",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/skills/graphify/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skill_graphify_pipeline",
+      "target": "skill_graphify_semantic_extraction",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/skills/graphify/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "skill_graphify_ast_extraction",
+      "target": "skill_graphify_semantic_extraction",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/skills/graphify/SKILL.md",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "project_tradingbot_strategy_engine",
+      "target": "b1yr7c8po_trading212_stop_order",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/memory/project_tradingbot.md",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "project_tradingbot_strategy_engine",
+      "target": "b1yr7c8po_trading212_market_order",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/memory/project_tradingbot.md",
+      "source_location": null,
+      "weight": 0.85
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "trading212_bot_core_components",
+      "label": "Trading212 Bot Core Components",
+      "nodes": [
+        "project_tradingbot_fastapi_backend",
+        "project_tradingbot_trading212_api",
+        "project_tradingbot_strategy_engine",
+        "project_tradingbot_yfinance_feed",
+        "project_tradingbot_websocket_dashboard"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-trading212-bot/memory/project_tradingbot.md"
+    },
+    {
+      "id": "graphify_extraction_methods",
+      "label": "Graphify Extraction Methods",
+      "nodes": [
+        "skill_graphify_pipeline",
+        "skill_graphify_ast_extraction",
+        "skill_graphify_semantic_extraction",
+        "skill_graphify_community_detection"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/skills/graphify/SKILL.md"
+    },
+    {
+      "id": "sercanbugra_projects",
+      "label": "sercan.bugra@gmail.com Projects",
+      "nodes": [
+        "project_stocker_flask_app",
+        "project_tradingbot_project",
+        "project_stack_fpl_dashboard"
+      ],
+      "relation": "participate_in",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/projects/-home-cinar-Scripts-my-code-space/memory/project_stocker.md"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

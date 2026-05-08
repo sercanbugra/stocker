@@ -1,0 +1,950 @@
+{
+  "nodes": [
+    {
+      "id": "hookify_plugin",
+      "label": "Hookify Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/skills/writing-rules/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "hookify_rule_format",
+      "label": "Hookify Rule File Format",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/skills/writing-rules/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "hookify_event_types",
+      "label": "Hookify Event Types (bash, file, stop, prompt, all)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/skills/writing-rules/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "hookify_writing_rules_skill",
+      "label": "Hookify Writing Rules Skill",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/skills/writing-rules/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "hookify_conversation_analyzer_agent",
+      "label": "Hookify Conversation Analyzer Agent",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/agents/conversation-analyzer.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "hookify_example_warn_console_log",
+      "label": "Hookify Example: warn-console-log Rule",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/examples/console-log-warning.local.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "hookify_example_require_tests_stop",
+      "label": "Hookify Example: require-tests-run Stop Rule",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/examples/require-tests-stop.local.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "hookify_example_sensitive_files",
+      "label": "Hookify Example: warn-sensitive-files Rule",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/examples/sensitive-files-warning.local.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "lua_lsp_plugin",
+      "label": "Lua LSP Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/lua-lsp/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "lua_language_server",
+      "label": "lua-language-server",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/lua-lsp/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "code_simplifier_agent",
+      "label": "Code Simplifier Agent",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/code-simplifier/agents/code-simplifier.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "explanatory_output_style_plugin",
+      "label": "Explanatory Output Style Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/explanatory-output-style/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "session_start_hook",
+      "label": "SessionStart Hook",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/explanatory-output-style/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "typescript_lsp_plugin",
+      "label": "TypeScript LSP Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/typescript-lsp/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "typescript_language_server",
+      "label": "typescript-language-server",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/typescript-lsp/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "fakechat_plugin",
+      "label": "FakeChat External Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/fakechat/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "greptile_plugin",
+      "label": "Greptile External Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/greptile/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "greptile_service",
+      "label": "Greptile AI Code Review Service",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/greptile/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "discord_plugin",
+      "label": "Discord External Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "discord_access_control",
+      "label": "Discord Access Control (access.json)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/ACCESS.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "discord_access_skill",
+      "label": "Discord Access Skill (/discord:access)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/skills/access/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "discord_configure_skill",
+      "label": "Discord Configure Skill (/discord:configure)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/skills/configure/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "discord_dm_policy",
+      "label": "Discord DM Policy (pairing/allowlist/disabled)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/ACCESS.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "discord_bot_token",
+      "label": "Discord Bot Token",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/skills/configure/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "discord_pairing_mechanism",
+      "label": "Discord Pairing Mechanism (6-char code)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/ACCESS.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "imessage_plugin",
+      "label": "iMessage External Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/imessage/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "imessage_access_control",
+      "label": "iMessage Access Control (access.json)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/imessage/ACCESS.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "imessage_access_skill",
+      "label": "iMessage Access Skill (/imessage:access)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/imessage/skills/access/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "imessage_configure_skill",
+      "label": "iMessage Configure Skill (/imessage:configure)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/imessage/skills/configure/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "imessage_chat_db",
+      "label": "iMessage chat.db (~/Library/Messages/chat.db)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/imessage/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "imessage_self_chat_bypass",
+      "label": "iMessage Self-Chat Bypass",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/imessage/ACCESS.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "telegram_plugin",
+      "label": "Telegram External Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "telegram_access_control",
+      "label": "Telegram Access Control (access.json)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/ACCESS.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "telegram_access_skill",
+      "label": "Telegram Access Skill (/telegram:access)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/skills/access/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "telegram_botfather",
+      "label": "Telegram BotFather",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "telegram_pairing_mechanism",
+      "label": "Telegram Pairing Mechanism (6-char code)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/ACCESS.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "channel_access_json_pattern",
+      "label": "Channel access.json State Pattern",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/ACCESS.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "prompt_injection_security",
+      "label": "Prompt Injection Security (channel access mutations)",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/skills/access/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "bun_runtime",
+      "label": "Bun Runtime",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "claude_plugins_official_marketplace",
+      "label": "Claude Plugins Official Marketplace",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/skills/writing-rules/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "hookify_plugin",
+      "target": "hookify_writing_rules_skill",
+      "relation": "contains_skill",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/skills/writing-rules/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_plugin",
+      "target": "hookify_conversation_analyzer_agent",
+      "relation": "contains_agent",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/agents/conversation-analyzer.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_plugin",
+      "target": "hookify_example_warn_console_log",
+      "relation": "provides_example",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/examples/console-log-warning.local.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_plugin",
+      "target": "hookify_example_require_tests_stop",
+      "relation": "provides_example",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/examples/require-tests-stop.local.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_plugin",
+      "target": "hookify_example_sensitive_files",
+      "relation": "provides_example",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/examples/sensitive-files-warning.local.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_writing_rules_skill",
+      "target": "hookify_rule_format",
+      "relation": "documents",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/skills/writing-rules/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_rule_format",
+      "target": "hookify_event_types",
+      "relation": "uses",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/skills/writing-rules/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hookify_conversation_analyzer_agent",
+      "target": "hookify_writing_rules_skill",
+      "relation": "feeds_into",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/agents/conversation-analyzer.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "lua_lsp_plugin",
+      "target": "lua_language_server",
+      "relation": "wraps",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/lua-lsp/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "typescript_lsp_plugin",
+      "target": "typescript_language_server",
+      "relation": "wraps",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/typescript-lsp/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "explanatory_output_style_plugin",
+      "target": "session_start_hook",
+      "relation": "uses",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/explanatory-output-style/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "greptile_plugin",
+      "target": "greptile_service",
+      "relation": "integrates_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/greptile/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "discord_plugin",
+      "target": "discord_access_control",
+      "relation": "governed_by",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/ACCESS.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "discord_plugin",
+      "target": "discord_access_skill",
+      "relation": "exposes_skill",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/skills/access/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "discord_plugin",
+      "target": "discord_configure_skill",
+      "relation": "exposes_skill",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/skills/configure/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "discord_configure_skill",
+      "target": "discord_bot_token",
+      "relation": "manages",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/skills/configure/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "discord_access_control",
+      "target": "discord_dm_policy",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/ACCESS.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "discord_access_control",
+      "target": "discord_pairing_mechanism",
+      "relation": "uses",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/ACCESS.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "discord_access_skill",
+      "target": "prompt_injection_security",
+      "relation": "enforces",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/skills/access/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "discord_plugin",
+      "target": "bun_runtime",
+      "relation": "requires",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "imessage_plugin",
+      "target": "imessage_access_control",
+      "relation": "governed_by",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/imessage/ACCESS.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "imessage_plugin",
+      "target": "imessage_access_skill",
+      "relation": "exposes_skill",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/imessage/skills/access/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "imessage_plugin",
+      "target": "imessage_configure_skill",
+      "relation": "exposes_skill",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/imessage/skills/configure/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "imessage_plugin",
+      "target": "imessage_chat_db",
+      "relation": "reads_from",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/imessage/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "imessage_access_control",
+      "target": "imessage_self_chat_bypass",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/imessage/ACCESS.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "imessage_access_skill",
+      "target": "prompt_injection_security",
+      "relation": "enforces",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/imessage/skills/access/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "telegram_plugin",
+      "target": "telegram_access_control",
+      "relation": "governed_by",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/ACCESS.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "telegram_plugin",
+      "target": "telegram_access_skill",
+      "relation": "exposes_skill",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/skills/access/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "telegram_plugin",
+      "target": "telegram_botfather",
+      "relation": "requires_setup_via",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "telegram_plugin",
+      "target": "bun_runtime",
+      "relation": "requires",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "telegram_access_control",
+      "target": "telegram_pairing_mechanism",
+      "relation": "uses",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/ACCESS.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "telegram_access_skill",
+      "target": "prompt_injection_security",
+      "relation": "enforces",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/skills/access/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "discord_access_control",
+      "target": "channel_access_json_pattern",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/ACCESS.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "telegram_access_control",
+      "target": "channel_access_json_pattern",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/ACCESS.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "imessage_access_control",
+      "target": "channel_access_json_pattern",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/imessage/ACCESS.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "discord_pairing_mechanism",
+      "target": "telegram_pairing_mechanism",
+      "relation": "shares_pattern_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/ACCESS.md",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "claude_plugins_official_marketplace",
+      "target": "hookify_plugin",
+      "relation": "hosts",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/skills/writing-rules/SKILL.md",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "claude_plugins_official_marketplace",
+      "target": "lua_lsp_plugin",
+      "relation": "hosts",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/lua-lsp/README.md",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "claude_plugins_official_marketplace",
+      "target": "typescript_lsp_plugin",
+      "relation": "hosts",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/typescript-lsp/README.md",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "claude_plugins_official_marketplace",
+      "target": "discord_plugin",
+      "relation": "hosts",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/README.md",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "claude_plugins_official_marketplace",
+      "target": "imessage_plugin",
+      "relation": "hosts",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/imessage/README.md",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "claude_plugins_official_marketplace",
+      "target": "telegram_plugin",
+      "relation": "hosts",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/telegram/README.md",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "claude_plugins_official_marketplace",
+      "target": "fakechat_plugin",
+      "relation": "hosts",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/fakechat/README.md",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "claude_plugins_official_marketplace",
+      "target": "greptile_plugin",
+      "relation": "hosts",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/greptile/README.md",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "fakechat_plugin",
+      "target": "discord_plugin",
+      "relation": "analogous_to_dev_testing_version_of",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/fakechat/README.md",
+      "source_location": null,
+      "weight": 0.75
+    },
+    {
+      "source": "code_simplifier_agent",
+      "target": "claude_plugins_official_marketplace",
+      "relation": "belongs_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/code-simplifier/agents/code-simplifier.md",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "explanatory_output_style_plugin",
+      "target": "claude_plugins_official_marketplace",
+      "relation": "belongs_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/explanatory-output-style/README.md",
+      "source_location": null,
+      "weight": 0.95
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "he_messaging_channel_plugins",
+      "label": "Messaging Channel Plugins with Shared Access Pattern",
+      "nodes": ["discord_plugin", "imessage_plugin", "telegram_plugin", "channel_access_json_pattern"],
+      "relation": "share_access_control_architecture",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/ACCESS.md",
+      "weight": 0.95
+    },
+    {
+      "id": "he_hookify_system",
+      "label": "Hookify Plugin System",
+      "nodes": ["hookify_plugin", "hookify_conversation_analyzer_agent", "hookify_writing_rules_skill", "hookify_rule_format", "hookify_event_types"],
+      "relation": "compose_hookify_system",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/hookify/skills/writing-rules/SKILL.md",
+      "weight": 1.0
+    },
+    {
+      "id": "he_prompt_injection_protection",
+      "label": "Prompt Injection Protection in Channel Skills",
+      "nodes": ["discord_access_skill", "imessage_access_skill", "telegram_access_skill", "prompt_injection_security"],
+      "relation": "all_enforce_prompt_injection_protection",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/discord/skills/access/SKILL.md",
+      "weight": 1.0
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

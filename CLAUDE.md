@@ -171,3 +171,13 @@ Accessible in the Profile modal for admin-tier users. Features:
 - **Fly.io slow startup**: Heavy ML imports (numpy, pandas, sklearn, xgboost) take 15–30s. `--preload` in gunicorn CMD ensures the port is bound only after all imports complete, preventing false-positive deployment health-check failures.
 - **Admin tier override vs Stripe**: When an admin sets a user's tier via `/api/admin/set-tier`, `admin_granted: true` is written to `users.json`. If that user later subscribes via Stripe, the webhook will overwrite the tier with the Stripe-derived value.
 - **Mobile layout**: Results section uses Bootstrap order classes — predictions panel (`order-1 order-lg-2`) appears above the chart on mobile, below on desktop.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+Rules:
+- ALWAYS read graphify-out/GRAPH_REPORT.md before reading any source files, running grep/glob searches, or answering codebase questions. The graph is your primary map of the codebase.
+- IF graphify-out/wiki/index.md EXISTS, navigate it instead of reading raw files
+- For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` over grep — these traverse the graph's EXTRACTED + INFERRED edges instead of scanning files
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).

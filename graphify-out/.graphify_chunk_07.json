@@ -1,0 +1,718 @@
+{
+  "nodes": [
+    {
+      "id": "silent_failure_hunter",
+      "label": "silent-failure-hunter Agent",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/pr-review-toolkit/agents/silent-failure-hunter.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "pr_review_toolkit_plugin",
+      "label": "pr-review-toolkit Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/pr-review-toolkit/agents/silent-failure-hunter.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ruby_lsp_plugin",
+      "label": "ruby-lsp Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/ruby-lsp/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "claude_code_setup_plugin",
+      "label": "Claude Code Setup Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "claude_automation_recommender_skill",
+      "label": "claude-automation-recommender Skill",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Isabella He",
+      "contributor": null
+    },
+    {
+      "id": "plugins_reference_doc",
+      "label": "Plugin Recommendations Reference",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/plugins-reference.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "hooks_patterns_reference",
+      "label": "Hooks Patterns Reference",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/hooks-patterns.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mcp_servers_reference",
+      "label": "MCP Servers Reference",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/mcp-servers.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "skills_reference_doc",
+      "label": "Skills Recommendations Reference",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/skills-reference.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "subagent_templates_reference",
+      "label": "Subagent Templates Reference",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/subagent-templates.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "jdtls_lsp_plugin",
+      "label": "jdtls-lsp Plugin (Java Language Server)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/jdtls-lsp/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "clangd_lsp_plugin",
+      "label": "clangd-lsp Plugin (C/C++ Language Server)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/clangd-lsp/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "code_review_plugin",
+      "label": "Code Review Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/code-review/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Boris Cherny",
+      "contributor": null
+    },
+    {
+      "id": "code_review_command",
+      "label": "/code-review Command",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/code-review/commands/code-review.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "pyright_lsp_plugin",
+      "label": "pyright-lsp Plugin (Python Language Server)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/pyright-lsp/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "session_report_template",
+      "label": "Session Report HTML Template",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/session-report/skills/session-report/template.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "session_report_skill",
+      "label": "session-report Skill",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/session-report/skills/session-report/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "example_plugin",
+      "label": "Example Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/example-plugin/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "example_command_legacy",
+      "label": "Example Command (Legacy commands/ Format)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/example-plugin/commands/example-command.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "example_skill_model_invoked",
+      "label": "example-skill (Model-Invoked Skill)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/example-plugin/skills/example-skill/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "example_command_skill_format",
+      "label": "example-command (Skill Format, User-Invoked)",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/example-plugin/skills/example-command/SKILL.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "claude_md_management_plugin",
+      "label": "CLAUDE.md Management Plugin",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-md-management/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Isabella He",
+      "contributor": null
+    },
+    {
+      "id": "revise_claude_md_command",
+      "label": "/revise-claude-md Command",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-md-management/commands/revise-claude-md.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "claude_code_official_marketplace",
+      "label": "Claude Code Official Plugin Marketplace",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/code-review/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "lsp_plugin_concept",
+      "label": "LSP Plugin Concept (Language Server Protocol)",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/ruby-lsp/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "context7_mcp_server",
+      "label": "context7 MCP Server",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/mcp-servers.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "playwright_mcp_server",
+      "label": "Playwright MCP Server",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/mcp-servers.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "github_mcp_server",
+      "label": "GitHub MCP Server",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/mcp-servers.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "error_handling_principles",
+      "label": "Error Handling Principles (Silent Failure Detection)",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/pr-review-toolkit/agents/silent-failure-hunter.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "confidence_scoring_system",
+      "label": "Confidence Scoring System (0-100 scale)",
+      "file_type": "rationale",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/code-review/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "claude_md_improver_skill",
+      "label": "claude-md-improver Skill",
+      "file_type": "document",
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-md-management/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "silent_failure_hunter",
+      "target": "pr_review_toolkit_plugin",
+      "relation": "belongs_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/pr-review-toolkit/agents/silent-failure-hunter.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "silent_failure_hunter",
+      "target": "error_handling_principles",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/pr-review-toolkit/agents/silent-failure-hunter.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "ruby_lsp_plugin",
+      "target": "lsp_plugin_concept",
+      "relation": "instantiates",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/ruby-lsp/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "jdtls_lsp_plugin",
+      "target": "lsp_plugin_concept",
+      "relation": "instantiates",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/jdtls-lsp/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "clangd_lsp_plugin",
+      "target": "lsp_plugin_concept",
+      "relation": "instantiates",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/clangd-lsp/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "pyright_lsp_plugin",
+      "target": "lsp_plugin_concept",
+      "relation": "instantiates",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/pyright-lsp/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "claude_code_setup_plugin",
+      "target": "claude_automation_recommender_skill",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "claude_automation_recommender_skill",
+      "target": "plugins_reference_doc",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "claude_automation_recommender_skill",
+      "target": "hooks_patterns_reference",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "claude_automation_recommender_skill",
+      "target": "mcp_servers_reference",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "claude_automation_recommender_skill",
+      "target": "skills_reference_doc",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "claude_automation_recommender_skill",
+      "target": "subagent_templates_reference",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mcp_servers_reference",
+      "target": "context7_mcp_server",
+      "relation": "documents",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/mcp-servers.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mcp_servers_reference",
+      "target": "playwright_mcp_server",
+      "relation": "documents",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/mcp-servers.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mcp_servers_reference",
+      "target": "github_mcp_server",
+      "relation": "documents",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/mcp-servers.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "code_review_plugin",
+      "target": "code_review_command",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/code-review/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "code_review_command",
+      "target": "confidence_scoring_system",
+      "relation": "uses",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/code-review/commands/code-review.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "session_report_skill",
+      "target": "session_report_template",
+      "relation": "uses",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/session-report/skills/session-report/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "example_plugin",
+      "target": "example_command_legacy",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/example-plugin/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "example_plugin",
+      "target": "example_skill_model_invoked",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/example-plugin/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "example_plugin",
+      "target": "example_command_skill_format",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/example-plugin/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "example_command_skill_format",
+      "target": "example_command_legacy",
+      "relation": "supersedes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/example-plugin/skills/example-command/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "claude_md_management_plugin",
+      "target": "revise_claude_md_command",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-md-management/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "claude_md_management_plugin",
+      "target": "claude_md_improver_skill",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-md-management/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plugins_reference_doc",
+      "target": "code_review_plugin",
+      "relation": "documents",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/plugins-reference.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plugins_reference_doc",
+      "target": "pr_review_toolkit_plugin",
+      "relation": "documents",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/plugins-reference.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plugins_reference_doc",
+      "target": "ruby_lsp_plugin",
+      "relation": "documents",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/plugins-reference.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plugins_reference_doc",
+      "target": "pyright_lsp_plugin",
+      "relation": "documents",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/plugins-reference.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plugins_reference_doc",
+      "target": "clangd_lsp_plugin",
+      "relation": "documents",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/plugins-reference.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plugins_reference_doc",
+      "target": "jdtls_lsp_plugin",
+      "relation": "documents",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/plugins-reference.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "claude_code_official_marketplace",
+      "target": "code_review_plugin",
+      "relation": "hosts",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/code-review/README.md",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "claude_code_official_marketplace",
+      "target": "claude_code_setup_plugin",
+      "relation": "hosts",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/README.md",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "claude_code_official_marketplace",
+      "target": "claude_md_management_plugin",
+      "relation": "hosts",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-md-management/README.md",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "claude_code_official_marketplace",
+      "target": "example_plugin",
+      "relation": "hosts",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/example-plugin/README.md",
+      "source_location": null,
+      "weight": 0.95
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "lsp_plugins_group",
+      "label": "LSP Plugin Group (ruby, pyright, jdtls, clangd)",
+      "nodes": ["ruby_lsp_plugin", "pyright_lsp_plugin", "jdtls_lsp_plugin", "clangd_lsp_plugin", "lsp_plugin_concept"],
+      "relation": "share_concept",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/references/plugins-reference.md"
+    },
+    {
+      "id": "automation_recommender_references",
+      "label": "claude-automation-recommender and its reference documents",
+      "nodes": ["claude_automation_recommender_skill", "plugins_reference_doc", "hooks_patterns_reference", "mcp_servers_reference", "skills_reference_doc", "subagent_templates_reference"],
+      "relation": "form_knowledge_base",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/claude-code-setup/skills/claude-automation-recommender/SKILL.md"
+    },
+    {
+      "id": "code_review_multi_agent",
+      "label": "Code Review Plugin multi-agent review pipeline",
+      "nodes": ["code_review_plugin", "code_review_command", "confidence_scoring_system", "pr_review_toolkit_plugin", "silent_failure_hunter"],
+      "relation": "form_review_system",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "/home/cinar/.claude/plugins/marketplaces/claude-plugins-official/plugins/code-review/README.md"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}
