@@ -1,0 +1,41 @@
+{
+  "name": "Stocker — AI Stock Prediction",
+  "short_name": "Stocker",
+  "description": "AI-powered stock prediction and analysis. ML forecasts, technical patterns, sentiment analysis.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0f1e",
+  "theme_color": "#1a2744",
+  "lang": "en",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/static/AI_Trade_Thesis.png",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "AI Trade Thesis"
+    },
+    {
+      "src": "/static/Peer_Comparison.png",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Peer Comparison"
+    }
+  ],
+  "categories": ["finance", "productivity"]
+}
