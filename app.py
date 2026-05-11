@@ -3738,6 +3738,35 @@ def robots():
     return send_from_directory('static', 'robots.txt')
 
 
+@app.route('/privacy')
+def privacy_policy():
+    return render_template('privacy.html')
+
+
+@app.route('/delete-account', methods=['GET', 'POST'])
+def delete_account():
+    user_email = session.get('user_email')
+    if request.method == 'POST':
+        if not user_email:
+            return jsonify({'error': 'Not logged in'}), 401
+        confirm = (request.form.get('confirm') or '').strip()
+        if confirm.lower() != 'delete':
+            return render_template('delete_account.html', error='Please type DELETE to confirm.', user_email=user_email)
+        users = _load_users()
+        users.pop(user_email, None)
+        _save_users(users)
+        # Also remove watchlist file
+        import os
+        wl_path = os.path.join(WATCHLIST_DIR, f"{user_email.replace('@','_').replace('.','_')}.json")
+        try:
+            os.remove(wl_path)
+        except FileNotFoundError:
+            pass
+        session.clear()
+        return render_template('delete_account.html', deleted=True)
+    return render_template('delete_account.html', user_email=user_email)
+
+
 @app.route('/')
 def home():
     stocks = fetch_sp500_stocks()
@@ -3866,7 +3895,9 @@ def login_email():
     info = users.get(email)
     if not info:
         return jsonify({"error": "Invalid email or password."}), 401
-    hashed = info["password_hash"] if isinstance(info, dict) else info
+    hashed = info.get("password_hash") if isinstance(info, dict) else info
+    if not hashed:
+        return jsonify({"error": "This account uses Google Sign-In. Please use 'Continue with Google' to sign in."}), 401
     if not check_password_hash(hashed, password):
         return jsonify({"error": "Invalid email or password."}), 401
     if isinstance(info, dict) and not info.get("email_verified", True):
@@ -5543,6 +5574,15 @@ def create_checkout_session():
     # ── New subscription: create Stripe Checkout session ────────────────────
     try:
         success_base = url_for("home", _external=True)
+        promo_code_str = data.get("promo_code", "").strip().upper()
+        promo_discounts = None
+        if promo_code_str:
+            results = stripe.PromotionCode.list(code=promo_code_str, active=True, limit=1)
+            if results and results.data:
+                promo_discounts = [{"promotion_code": results.data[0].id}]
+            else:
+                return jsonify({"error": f"Promotion code '{promo_code_str}' is invalid or expired."}), 400
+
         session_kwargs = dict(
             payment_method_types=["card"],
             line_items=[{"price": price_id, "quantity": 1}],
@@ -5552,6 +5592,10 @@ def create_checkout_session():
             cancel_url=success_base,
             metadata={"email": email},
         )
+        if promo_discounts:
+            session_kwargs["discounts"] = promo_discounts
+        else:
+            session_kwargs["allow_promotion_codes"] = True
         # Reuse existing Stripe customer so webhook can match by customer_id
         if existing_customer_id:
             session_kwargs["customer"] = existing_customer_id

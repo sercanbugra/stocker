@@ -5,152 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Privacy Policy — Stocker</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-v3.ico') }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="canonical" href="https://stocker.gultechs.net/privacy">
+    <meta name="robots" content="index, follow">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
     <style>
-        :root {
-            --bg: #051520;
-            --panel: #0a2535;
-            --panel-border: rgba(0,200,232,0.18);
-            --text: #c8eeff;
-            --muted: rgba(200,238,255,0.55);
-            --accent: #00c8e8;
-        }
-        body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue', Arial, sans-serif; }
-        a { color: var(--accent); }
-        a:hover { color: #5ee0f5; }
-        .policy-wrap { max-width: 780px; margin: 0 auto; padding: 40px 20px 80px; }
-        .policy-header { border-bottom: 1px solid var(--panel-border); padding-bottom: 24px; margin-bottom: 36px; }
-        .policy-header h1 { font-size: 1.8rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-        .policy-header p { color: var(--muted); font-size: 0.9rem; margin: 0; }
-        h2 { font-size: 1.1rem; font-weight: 700; color: var(--accent); margin: 32px 0 10px; }
-        p, li { color: var(--muted); line-height: 1.75; font-size: 0.95rem; }
-        ul { padding-left: 20px; }
-        li { margin-bottom: 4px; }
-        .highlight-box {
-            background: var(--panel);
-            border: 1px solid var(--panel-border);
-            border-radius: 10px;
-            padding: 16px 20px;
-            margin: 20px 0;
-        }
-        .highlight-box p { margin: 0; }
-        .back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.9rem; text-decoration: none; margin-bottom: 28px; }
-        .back-link:hover { color: var(--accent); }
-        table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-        th, td { padding: 10px 14px; border: 1px solid var(--panel-border); font-size: 0.9rem; color: var(--muted); text-align: left; }
-        th { color: var(--text); font-weight: 600; background: var(--panel); }
+        body { background: #0a0f1e; color: #c8d8f0; font-family: 'Segoe UI', sans-serif; }
+        .pp-wrap { max-width: 800px; margin: 0 auto; padding: 60px 24px 80px; }
+        h1 { color: #fff; font-size: 2rem; font-weight: 700; margin-bottom: 6px; }
+        h2 { color: #7eb8f7; font-size: 1.15rem; font-weight: 600; margin-top: 36px; margin-bottom: 10px; }
+        p, li { color: #a8bcd8; line-height: 1.75; }
+        a { color: #7eb8f7; }
+        .updated { color: #5a7a9a; font-size: 0.875rem; margin-bottom: 40px; }
+        hr { border-color: rgba(100,140,200,0.15); margin: 40px 0; }
+        .back-link { display: inline-block; margin-bottom: 32px; color: #7eb8f7; text-decoration: none; font-size: 0.9rem; }
+        .back-link:hover { color: #fff; }
     </style>
 </head>
 <body>
-<div class="policy-wrap">
-    <a href="/" class="back-link">&#8592; Back to Stocker</a>
+<div class="pp-wrap">
+    <a href="/" class="back-link">← Back to Stocker</a>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: May 11, 2026</p>
 
-    <div class="policy-header">
-        <h1>Privacy Policy</h1>
-        <p>Last updated: {{ last_updated }} &nbsp;·&nbsp; Gultechs / Stocker &nbsp;·&nbsp; info@gultechs.net</p>
-    </div>
+    <p>Stocker ("we", "us", or "our") operates the website <a href="https://stocker.gultechs.net">stocker.gultechs.net</a> and the Stocker Android app. This page explains what data we collect, how we use it, and your rights.</p>
 
-    <div class="highlight-box">
-        <p>This policy explains what personal data Stocker collects, why, and how you can control it. We are committed to complying with the UK GDPR and EU GDPR.</p>
-    </div>
+    <hr>
 
-    <h2>1. Who We Are</h2>
-    <p>Stocker is operated by <strong>Gultechs</strong> (contact: <a href="mailto:info@gultechs.net">info@gultechs.net</a>). Gultechs is the data controller for all personal data processed through this service.</p>
+    <h2>1. Information We Collect</h2>
+    <p><strong>Account data:</strong> When you register, we collect your email address and a bcrypt-hashed password. We never store your password in plain text.</p>
+    <p><strong>Usage data:</strong> We record how many stock analyses you run per day to enforce free-tier limits. We do not log which symbols you analyse beyond an in-memory cache used to serve faster results.</p>
+    <p><strong>Payment data:</strong> Payments are processed by <a href="https://stripe.com" target="_blank" rel="noopener">Stripe</a>. We store your Stripe customer ID and subscription status. We never see or store your full card number.</p>
+    <p><strong>Watchlist:</strong> Pro and Premium users may save a watchlist of stock symbols. This list is stored on our servers tied to your email address.</p>
+    <p><strong>Analytics:</strong> We use Google Analytics (GA4) to collect anonymised usage statistics (pages visited, session duration, device type). No personally identifiable information is sent to Google Analytics.</p>
 
-    <h2>2. Data We Collect</h2>
-    <table>
-        <thead><tr><th>Data</th><th>When collected</th><th>Legal basis</th></tr></thead>
-        <tbody>
-            <tr><td>Email address</td><td>Registration or Google sign-in</td><td>Contract performance</td></tr>
-            <tr><td>Password (hashed, never plain-text)</td><td>Email registration</td><td>Contract performance</td></tr>
-            <tr><td>Google account name &amp; picture</td><td>Google OAuth sign-in</td><td>Contract performance</td></tr>
-            <tr><td>Subscription &amp; billing data</td><td>Stripe checkout</td><td>Contract performance / Legal obligation</td></tr>
-            <tr><td>Usage counts (analyses per day)</td><td>Each stock analysis</td><td>Legitimate interest (service limits)</td></tr>
-            <tr><td>Watchlist tickers</td><td>When saved by user</td><td>Contract performance</td></tr>
-            <tr><td>Profile preferences (nickname, theme, markets)</td><td>Profile settings</td><td>Legitimate interest (personalisation)</td></tr>
-            <tr><td>Server logs (IP address, browser, request path)</td><td>Every page request</td><td>Legitimate interest (security &amp; debugging)</td></tr>
-        </tbody>
-    </table>
-    <p>We do <strong>not</strong> sell your data to third parties. We do not use your data for advertising profiling.</p>
-
-    <h2>3. How We Use Your Data</h2>
+    <h2>2. How We Use Your Data</h2>
     <ul>
-        <li>Provide and operate the Stocker service (analyses, watchlists, predictions)</li>
-        <li>Manage your account and subscription</li>
-        <li>Send transactional emails (account activation, subscription confirmation, cancellation)</li>
-        <li>Enforce fair-use limits on free accounts</li>
-        <li>Diagnose errors and maintain service security</li>
+        <li>To provide and maintain the service</li>
+        <li>To enforce daily analysis quotas per tier</li>
+        <li>To process payments and manage subscriptions via Stripe</li>
+        <li>To send transactional emails (email verification, billing receipts)</li>
+        <li>To improve the service using aggregated, anonymised analytics</li>
+    </ul>
+    <p>We do not sell your personal data to third parties. We do not use your data for advertising.</p>
+
+    <h2>3. Third-Party Services</h2>
+    <ul>
+        <li><strong>Stripe</strong> — payment processing (<a href="https://stripe.com/privacy" target="_blank" rel="noopener">Stripe Privacy Policy</a>)</li>
+        <li><strong>Google OAuth</strong> — optional sign-in (<a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>)</li>
+        <li><strong>Google Analytics</strong> — anonymised usage analytics</li>
+        <li><strong>Anthropic Claude API</strong> — AI features (trade thesis, earnings summaries). Your stock symbol and publicly available financial data are sent to Anthropic; no personal account data is included.</li>
+        <li><strong>Yahoo Finance / yfinance</strong> — market data. Queries include the stock ticker symbol only.</li>
     </ul>
 
-    <h2>4. Third-Party Services</h2>
-    <table>
-        <thead><tr><th>Provider</th><th>Purpose</th><th>Privacy Policy</th></tr></thead>
-        <tbody>
-            <tr><td>Stripe</td><td>Payment processing &amp; subscriptions</td><td><a href="https://stripe.com/privacy" target="_blank" rel="noopener">stripe.com/privacy</a></td></tr>
-            <tr><td>Google (OAuth)</td><td>Optional sign-in</td><td><a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a></td></tr>
-            <tr><td>Fly.io</td><td>Application hosting (region: Amsterdam)</td><td><a href="https://fly.io/legal/privacy-policy" target="_blank" rel="noopener">fly.io/legal/privacy-policy</a></td></tr>
-            <tr><td>Namecheap Private Email</td><td>Transactional email delivery</td><td><a href="https://www.namecheap.com/legal/general/privacy-policy" target="_blank" rel="noopener">namecheap.com/legal/privacy-policy</a></td></tr>
-            <tr><td>Anthropic Claude API</td><td>AI-generated trade thesis, earnings summaries, portfolio advice (Pro/Premium features)</td><td><a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener">anthropic.com/privacy</a></td></tr>
-            <tr><td>Yahoo Finance (yfinance)</td><td>Stock price &amp; fundamental data — no personal data sent</td><td><a href="https://legal.yahoo.com/us/en/yahoo/privacy/index.html" target="_blank" rel="noopener">Yahoo Privacy</a></td></tr>
-        </tbody>
-    </table>
-    <p>When you use AI features (Pro/Premium), the stock symbol and aggregated market data are sent to Anthropic. <strong>No personal data (email, name, payment info) is sent to Anthropic.</strong></p>
+    <h2>4. Data Retention</h2>
+    <p>Your account data is retained as long as your account is active. You may request deletion at any time by emailing <a href="mailto:sercan.bugra@gmail.com">sercan.bugra@gmail.com</a>. We will delete your account and all associated data within 30 days.</p>
 
     <h2>5. Cookies &amp; Local Storage</h2>
-    <table>
-        <thead><tr><th>Name</th><th>Type</th><th>Purpose</th><th>Expires</th></tr></thead>
-        <tbody>
-            <tr><td>Flask session cookie</td><td>HTTP Cookie (functional)</td><td>Keeps you logged in during your session</td><td>Browser close / 31 days</td></tr>
-            <tr><td>stocker_theme</td><td>localStorage (functional)</td><td>Remembers your chosen colour theme</td><td>Until cleared</td></tr>
-            <tr><td>stocker_rm_markets</td><td>localStorage (functional)</td><td>Remembers your selected markets (US/UK/TR)</td><td>Until cleared</td></tr>
-            <tr><td>stocker_last_user</td><td>localStorage (functional)</td><td>Detects user switch to reset preferences</td><td>Until cleared</td></tr>
-        </tbody>
-    </table>
-    <p>We use only <strong>functional cookies and local storage</strong> — no advertising or tracking cookies. These are strictly necessary for the service to work as expected.</p>
+    <p>We use a session cookie to keep you logged in. We use <code>localStorage</code> to remember your theme preference and ticker bar visibility. No tracking cookies are set by Stocker itself. Google Analytics sets its own cookies as described in Google's policy.</p>
 
-    <h2>6. Data Retention</h2>
-    <ul>
-        <li><strong>Account data</strong> — retained until you delete your account</li>
-        <li><strong>User database backups</strong> — rolling 14-day backups kept on the same server volume</li>
-        <li><strong>Stock price cache</strong> — automatically refreshed every 12 hours; not personal data</li>
-        <li><strong>Server logs</strong> — retained for up to 30 days by Fly.io infrastructure</li>
-        <li><strong>Stripe billing records</strong> — retained as required by tax and financial regulations (typically 7 years)</li>
-    </ul>
+    <h2>6. Children's Privacy</h2>
+    <p>Stocker is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe a child has provided us with personal data, please contact us and we will delete it promptly.</p>
 
-    <h2>7. Your Rights Under GDPR</h2>
-    <p>You have the following rights regarding your personal data:</p>
-    <ul>
-        <li><strong>Access</strong> — request a copy of the data we hold about you</li>
-        <li><strong>Rectification</strong> — update your email, nickname or preferences via your profile</li>
-        <li><strong>Erasure</strong> — delete your account instantly via Settings → Delete Account; this removes your email, password hash, usage data, and watchlist from our systems</li>
-        <li><strong>Restriction</strong> — request that we limit processing of your data</li>
-        <li><strong>Portability</strong> — request your data in a machine-readable format</li>
-        <li><strong>Objection</strong> — object to processing based on legitimate interest</li>
-        <li><strong>Withdraw consent</strong> — where processing is based on consent, you may withdraw at any time</li>
-    </ul>
-    <p>To exercise any right, email <a href="mailto:info@gultechs.net">info@gultechs.net</a>. We will respond within 30 days.</p>
-    <p>You also have the right to lodge a complaint with your local supervisory authority. In the UK: <a href="https://ico.org.uk" target="_blank" rel="noopener">ICO (ico.org.uk)</a>. In the EU: your national data protection authority.</p>
+    <h2>7. Security</h2>
+    <p>All data is transmitted over HTTPS. Passwords are hashed with bcrypt and never stored in plain text. We use HSTS, CSP, and other security headers to protect users.</p>
 
-    <h2>8. Data Security</h2>
-    <ul>
-        <li>Passwords are stored as bcrypt hashes — never in plain text</li>
-        <li>All data is transmitted over HTTPS (TLS enforced)</li>
-        <li>The application server and volume are hosted in Fly.io's Amsterdam (AMS) region within the EU</li>
-        <li>Stripe handles all card data — we never see or store payment card numbers</li>
-    </ul>
+    <h2>8. Your Rights</h2>
+    <p>Depending on your location you may have the right to access, correct, or delete your personal data, or to object to or restrict processing. To exercise any of these rights, contact us at <a href="mailto:sercan.bugra@gmail.com">sercan.bugra@gmail.com</a>.</p>
 
-    <h2>9. Children</h2>
-    <p>Stocker is not directed at children under 16. We do not knowingly collect data from anyone under 16. If you believe a child has registered, please contact us and we will delete the account.</p>
+    <h2>9. Changes to This Policy</h2>
+    <p>We may update this policy from time to time. The "Last updated" date at the top of this page will reflect any changes. Continued use of the service after changes constitutes acceptance of the updated policy.</p>
 
-    <h2>10. Changes to This Policy</h2>
-    <p>We may update this policy when we add new features or if regulations change. Material changes will be communicated by email to registered users. The "Last updated" date at the top of this page always reflects the current version.</p>
+    <h2>10. Contact</h2>
+    <p>If you have any questions about this Privacy Policy, please contact us at <a href="mailto:sercan.bugra@gmail.com">sercan.bugra@gmail.com</a>.</p>
 
-    <h2>11. Contact</h2>
-    <p>
-        <strong>Gultechs — Data Controller</strong><br>
-        Email: <a href="mailto:info@gultechs.net">info@gultechs.net</a><br>
-        Website: <a href="https://stocker.gultechs.net">stocker.gultechs.net</a>
-    </p>
+    <hr>
+    <p style="font-size:0.8rem; color:#3a5a7a;">© 2026 Stocker. All rights reserved. <a href="/">stocker.gultechs.net</a></p>
 </div>
 </body>
 </html>

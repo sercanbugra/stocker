@@ -947,6 +947,52 @@
         }
         .wm-terms a { color: var(--accent); text-decoration: none; }
         .wm-terms a:hover { text-decoration: underline; }
+        /* ── Promo code box (welcome modal + pricing panels) ── */
+        .promo-box {
+            margin: 14px 0 0;
+            border: 1px dashed rgba(110,231,168,0.45);
+            border-radius: 10px;
+            padding: 12px 14px 10px;
+            background: rgba(110,231,168,0.06);
+        }
+        [data-theme="sand"] .promo-box {
+            border-color: rgba(20,83,45,0.35);
+            background: rgba(20,83,45,0.05);
+        }
+        .promo-box-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #6ee7a8;
+            letter-spacing: 0.02em;
+            margin-bottom: 7px;
+        }
+        [data-theme="sand"] .promo-box-label { color: #14532d; }
+        .promo-box-label span { opacity: 0.8; font-weight: 400; margin-left: 4px; }
+        .promo-box-row { display: flex; gap: 6px; }
+        .promo-box-field {
+            flex: 1; padding: 7px 10px; border-radius: 7px;
+            border: 1px solid rgba(110,231,168,0.3);
+            background: rgba(0,0,0,0.25);
+            color: var(--panel-text); font-size: 0.85rem;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            font-weight: 600;
+        }
+        [data-theme="sand"] .promo-box-field { background: #f5f0e8; border-color: rgba(20,83,45,0.25); }
+        .promo-box-field::placeholder { text-transform: none; font-weight: 400; letter-spacing: 0; opacity: 0.5; }
+        .promo-box-field:focus { outline: none; border-color: #6ee7a8; }
+        [data-theme="sand"] .promo-box-field:focus { border-color: #14532d; }
+        .promo-box-apply {
+            padding: 7px 14px; border-radius: 7px; border: none;
+            background: #6ee7a8; color: #0a1628; font-size: 0.82rem;
+            font-weight: 700; cursor: pointer; white-space: nowrap;
+            transition: background 0.15s;
+        }
+        .promo-box-apply:hover { background: #4ade80; }
+        .promo-box-feedback { font-size: 0.74rem; margin-top: 5px; min-height: 14px; }
+        .promo-box-feedback.ok  { color: #6ee7a8; }
+        .promo-box-feedback.err { color: #f87171; }
+        [data-theme="sand"] .promo-box-feedback.ok  { color: #14532d; }
+        [data-theme="sand"] .promo-box-feedback.err { color: #7f1d1d; }
         @media (max-width: 480px) {
             .wm-plans { grid-template-columns: repeat(2, 1fr); }
             .wm-card { padding: 28px 18px 22px; }
@@ -2019,6 +2065,233 @@
         }
 
 
+        /* ── Hero carousel wrapper ── */
+        .hero-carousel {
+            position: relative;
+            margin-bottom: 16px;
+            border-radius: 24px;
+            overflow: hidden;
+            animation: heroBannerIn 0.55s cubic-bezier(0.22,1,0.36,1) both;
+        }
+        .hero-carousel-track {
+            display: flex;
+            transition: transform 0.75s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: transform;
+        }
+        .hero-carousel-slide {
+            flex: 0 0 100%;
+            min-width: 100%;
+        }
+        /* Override margin/animation on the inner banner since carousel owns those */
+        .hero-carousel .hero-banner {
+            margin-bottom: 0;
+            border-radius: 0;
+            animation: none;
+        }
+        .hero-carousel-dots {
+            position: absolute;
+            bottom: 11px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 7px;
+            z-index: 20;
+        }
+        .hc-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.22);
+            cursor: pointer;
+            transition: background 0.35s, transform 0.35s, width 0.35s;
+            padding: 0;
+        }
+        .hc-dot.active {
+            background: var(--accent);
+            width: 22px;
+            border-radius: 4px;
+        }
+
+        /* ── Promo slide ── */
+        .promo-slide {
+            background: linear-gradient(120deg, #0d1f12 0%, #0a2a16 45%, #0d1f12 100%);
+            border: 1px solid rgba(110,231,168,0.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.45), 0 0 0 1px rgba(110,231,168,0.06) inset;
+        }
+        .promo-slide .hero-orbs::before {
+            background: radial-gradient(circle, rgba(110,231,168,0.18) 0%, transparent 70%);
+        }
+        .promo-slide .hero-orbs::after {
+            background: radial-gradient(circle, rgba(52,211,153,0.12) 0%, transparent 70%);
+        }
+        .promo-slide .hero-dismiss { color: rgba(110,231,168,0.35); }
+        .promo-slide .hero-dismiss:hover { color: rgba(110,231,168,0.9); }
+        .promo-inner {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1.1fr 1fr 0.9fr;
+            align-items: stretch;
+            min-height: 180px;
+        }
+        .promo-left {
+            padding: 30px 28px 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px;
+        }
+        .promo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #6ee7a8;
+            background: rgba(110,231,168,0.12);
+            border: 1px solid rgba(110,231,168,0.3);
+            border-radius: 999px;
+            padding: 4px 12px;
+            width: fit-content;
+        }
+        .promo-badge-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #6ee7a8;
+            box-shadow: 0 0 7px #6ee7a8;
+            animation: livePulse 1.4s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+        .promo-headline {
+            font-size: 2rem;
+            font-weight: 900;
+            line-height: 1.1;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+        .promo-headline .promo-pct {
+            background: linear-gradient(90deg, #6ee7a8 0%, #34d399 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.6rem;
+        }
+        .promo-sub {
+            font-size: 0.82rem;
+            color: rgba(110,231,168,0.55);
+            line-height: 1.55;
+            max-width: 300px;
+        }
+        .promo-center {
+            border-left: 1px solid rgba(110,231,168,0.1);
+            border-right: 1px solid rgba(110,231,168,0.1);
+            padding: 26px 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+        }
+        .promo-code-card {
+            background: rgba(110,231,168,0.07);
+            border: 1.5px dashed rgba(110,231,168,0.4);
+            border-radius: 14px;
+            padding: 14px 22px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            width: 100%;
+        }
+        .promo-code-card:hover { background: rgba(110,231,168,0.12); border-color: rgba(110,231,168,0.65); }
+        .promo-code-card-label {
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: rgba(110,231,168,0.55);
+            margin-bottom: 5px;
+        }
+        .promo-code-card-value {
+            font-size: 1.55rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+            color: #6ee7a8;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 20px rgba(110,231,168,0.4);
+        }
+        .promo-code-card-hint {
+            font-size: 0.62rem;
+            color: rgba(110,231,168,0.35);
+            margin-top: 3px;
+        }
+        .promo-cta-btn {
+            width: 100%;
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(90deg, #34d399 0%, #6ee7a8 100%);
+            color: #052010;
+            font-size: 0.85rem;
+            font-weight: 800;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+        .promo-cta-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .promo-valid-line {
+            font-size: 0.68rem;
+            color: rgba(110,231,168,0.4);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .promo-right {
+            padding: 30px 28px 24px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .promo-stat-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+        .promo-stat-item {
+            background: rgba(110,231,168,0.05);
+            border: 1px solid rgba(110,231,168,0.12);
+            border-radius: 14px;
+            padding: 11px 16px;
+            text-align: right;
+        }
+        .promo-stat-num {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #6ee7a8;
+            line-height: 1;
+            margin-bottom: 3px;
+        }
+        .promo-stat-lbl {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: rgba(110,231,168,0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        @media (max-width: 1024px) {
+            .promo-inner { grid-template-columns: 1fr 1fr; }
+            .promo-right { display: none; }
+        }
+        @media (max-width: 767px) {
+            .promo-inner { grid-template-columns: 1fr; }
+            .promo-left { padding: 22px 20px 14px; }
+            .promo-center { border-left: none; border-right: none; border-top: 1px solid rgba(110,231,168,0.1); padding: 16px 20px 20px; }
+            .promo-headline { font-size: 1.5rem; }
+            .promo-headline .promo-pct { font-size: 2rem; }
+        }
+
         /* ── Ticker autocomplete dropdown ── */
         .ticker-autocomplete {
             position: absolute;
@@ -2596,6 +2869,15 @@
                 </div>
             </div>
 
+            <div class="promo-box" id="wm-promo-box">
+                <div class="promo-box-label">🎟 Promo code <span>— get 50% off your first month</span></div>
+                <div class="promo-box-row">
+                    <input type="text" id="wm-promo-input" class="promo-box-field" placeholder="Enter your code" autocomplete="off" spellcheck="false" maxlength="32">
+                    <button type="button" class="promo-box-apply" id="wm-promo-apply">Apply</button>
+                </div>
+                <div id="wm-promo-feedback" class="promo-box-feedback"></div>
+            </div>
+
             <hr class="wm-sep">
 
             <a class="wm-btn-google" href="/login/google?prompt=consent&select_account=1">
@@ -2763,6 +3045,14 @@
                     <button class="btn btn-warning btn-sm upgrade-btn" data-tier="premium">Choose Premium</button>
                     {% endif %}
                 </div>
+            </div>
+            <div class="promo-box mt-3">
+                <div class="promo-box-label">🎟 Promo code <span>— get 50% off your first month</span></div>
+                <div class="promo-box-row">
+                    <input type="text" id="upgrade-promo-input" class="promo-box-field" placeholder="Enter your code" autocomplete="off" spellcheck="false" maxlength="32">
+                    <button type="button" class="promo-box-apply" id="upgrade-promo-apply">Apply</button>
+                </div>
+                <div id="upgrade-promo-feedback" class="promo-box-feedback"></div>
             </div>
             {% if not user %}
             <p class="text-muted small text-center mt-3 mb-0">
@@ -2982,6 +3272,14 @@
                             {% endif %}
                         </div>
                     </div>
+                    <div class="promo-box mt-3">
+                        <div class="promo-box-label">🎟 Promo code <span>— get 50% off your first month</span></div>
+                        <div class="promo-box-row">
+                            <input type="text" id="profile-promo-input" class="promo-box-field" placeholder="Enter your code" autocomplete="off" spellcheck="false" maxlength="32">
+                            <button type="button" class="promo-box-apply" id="profile-promo-apply">Apply</button>
+                        </div>
+                        <div id="profile-promo-feedback" class="promo-box-feedback"></div>
+                    </div>
                     {% if not user %}
                     <p class="text-muted small text-center mt-3 mb-0">
                         <button type="button" class="btn btn-link p-0 small text-muted" style="text-decoration:underline;" id="profile-pricing-signin">Sign in</button>
@@ -3118,76 +3416,141 @@
 
 
         <!-- Hero Banner — hidden after dismiss, shown only on first visit -->
-        <div class="hero-banner" id="hero-banner">
-            <div class="hero-orbs" aria-hidden="true"></div>
-            <button class="hero-dismiss" id="hero-dismiss" aria-label="Dismiss"><i class="fas fa-times"></i></button>
-            <div class="hero-inner">
+        <div class="hero-carousel" id="hero-carousel">
+            <div class="hero-carousel-track" id="hero-carousel-track">
 
-                <!-- Left: headline + sub -->
-                <div class="hero-left">
-
-                    <div class="hero-headline">
-                        AI and ML powered insights<br>
-                        <span class="hl-grad">Confident decisions..</span>
-                    </div>
-                    <div class="hero-sub">
-                        Analyse any stock with AI-ensemble predictions, technical pattern detection,
-                        news sentiment scoring, and institutional-grade peer comparisons in seconds.
-                    </div>
-                </div>
-
-                <!-- Middle: pills + tickers -->
-                <div class="hero-bottom">
-                    <div class="hero-features">
-                        <span class="hero-feat-pill"><i class="fas fa-brain"></i> Ensemble ML Forecast
-                            <span class="hero-pill-tip">Blends XGBoost, ExtraTrees &amp; RandomForest to generate a 30-day price forecast with confidence scoring.</span>
-                        </span>
-                        <span class="hero-feat-pill"><i class="fas fa-wave-square"></i> Pattern Detection
-                            <span class="hero-pill-tip">Automatically identifies chart patterns — head &amp; shoulders, triangles, flags, double tops, cup &amp; handle and more.</span>
-                        </span>
-                        <span class="hero-feat-pill"><i class="fas fa-newspaper"></i> News Sentiment
-                            <span class="hero-pill-tip">Scans the latest headlines and scores them with VADER sentiment analysis to gauge market mood around the stock.</span>
-                        </span>
-                        <span class="hero-feat-pill"><i class="fas fa-users"></i> Peer Comparison
-                            <span class="hero-pill-tip">Ranks the stock side-by-side with its closest industry peers across valuation, growth, margins and return metrics.</span>
-                        </span>
-                        <span class="hero-feat-pill"><i class="fas fa-bolt"></i> Remarkables Scanner
-                            <span class="hero-pill-tip">Daily scan of 4,300+ US and Turkish symbols to surface top movers, trending stocks, high dividends and undervalued picks.</span>
-                        </span>
-                        <span class="hero-feat-pill"><i class="fas fa-star"></i> Watchlist
-                            <span class="hero-pill-tip">Save any analysed ticker to your personal watchlist for one-click reload — free for all registered users.</span>
-                        </span>
-                    </div>
-                    <div class="hero-try-now">
-                        <div class="hero-tickers-row">
-                            <span class="hero-tickers-label hero-tickers-label-blink">TRY ONE</span>
-                            <div class="hero-tickers">
-                                <button class="hero-ticker-btn" data-ticker="NVDA">NVDA</button>
-                                <button class="hero-ticker-btn" data-ticker="AMZN">AMZN</button>
-                                <button class="hero-ticker-btn" data-ticker="THYAO.IS">THYAO.IS</button>
+                <!-- Slide 0: AI/ML hero -->
+                <div class="hero-carousel-slide">
+                    <div class="hero-banner" id="hero-banner">
+                        <div class="hero-orbs" aria-hidden="true"></div>
+                        <div class="hero-inner">
+                            <!-- Left: headline + sub -->
+                            <div class="hero-left">
+                                <div class="hero-headline">
+                                    AI and ML powered insights<br>
+                                    <span class="hl-grad">Confident decisions..</span>
+                                </div>
+                                <div class="hero-sub">
+                                    Analyse any stock with AI-ensemble predictions, technical pattern detection,
+                                    news sentiment scoring, and institutional-grade peer comparisons in seconds.
+                                </div>
+                            </div>
+                            <!-- Middle: pills + tickers -->
+                            <div class="hero-bottom">
+                                <div class="hero-features">
+                                    <span class="hero-feat-pill"><i class="fas fa-brain"></i> Ensemble ML Forecast
+                                        <span class="hero-pill-tip">Blends XGBoost, ExtraTrees &amp; RandomForest to generate a 30-day price forecast with confidence scoring.</span>
+                                    </span>
+                                    <span class="hero-feat-pill"><i class="fas fa-wave-square"></i> Pattern Detection
+                                        <span class="hero-pill-tip">Automatically identifies chart patterns — head &amp; shoulders, triangles, flags, double tops, cup &amp; handle and more.</span>
+                                    </span>
+                                    <span class="hero-feat-pill"><i class="fas fa-newspaper"></i> News Sentiment
+                                        <span class="hero-pill-tip">Scans the latest headlines and scores them with VADER sentiment analysis to gauge market mood around the stock.</span>
+                                    </span>
+                                    <span class="hero-feat-pill"><i class="fas fa-users"></i> Peer Comparison
+                                        <span class="hero-pill-tip">Ranks the stock side-by-side with its closest industry peers across valuation, growth, margins and return metrics.</span>
+                                    </span>
+                                    <span class="hero-feat-pill"><i class="fas fa-bolt"></i> Remarkables Scanner
+                                        <span class="hero-pill-tip">Daily scan of 4,300+ US and Turkish symbols to surface top movers, trending stocks, high dividends and undervalued picks.</span>
+                                    </span>
+                                    <span class="hero-feat-pill"><i class="fas fa-star"></i> Watchlist
+                                        <span class="hero-pill-tip">Save any analysed ticker to your personal watchlist for one-click reload — free for all registered users.</span>
+                                    </span>
+                                </div>
+                                <div class="hero-try-now">
+                                    <div class="hero-tickers-row">
+                                        <span class="hero-tickers-label hero-tickers-label-blink">TRY ONE</span>
+                                        <div class="hero-tickers">
+                                            <button class="hero-ticker-btn" data-ticker="NVDA">NVDA</button>
+                                            <button class="hero-ticker-btn" data-ticker="AMZN">AMZN</button>
+                                            <button class="hero-ticker-btn" data-ticker="THYAO.IS">THYAO.IS</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Right: stat cluster -->
+                            <div class="hero-right">
+                                <div class="hero-stat-cluster">
+                                    <div class="hero-stat">
+                                        <div class="hero-stat-val green">4,326</div>
+                                        <div class="hero-stat-lbl">Symbols Scanned</div>
+                                    </div>
+                                    <div class="hero-stat">
+                                        <div class="hero-stat-val blue">3</div>
+                                        <div class="hero-stat-lbl">ML Models Blended</div>
+                                    </div>
+                                    <div class="hero-stat">
+                                        <div class="hero-stat-val purple">30-day</div>
+                                        <div class="hero-stat-lbl">Price Forecast</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right: stat cluster -->
-                <div class="hero-right">
-                    <div class="hero-stat-cluster">
-                        <div class="hero-stat">
-                            <div class="hero-stat-val green">4,326</div>
-                            <div class="hero-stat-lbl">Symbols Scanned</div>
-                        </div>
-                        <div class="hero-stat">
-                            <div class="hero-stat-val blue">3</div>
-                            <div class="hero-stat-lbl">ML Models Blended</div>
-                        </div>
-                        <div class="hero-stat">
-                            <div class="hero-stat-val purple">30-day</div>
-                            <div class="hero-stat-lbl">Price Forecast</div>
+                <!-- Slide 1: Promo banner -->
+                <div class="hero-carousel-slide">
+                    <div class="hero-banner promo-slide">
+                        <div class="hero-orbs" aria-hidden="true"></div>
+                        <div class="promo-inner">
+                            <!-- Left: headline -->
+                            <div class="promo-left">
+                                <div class="promo-badge">
+                                    <span class="promo-badge-dot"></span>
+                                    Limited Time Offer
+                                </div>
+                                <div class="promo-headline">
+                                    <span class="promo-pct">50% Off</span><br>
+                                    Your First Month
+                                </div>
+                                <div class="promo-sub">
+                                    Subscribe to Pro or Premium with your promo code and pay half price for the first month. Offer valid for 2 weeks only.
+                                </div>
+                            </div>
+                            <!-- Center: code card + CTA -->
+                            <div class="promo-center">
+                                <div class="promo-code-card" id="promo-hero-code-card" title="Click to copy">
+                                    <div class="promo-code-card-label">Your promo code</div>
+                                    <div class="promo-code-card-value">W3LCOM3</div>
+                                    <div class="promo-code-card-hint">click to copy &amp; apply</div>
+                                </div>
+                                <button class="promo-cta-btn" id="promo-hero-cta">Get 50% Off Now →</button>
+                                <div class="promo-valid-line">
+                                    <i class="fas fa-clock" style="font-size:0.65rem;"></i>
+                                    Valid until 25 May 2026
+                                </div>
+                            </div>
+                            <!-- Right: pricing stats -->
+                            <div class="promo-right">
+                                <div class="promo-stat-grid">
+                                    <div class="promo-stat-item">
+                                        <div class="promo-stat-num">50%</div>
+                                        <div class="promo-stat-lbl">Discount</div>
+                                    </div>
+                                    <div class="promo-stat-item">
+                                        <div class="promo-stat-num">£2<small style="font-size:0.65rem;">/mo</small></div>
+                                        <div class="promo-stat-lbl">Pro first month</div>
+                                    </div>
+                                    <div class="promo-stat-item">
+                                        <div class="promo-stat-num">£3<small style="font-size:0.65rem;">/mo</small></div>
+                                        <div class="promo-stat-lbl">Premium first month</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
+            </div>
+
+            <!-- Dismiss button (dismisses entire carousel) -->
+            <button class="hero-dismiss" id="hero-dismiss" aria-label="Dismiss"><i class="fas fa-times"></i></button>
+
+            <!-- Slide indicators -->
+            <div class="hero-carousel-dots" aria-label="Slide navigation">
+                <button class="hc-dot active" data-idx="0" aria-label="Slide 1"></button>
+                <button class="hc-dot" data-idx="1" aria-label="Slide 2"></button>
             </div>
         </div>
 
@@ -4085,6 +4448,51 @@
             $(document).ready(function() {
             try { if (window.__stockerLog) window.__stockerLog('ready'); } catch(_) {}
 
+            // ── Promo code helpers (shared across all modals) ──
+            var PROMO_KEY = 'stocker_promo_code';
+            function getPromoCode() { try { return sessionStorage.getItem(PROMO_KEY) || ''; } catch(_) { return ''; } }
+            function setPromoCode(c) { try { sessionStorage.setItem(PROMO_KEY, c.trim().toUpperCase()); } catch(_) {} }
+            function clearPromoCode() { try { sessionStorage.removeItem(PROMO_KEY); } catch(_) {} }
+
+            function wirePromoBox(inputId, applyId, feedbackId) {
+                var input    = document.getElementById(inputId);
+                var applyBtn = document.getElementById(applyId);
+                var feedback = document.getElementById(feedbackId);
+                if (!input || !applyBtn || !feedback) return;
+
+                function setFeedback(msg, state) {
+                    feedback.textContent = msg;
+                    feedback.className = 'promo-box-feedback' + (state ? ' ' + state : '');
+                }
+
+                // Restore stored code on load
+                var stored = getPromoCode();
+                if (stored) { input.value = stored; setFeedback('✓ Code applied: ' + stored, 'ok'); }
+
+                // Sync from other inputs when this one gains focus
+                input.addEventListener('focus', function() {
+                    var s = getPromoCode(); if (s && !input.value) { input.value = s; setFeedback('✓ Code applied: ' + s, 'ok'); }
+                });
+
+                function applyCode() {
+                    var code = input.value.trim().toUpperCase();
+                    if (!code) { setFeedback('Please enter a code.', 'err'); return; }
+                    setPromoCode(code);
+                    // Sync to other visible inputs
+                    ['wm-promo-input','upgrade-promo-input','profile-promo-input'].forEach(function(id) {
+                        var el = document.getElementById(id); if (el && el !== input) el.value = code;
+                    });
+                    setFeedback('✓ Code applied: ' + code, 'ok');
+                }
+                applyBtn.addEventListener('click', applyCode);
+                input.addEventListener('keydown', function(e) { if (e.key === 'Enter') applyCode(); });
+            }
+
+            // Wire all three promo boxes
+            wirePromoBox('wm-promo-input',      'wm-promo-apply',      'wm-promo-feedback');
+            wirePromoBox('upgrade-promo-input',  'upgrade-promo-apply', 'upgrade-promo-feedback');
+            wirePromoBox('profile-promo-input',  'profile-promo-apply', 'profile-promo-feedback');
+
             // ── Auto-checkout after login (from welcome modal plan click) ──
             (function() {
                 {% if user_email %}
@@ -4092,10 +4500,14 @@
                 try { pendingTier = sessionStorage.getItem('stocker_pending_tier'); } catch(_) {}
                 if (pendingTier === 'pro' || pendingTier === 'premium') {
                     try { sessionStorage.removeItem('stocker_pending_tier'); } catch(_) {}
+                    var promoCode = getPromoCode();
+                    clearPromoCode();
+                    var body = { tier: pendingTier };
+                    if (promoCode) body.promo_code = promoCode;
                     fetch('/create-checkout-session', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ tier: pendingTier })
+                        body: JSON.stringify(body)
                     }).then(function(r) { return r.json(); }).then(function(data) {
                         if (data.url) {
                             window.location.href = data.url;
@@ -4797,17 +5209,20 @@
                 const $btn = $(this);
                 $btn.prop('disabled', true).text('Processing…');
                 try {
+                    const promoCode = getPromoCode();
+                    const body = { tier };
+                    if (promoCode) body.promo_code = promoCode;
                     const resp = await fetch('/create-checkout-session', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ tier })
+                        body: JSON.stringify(body)
                     });
                     const data = await resp.json();
                     if (data.url) {
-                        // New subscriber — go to Stripe Checkout
+                        clearPromoCode();
                         window.location.href = data.url;
                     } else if (data.upgraded) {
-                        // Existing subscriber changed plan — just reload
+                        clearPromoCode();
                         window.location.href = '/?subscribed=1';
                     } else {
                         alert((data.error || 'Could not start checkout.') + (data.detail ? '\n\n' + data.detail : ''));
@@ -4941,26 +5356,96 @@
             renderWatchlist();
             loadRemarkables(true);
 
-            /* ── Hero banner ── */
+            /* ── Hero carousel ── */
             (function() {
                 const HERO_KEY = 'stocker_hero_dismissed';
-                const banner   = document.getElementById('hero-banner');
+                const carousel = document.getElementById('hero-carousel');
+                const track    = document.getElementById('hero-carousel-track');
                 const dismiss  = document.getElementById('hero-dismiss');
-                if (!banner) return;
+                const dots     = document.querySelectorAll('.hc-dot');
+                if (!carousel) return;
 
-                // Hide if already dismissed
+                // Hide entire carousel if already dismissed
                 if (localStorage.getItem(HERO_KEY)) {
-                    banner.style.display = 'none';
+                    carousel.style.display = 'none';
                 }
 
-                // Dismiss button
+                // Dismiss button — hides carousel
                 dismiss && dismiss.addEventListener('click', function() {
-                    banner.style.transition = 'opacity 0.3s, transform 0.3s';
-                    banner.style.opacity    = '0';
-                    banner.style.transform  = 'translateY(-8px)';
-                    setTimeout(function() { banner.style.display = 'none'; }, 300);
+                    carousel.style.transition = 'opacity 0.3s, transform 0.3s';
+                    carousel.style.opacity    = '0';
+                    carousel.style.transform  = 'translateY(-8px)';
+                    setTimeout(function() { carousel.style.display = 'none'; }, 300);
                     localStorage.setItem(HERO_KEY, '1');
                 });
+
+                // Carousel slide logic
+                var current = 0;
+                var total   = 2;
+                var timer   = null;
+
+                function goTo(idx) {
+                    current = (idx + total) % total;
+                    track.style.transform = 'translateX(-' + (current * 100) + '%)';
+                    dots.forEach(function(d, i) {
+                        d.classList.toggle('active', i === current);
+                    });
+                }
+
+                function startTimer() {
+                    clearInterval(timer);
+                    timer = setInterval(function() { goTo(current + 1); }, 5000);
+                }
+
+                dots.forEach(function(d) {
+                    d.addEventListener('click', function() {
+                        goTo(parseInt(d.dataset.idx));
+                        startTimer();
+                    });
+                });
+
+                // Pause on hover
+                carousel.addEventListener('mouseenter', function() { clearInterval(timer); });
+                carousel.addEventListener('mouseleave', startTimer);
+
+                startTimer();
+
+                // Promo slide: click code card to copy + apply
+                var codeCard = document.getElementById('promo-hero-code-card');
+                if (codeCard) {
+                    codeCard.addEventListener('click', function() {
+                        var code = 'W3LCOM3';
+                        if (navigator.clipboard) navigator.clipboard.writeText(code).catch(function(){});
+                        setPromoCode(code);
+                        ['wm-promo-input','upgrade-promo-input','profile-promo-input'].forEach(function(id) {
+                            var el = document.getElementById(id); if (el) el.value = code;
+                        });
+                        codeCard.querySelector('.promo-code-card-hint').textContent = '✓ Copied & applied!';
+                        setTimeout(function() {
+                            codeCard.querySelector('.promo-code-card-hint').textContent = 'click to copy & apply';
+                        }, 2500);
+                    });
+                }
+
+                // Promo CTA → open upgrade/welcome modal
+                var promoCta = document.getElementById('promo-hero-cta');
+                if (promoCta) {
+                    promoCta.addEventListener('click', function() {
+                        setPromoCode('W3LCOM3');
+                        ['wm-promo-input','upgrade-promo-input','profile-promo-input'].forEach(function(id) {
+                            var el = document.getElementById(id); if (el) el.value = 'W3LCOM3';
+                        });
+                        {% if user_email %}
+                            openUpgradeModal();
+                        {% else %}
+                            var wm = document.getElementById('welcome-modal');
+                            if (wm) { wm.style.display = 'flex'; wm.classList.add('is-visible'); }
+                        {% endif %}
+                    });
+                }
+
+                // Legacy ref used by ticker chips below
+                var banner = document.getElementById('hero-banner');
 
                 // Quick-launch ticker chips
                 document.querySelectorAll('.hero-ticker-btn').forEach(function(btn) {
