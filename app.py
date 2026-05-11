@@ -3664,6 +3664,22 @@ def health():
     return jsonify({"status": "ok"}), 200
 
 
+@app.route('/.well-known/assetlinks.json')
+def assetlinks():
+    data = [{
+        "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "net.gultechs.stocker",
+            "sha256_cert_fingerprints": [
+                "E8:7F:B2:B8:7B:A6:86:54:93:14:DC:E2:BA:80:F2:65:BC:B0:DB:B6:AE:25:CE:D5:30:32:19:FD:56:F7:7D:F4",
+                "67:4E:C8:7E:B1:61:43:ED:64:5C:B0:18:89:C5:D5:BB:39:02:8E:37:27:A4:8A:3F:2F:48:CD:17:0F:64:63:46"
+            ]
+        }
+    }]
+    return jsonify(data), 200, {"Content-Type": "application/json"}
+
+
 @app.route("/api/ticker")
 def market_ticker_api():
     import time as _time
