@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="40" role="img" aria-label="stocker.gultechs.net — Listed on BacklinkLog">
+  <title>stocker.gultechs.net — Listed on BacklinkLog</title>
+  <rect width="160" height="40" rx="8" fill="#ffffff"/>
+  <rect width="160" height="40" rx="8" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+  <g transform="translate(10, 10)">
+    <rect width="20" height="20" rx="5" fill="#111827"/>
+    <text x="10" y="14" font-family="system-ui,-apple-system,Arial,sans-serif" font-size="12" font-weight="800" fill="#ffffff" text-anchor="middle">B</text>
+  </g>
+  <text x="38" y="17" font-family="system-ui,-apple-system,Arial,sans-serif" font-size="7" font-weight="700" letter-spacing="1.2" fill="#9ca3af">LISTED ON</text>
+  <text x="38" y="31" font-family="system-ui,-apple-system,Arial,sans-serif" font-size="13" font-weight="800" fill="#111827">BACKLINKLOG</text>
+</svg>

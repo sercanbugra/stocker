@@ -14,3 +14,4 @@ vaderSentiment
 lxml
 beautifulsoup4
 stripe
+flask-compress

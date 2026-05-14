@@ -34,6 +34,7 @@ from sklearn.preprocessing import MinMaxScaler
 # Flask imports
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from flask_dance.contrib.google import make_google_blueprint, google
+from flask_compress import Compress
 from oauthlib.oauth2 import TokenExpiredError
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -50,6 +51,27 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
+Compress(app)
+
+_SYMBOL_RE = re.compile(r'^[A-Z0-9.\-]{1,20}$')
+
+def _is_valid_symbol(s: str) -> bool:
+    return bool(s and _SYMBOL_RE.match(s))
+
+# Simple IP-based rate limiter for unauthenticated endpoints
+_rate_limit_store: dict = {}
+_rate_limit_lock = threading.Lock()
+
+def _is_rate_limited(ip: str, limit: int = 10, window: int = 60) -> bool:
+    now = time.time()
+    with _rate_limit_lock:
+        hits = [t for t in _rate_limit_store.get(ip, []) if now - t < window]
+        if len(hits) >= limit:
+            _rate_limit_store[ip] = hits
+            return True
+        hits.append(now)
+        _rate_limit_store[ip] = hits
+        return False
 
 @app.template_filter("strftime")
 def _jinja_strftime(ts, fmt="%d %b %Y"):
@@ -119,12 +141,9 @@ def _set_security_headers(response):
 
 @app.route("/client-log", methods=["POST"])
 def client_log():
-    """Lightweight client-side log sink to debug frontend issues in prod.
-
-    Accepts arbitrary JSON from the browser (sent via navigator.sendBeacon/fetch)
-    and writes a compact line to the server log. No auth required but the payload
-    is capped to avoid abuse.
-    """
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "").split(",")[0].strip()
+    if _is_rate_limited(ip, limit=10, window=60):
+        return ("", 429)
     try:
         data = request.get_json(silent=True) or {}
     except Exception:
@@ -3670,7 +3689,7 @@ def assetlinks():
         "relation": ["delegate_permission/common.handle_all_urls"],
         "target": {
             "namespace": "android_app",
-            "package_name": "net.gultechs.stocker",
+            "package_name": "net.gultechs.stocker.twa",
             "sha256_cert_fingerprints": [
                 "E8:7F:B2:B8:7B:A6:86:54:93:14:DC:E2:BA:80:F2:65:BC:B0:DB:B6:AE:25:CE:D5:30:32:19:FD:56:F7:7D:F4",
                 "67:4E:C8:7E:B1:61:43:ED:64:5C:B0:18:89:C5:D5:BB:39:02:8E:37:27:A4:8A:3F:2F:48:CD:17:0F:64:63:46"
@@ -4800,6 +4819,8 @@ def run_prediction(symbol: str):
 def predict():
     email = _get_current_user_email()
     symbol = (request.form.get('symbol') or '').strip().upper()
+    if not _is_valid_symbol(symbol):
+        return jsonify({"error": "Invalid ticker symbol."}), 400
     t0 = time.monotonic()
     logger.info("predict request start symbol=%s user=%s", symbol, email or "anon")
 
@@ -4879,7 +4900,7 @@ def predict():
 def api_trade_thesis():
     data = request.get_json(silent=True) or {}
     symbol = (data.get("symbol") or "").strip().upper()
-    if not symbol:
+    if not _is_valid_symbol(symbol):
         return jsonify({"error": "symbol required"}), 400
 
     cached = load_cached_response(symbol)
@@ -4904,7 +4925,7 @@ def api_trade_thesis():
 def api_earnings_summary():
     data = request.get_json(silent=True) or {}
     symbol = (data.get("symbol") or "").strip().upper()
-    if not symbol:
+    if not _is_valid_symbol(symbol):
         return jsonify({"error": "symbol required"}), 400
     result = generate_earnings_summary(symbol)
     return jsonify(result)
@@ -5032,7 +5053,7 @@ def generate_earnings_summary(symbol: str) -> dict:
 def api_portfolio_advisor():
     data = request.get_json(silent=True) or {}
     symbol = (data.get("symbol") or "").strip().upper()
-    if not symbol:
+    if not _is_valid_symbol(symbol):
         return jsonify({"error": "symbol required"}), 400
 
     cached = load_cached_response(symbol)
@@ -5138,7 +5159,7 @@ def generate_portfolio_advice(symbol: str, company_info: dict, current_price: fl
 def api_peers():
     data = request.get_json(silent=True) or {}
     symbol = (data.get("symbol") or "").strip().upper()
-    if not symbol:
+    if not _is_valid_symbol(symbol):
         return jsonify({"error": "symbol required"}), 400
 
     cached = load_cached_response(symbol)
@@ -5172,7 +5193,7 @@ def api_me():
 
 
 _ALLOWED_AVATARS = {"fa-user", "fa-user-astronaut", "fa-user-ninja", "fa-user-secret", "fa-user-tie"}
-_ALLOWED_THEMES  = {"", "beige", "crimson", "sand"}
+_ALLOWED_THEMES  = {"", "ocean"}
 _ALLOWED_MARKETS = {"us", "tr"}
 
 

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="170" height="54" viewBox="0 0 170 54" preserveAspectRatio="xMidYMid meet">
+  <a href="https://www.shipit.buzz/products/stocker?ref=badge" target="_blank">
+    <rect x="0" y="0" width="170" height="54" rx="10" fill="#111"/>
+    <rect x="0.5" y="0.5" width="169" height="53" rx="9.5" fill="none" stroke="#333"/>
+    <g transform="translate(10, 10)">
+      <circle cx="17" cy="17" r="17" fill="#fff"/>
+      <g transform="translate(10.5, 9) scale(0.18)">
+        <path d="M38.19,88.24c-11.36,0-20.4-2.49-27.14-7.46-6.74-4.97-10.42-11.87-11.06-20.68h16.61c.56,4.94,2.73,8.67,6.51,11.21,3.77,2.54,9.01,3.81,15.71,3.81,5.92,0,10.42-1,13.49-3.02,3.07-2.01,4.6-4.95,4.6-8.83,0-3.03-1.01-5.47-3.02-7.3-2.01-1.83-5.17-3.21-9.47-4.13l-17.35-3.49c-7.76-1.62-13.59-4.37-17.51-8.25-3.91-3.88-5.87-8.89-5.87-15.02,0-7.76,2.93-13.87,8.78-18.35C18.34,2.24,26.34,0,36.5,0s18.5,2.35,24.81,7.04c6.31,4.69,9.89,11.2,10.74,19.52h-16.61c-2.12-9.17-8.75-13.75-19.89-13.75-5.01,0-8.94.94-11.8,2.81-2.86,1.87-4.29,4.53-4.29,7.99,0,5.43,3.88,8.92,11.64,10.47l17.99,3.7c8.04,1.62,13.98,4.43,17.83,8.41,3.84,3.99,5.77,9.26,5.77,15.82,0,8.25-3.02,14.69-9.05,19.31-6.03,4.62-14.51,6.93-25.44,6.93Z" fill="#111" stroke="#111" stroke-width="1.5"/>
+      </g>
+    </g>
+    <g transform="translate(52, 0)">
+      <text y="20" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#fff" letter-spacing="0.5">FEATURED ON</text>
+      <text y="40" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="22" font-weight="700" fill="#fff" letter-spacing="0.5">Shipit</text>
+    </g></a>
+</svg>

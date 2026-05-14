@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Stocker** — a Flask web app for stock prediction and analysis. Single-file backend (`app.py`, ~5520 lines) with one main Jinja2 template (`templates/index.html`, ~6400 lines).
+**Stocker** — a Flask web app for stock prediction and analysis. Single-file backend (`app.py`, ~5830 lines) with one main Jinja2 template (`templates/index.html`, ~6930 lines).
 
 ## Running Locally
 
@@ -37,7 +37,7 @@ gunicorn app:app --bind 0.0.0.0:8080 --workers 1 --threads 8 --timeout 120 --pre
 
 ## Deployment
 
-- **Fly.io**: `fly deploy` — configured in `fly.toml` (app: `stocker-2xbjqq`, region: `ams`, port 8080). `auto_stop_machines = 'suspend'` (faster cold starts than `stop`), `min_machines_running = 1`. Gunicorn uses `--preload` to avoid slow-startup false positives on the Fly.io deployment health check. Deploy token via `fly tokens create deploy -a stocker-2xbjqq`, stored as `FLY_API_TOKEN` GitHub secret.
+- **Fly.io**: `fly deploy --ha=false --wait-timeout=600` — configured in `fly.toml` (app: `stocker-2xbjqq`, region: `ams`, port 8080). `auto_stop_machines = 'suspend'` (faster cold starts than `stop`), `min_machines_running = 1`. VM: `shared-cpu-2x @ 1024MB`. **Always use `--wait-timeout=600`** — the 1.2 GB Docker image takes ~9 minutes to pull in `ams`, which exceeds the default 5-minute CLI timeout. The machine will boot fine; the CLI just needs more time to confirm it.
 - **Render**: `render.yaml` — auto-deploys from main branch
 - **CI**: `.github/workflows/fly-deploy.yml` — pushes to `main` trigger Fly.io deploy via `flyctl deploy --remote-only`
 
@@ -45,24 +45,30 @@ gunicorn app:app --bind 0.0.0.0:8080 --workers 1 --threads 8 --timeout 120 --pre
 
 All logic lives in `app.py`. Key sections:
 
+- **GZIP compression** (`flask-compress`): `Compress(app)` applied at startup — automatically compresses all text responses.
 - **Data fetching** (`fetch_with_retry`, `fetch_stooq_history`): yfinance primary, Stooq fallback for historical OHLCV data. Rate-limit errors are detected and retried.
 - **Analyst insights** (`fetch_analyst_insights`): Yahoo Finance QuoteSummary API with crumb authentication; falls back to yfinance `upgrades_downgrades`.
 - **Remarkables** (`_compute_remarkables`, `get_remarkables`): Scans S&P 500 + NASDAQ symbols in batch to find notable movers. Results cached keyed by `REMARKABLES_RULE_VERSION` + date — bump the version constant to force a cache invalidation on next deploy. A background thread refreshes the cache without blocking requests.
 - **Market data — LSE & BIST** (`get_full_market_data("lse"|"bist")`): Returns cached data and triggers background refresh — never blocks the home route. Cache keyed by `MARKET_RULE_VERSION`; bump to force invalidation. BIST symbol source priority: isyatirim.com.tr JSON API → Wikipedia BIST 100 → hardcoded ~500-symbol fallback list. FTSE 100 symbol source priority: local `data/ftse100_symbols.txt` → Wikipedia → hardcoded fallback.
 - **Per-symbol cache** (`load_cached_response`, `save_cached_response`): JSON files in `cache/<SYMBOL>.json`, 12-hour TTL. `_upgrade_cached_payload` migrates old cache shapes on load. Cache hits do **not** consume daily quota.
-- **ML prediction** (`train_prediction_models`, `run_prediction`): Trains XGBoost, ExtraTreesRegressor, and RandomForestRegressor ensemble on engineered features (`build_feature_frame`). Forecasts are done recursively via `_forecast_tree_recursive`. Minimum 60 trading days of data required (`validate_stock_data`).
+- **ML prediction** (`train_prediction_models`, `run_prediction`): Trains XGBoost + ExtraTreesRegressor + LightGBM ensemble on engineered features (`build_feature_frame`). Forecasts are done recursively via `_forecast_tree_recursive`. Minimum 60 trading days of data required (`validate_stock_data`).
 - **Pattern detection** (`detect_pattern` and helpers): Pure-Python technical pattern detectors (head-and-shoulders, double top/bottom, triangles, flags, cup-and-handle, etc.) operating on closing price arrays.
 - **Chart building** (`_build_pattern_chart_from_series`, `_build_rsi_chart_from_series`): Returns Plotly JSON consumed by the frontend. RSI chart uses a 45-day window (for warm-up), displaying ~22 days.
-- **Watchlist** (`watchlist_api`): Per-user JSON files at `watchlists/<sanitized_email>.json`; requires Pro tier. Save button transforms to "Watchlisted" state after saving.
+- **Watchlist** (`watchlist_api`): Per-user JSON files at `watchlists/<sanitized_email>.json`; requires Pro tier.
+- **Watchlist trends** (`/watchlist-trends`, `/api/watchlist-trends`): Aggregated view of symbols across all user watchlists.
 - **News + sentiment** (`fetch_news`, `_sentiment_score`): Pulls news from yfinance, scores titles/summaries with VADER.
 - **AI features** (Claude Haiku via HTTP `requests`): Trade thesis (Pro), earnings summary (Premium), portfolio advisor (Premium). No `anthropic` SDK — uses direct HTTP calls to `api.anthropic.com/v1/messages`.
-- **Payments** (Stripe): Checkout sessions, webhook handler, billing portal. Tiers: free (3/day), pro (unlimited + watchlist + AI), premium (pro + earnings + portfolio).
+- **Payments** (Stripe): Checkout sessions, webhook handler, billing portal, subscription cancellation. Tiers: free (3/day), pro (unlimited + watchlist + AI), premium (pro + earnings + portfolio). Promo codes: `stripe.PromotionCode.list()` resolves a code string to an ID; applied via `discounts=[{"promotion_code": id}]` (mutually exclusive with `allow_promotion_codes`).
 - **Auth**: Google OAuth 2.0 (Flask-Dance) + email/password (bcrypt). Both stored in `data/users.json`.
+- **Account deletion** (`/delete-account`, `/api/delete-account`): User confirms by typing "DELETE"; removes user record and watchlist file.
 - **Undervalued stocks** (`fetch_top_undervalued_stocks`): Scans curated candidate lists for S&P 500, LSE, and BIST; cached daily in `undervalued_stocks.json`.
 - **Market ticker** (`/api/ticker`, `MARKET_TICKER_DEFS`): 11 instruments (S&P 500, Nasdaq, FTSE 100, BIST 100, Gold, Bitcoin, Crude Oil, USD/EUR, USD/TRY, USD/GBP, GBP/TRY) fetched via `yf.Tickers.fast_info`. 5-minute in-memory cache (`_TICKER_CACHE`). Forex symbols with `"invert": True` return `1/rate`.
 - **Admin broadcast email** (`_send_broadcast_email`, `/api/admin/send-mail`): Sends welcome-template-style HTML email to users filtered by tier. Dispatched in a background thread to avoid blocking.
 - **Admin tier override** (`/api/admin/set-tier`): Lets admins change any user's tier without Stripe charge. Sets `subscription_status = "active"` and `admin_granted = True` for non-free tiers.
 - **Currency display** (`currencySymbol(sym)` in JS): Detects market from symbol suffix — `.IS` → ₺ (TRY), `.L` → £ (GBP), default → $ (USD). Applied in Prediction Results and Peer Comparison.
+- **Android TWA** (`/.well-known/assetlinks.json`): Returns Digital Asset Links JSON for the Stocker Android TWA (package `net.gultechs.stocker.twa`), enabling verified deep linking.
+- **Input validation**: `_is_valid_symbol(s)` — regex `^[A-Z0-9.\-]{1,20}$` — enforced on all endpoints that accept a `symbol` parameter (`/predict`, `/api/trade-thesis`, `/api/earnings-summary`, `/api/portfolio-advisor`, `/api/peers`). Prevents path traversal via the file-backed cache.
+- **Rate limiting**: `_is_rate_limited(ip, limit, window)` — in-memory IP-based bucket. Applied to `/client-log` (10 req/60s) to prevent log flooding.
 
 ## Data & Cache Files
 
@@ -90,26 +96,37 @@ All logic lives in `app.py`. Key sections:
 | Premium | Unlimited | Yes | Yes | Yes | Yes | Yes |
 | Admin | Unlimited | All | All | All | All | All |
 
-Admin emails are hard-coded in `ADMIN_EMAILS` set in `app.py`. Pricing: Pro £3.99/mo, Premium £5.99/mo.
+Admin emails are hard-coded in `ADMIN_EMAILS` set in `app.py`. Pricing: Pro £3.99/mo, Premium £5.99/mo. Promo codes (50% off first month) available via Stripe dashboard.
 
 ## API Routes
 
 | Route | Method | Tier | Description |
 |---|---|---|---|
 | `/` | GET | — | Home — loads S&P 500 list + remarkables |
-| `/predict` | POST | Free+ | Run full analysis; returns JSON. Cache hits skip quota. |
-| `/predict_excel` | POST | Free+ | Same as `/predict` but returns `.xlsx` |
+| `/predict` | POST | Free+ | Run full analysis; returns JSON. Cache hits skip quota. Symbol validated via `_is_valid_symbol`. |
 | `/health` | GET | — | Health check for Fly.io (`{"status":"ok"}`) |
+| `/privacy` | GET | — | Privacy policy page |
+| `/delete-account` | GET/POST | Auth | Account deletion page (confirm by typing "DELETE") |
+| `/sitemap.xml` | GET | — | Sitemap |
+| `/robots.txt` | GET | — | Robots.txt |
+| `/.well-known/assetlinks.json` | GET | — | Android TWA digital asset links |
+| `/client-log` | POST | — | Client-side log sink; rate-limited 10 req/60s per IP |
 | `/api/ticker` | GET | — | Live market ticker data (11 instruments, 5-min cache) |
 | `/api/remarkables` | GET | — | Get/refresh remarkables cache (`?refresh=1`) |
 | `/api/watchlist` | GET/POST | Pro+ | Read or update user's watchlist |
+| `/api/watchlist-trends` | GET | — | Aggregated watchlist symbol data |
+| `/watchlist-trends` | GET | — | Watchlist trends page |
 | `/api/trade-thesis` | POST | Pro+ | Claude Haiku bull/bear/verdict |
 | `/api/earnings-summary` | POST | Premium+ | Claude earnings call summary |
 | `/api/portfolio-advisor` | POST | Premium+ | Claude portfolio advice |
 | `/api/peers` | POST | Pro+ | Peer comparison (fundamentals, returns) |
 | `/api/me` | GET | — | Current user profile + usage |
 | `/api/profile` | POST | — | Update nickname, avatar, theme, markets |
-| `/create-checkout-session` | POST | — | Stripe checkout (requires login; returns `{url}` or `{upgraded: true}`) |
+| `/api/delete-account` | POST | Auth | Delete account (password confirmation) |
+| `/api/cancel-subscription` | POST | Pro+ | Cancel Stripe subscription |
+| `/api/heartbeat` | POST | — | Client session heartbeat |
+| `/api/anon-usage` | GET | — | Anonymous usage counter |
+| `/create-checkout-session` | POST | — | Stripe checkout; accepts optional `promo_code` string |
 | `/webhook/stripe` | POST | — | Stripe webhook (subscription events) |
 | `/billing-portal` | GET | Pro+ | Stripe billing portal redirect |
 | `/login/email` | POST | — | Email + password sign-in |
@@ -120,6 +137,7 @@ Admin emails are hard-coded in `ADMIN_EMAILS` set in `app.py`. Pricing: Pro £3.
 | `/api/admin/delete-user` | POST | Admin | Delete a user |
 | `/api/admin/set-tier` | POST | Admin | Override a user's tier without Stripe charge |
 | `/api/admin/send-mail` | POST | Admin | Broadcast HTML email to users filtered by tier |
+| `/api/admin/send-watchlist-mails` | POST | Admin | Send watchlist notification emails |
 
 ## Frontend — Welcome Modal
 
@@ -130,7 +148,19 @@ A full-screen onboarding popup (`#welcome-modal`) is shown on page load for non-
 - **Continue as Guest** → closes modal, sets session flag (1 analysis/day)
 - **Pro / Premium plan cards** → clickable; stores `stocker_pending_tier` in `sessionStorage`, opens auth modal. After login the page reloads as a logged-in user and the jQuery ready block auto-calls `/create-checkout-session` with the stored tier, then redirects to Stripe Checkout.
 
-Plan cards displayed: Guest (1/day), Logged-in User (£0, 3/day), Pro (£3.99/mo), Premium (£5.99/mo) — matching the Plans & Pricing section in the upgrade modal.
+Plan cards displayed: Guest (1/day), Logged-in User (£0, 3/day), Pro (£3.99/mo, **"Most Popular" badge**), Premium (£5.99/mo). CTA labels: "Start Pro →", "Unlock Premium →". Promo code box always visible below plan cards in all three locations (welcome modal, upgrade modal, profile pricing tab).
+
+## Frontend — Hero Carousel
+
+Two-slide auto-rotating banner (`#hero-carousel`) above the search bar, cycling every 5 seconds:
+1. **AI/ML slide** — headline about ML-powered predictions
+2. **Promo slide** — white/navy/amber design promoting the W3LCOM3 promo code (50% off)
+
+Dots navigation, pause on hover, dismiss button. JS: `goTo(idx)`, `startTimer()`.
+
+## Frontend — Footer Badges
+
+Three external badges displayed side-by-side at the bottom of the page: Product Hunt, Shipit, BacklinkLog. All use `loading="lazy"`. CSP `img-src` includes `https://api.producthunt.com https://www.shipit.buzz https://backlinklog.com`.
 
 ## Frontend — Market Ticker Bar
 
@@ -168,9 +198,13 @@ Accessible in the Profile modal for admin-tier users. Features:
 - **Minimum data threshold**: `validate_stock_data` requires 60 trading days minimum. New/small stocks with less than 60 days of history will error.
 - **Daily quota**: Only fresh (non-cached) predictions consume the daily limit. Cache hits are free for all tiers.
 - **Fly.io volume**: User data (`users.json`, watchlists, cache) lives on a persistent volume at `/data`. The `data/` folder in the repo is only for static assets bundled into the Docker image.
-- **Fly.io slow startup**: Heavy ML imports (numpy, pandas, sklearn, xgboost) take 15–30s. `--preload` in gunicorn CMD ensures the port is bound only after all imports complete, preventing false-positive deployment health-check failures.
+- **Fly.io slow startup**: Heavy ML imports (numpy, pandas, sklearn, xgboost, lightgbm) take 15–30s. `--preload` in gunicorn CMD ensures the port is bound only after all imports complete, preventing false-positive health-check failures.
+- **Fly.io image pull timeout**: The Docker image is 1.2 GB. In `ams`, a fresh pull takes ~9 minutes — longer than the default `fly deploy` 5-minute CLI timeout. Always use `fly deploy --ha=false --wait-timeout=600`. The machine will start successfully; the flag just tells the CLI to wait long enough to confirm it.
+- **Fly.io machine stuck in 'created'**: If a machine is stuck in `created` state, destroying it and redeploying with `--wait-timeout=600` is the fix. Using `fly machine run` creates orphan machines without a process group, so the proxy won't route traffic to them.
 - **Admin tier override vs Stripe**: When an admin sets a user's tier via `/api/admin/set-tier`, `admin_granted: true` is written to `users.json`. If that user later subscribes via Stripe, the webhook will overwrite the tier with the Stripe-derived value.
 - **Mobile layout**: Results section uses Bootstrap order classes — predictions panel (`order-1 order-lg-2`) appears above the chart on mobile, below on desktop.
+- **Promo code vs allow_promotion_codes**: Stripe's `discounts` and `allow_promotion_codes` parameters are mutually exclusive in checkout sessions. When a promo code is provided, use `discounts=[{"promotion_code": id}]` and omit `allow_promotion_codes`.
+- **Duplicate /privacy route**: There are two `@app.route('/privacy')` declarations (lines ~3758 and ~3776). Flask uses the first one.
 
 ## graphify
 
