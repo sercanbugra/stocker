@@ -4697,7 +4697,7 @@ def run_prediction(symbol: str):
                     y=vals,
                     mode='lines',
                     name='Ensemble Avg',
-                    line=dict(color='#ffffff', width=3, dash='dash'),
+                    line=dict(color='#f97316', width=4, dash='solid'),
                 )
             else:
                 trace = go.Scatter(
