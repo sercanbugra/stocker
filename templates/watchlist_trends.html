@@ -8,7 +8,20 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
+        /* ── Modern Light (default) ── */
         :root {
+            --bg:           #f0f4ff;
+            --panel-bg:     #ffffff;
+            --panel-border: rgba(99,102,241,0.18);
+            --panel-text:   #0f172a;
+            --panel-muted:  rgba(15,23,42,0.55);
+            --accent:       #6366f1;
+            --green:        #14532d;
+            --red:          #7f1d1d;
+            --header-bg:    rgba(240,244,255,0.97);
+        }
+        /* ── Ocean Blue ── */
+        [data-theme="ocean"] {
             --bg:           #0a0f1e;
             --panel-bg:     rgba(255,255,255,0.04);
             --panel-border: rgba(255,255,255,0.08);
@@ -17,6 +30,7 @@
             --accent:       #4f8ef7;
             --green:        #4ade80;
             --red:          #f87171;
+            --header-bg:    rgba(10,15,30,0.96);
         }
         *, *::before, *::after { box-sizing: border-box; }
         body {
@@ -31,7 +45,7 @@
             position: sticky;
             top: 0;
             z-index: 200;
-            background: rgba(10,15,30,0.96);
+            background: var(--header-bg);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--panel-border);
@@ -111,9 +125,9 @@
             padding: 2px 8px;
             border-radius: 10px;
         }
-        .pct-pos { background: rgba(74,222,128,0.13); color: #4ade80; }
-        .pct-neg { background: rgba(248,113,113,0.13); color: #f87171; }
-        .pct-neu { background: rgba(200,220,255,0.08); color: var(--panel-muted); }
+        .pct-pos { background: rgba(74,222,128,0.13); color: var(--green); }
+        .pct-neg { background: rgba(248,113,113,0.13); color: var(--red); }
+        .pct-neu { background: rgba(128,128,128,0.10); color: var(--panel-muted); }
         .last-price {
             font-size: 0.78rem;
             color: var(--panel-muted);
@@ -133,6 +147,63 @@
         .wt-state i { font-size: 2.2rem; opacity: .3; }
         .wt-state p { margin: 0; font-size: 0.85rem; }
         .spinner-border { width: 1.4rem; height: 1.4rem; border-width: 2px; color: var(--accent); }
+        /* ── chart card body ── */
+        .chart-card-body {
+            display: flex;
+            align-items: stretch;
+        }
+        .chart-left {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+        .chart-right {
+            flex: 0 0 160px;
+            width: 160px;
+            border-left: 1px solid var(--panel-border);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 0;
+            padding: 12px 14px;
+        }
+        .stat-block {
+            padding: 6px 0;
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .stat-block:last-child { border-bottom: none; }
+        .stat-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: var(--panel-muted);
+            margin-bottom: 2px;
+        }
+        .stat-val {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--panel-text);
+        }
+        .stat-val.pos { color: var(--green); }
+        .stat-val.neg { color: var(--red); }
+        @media (max-width: 600px) {
+            .chart-card-body { flex-direction: column; }
+            .chart-right {
+                flex: none;
+                width: 100%;
+                border-left: none;
+                border-top: 1px solid var(--panel-border);
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 0;
+                padding: 8px 10px;
+            }
+            .stat-block {
+                flex: 1 1 calc(33.33% - 8px);
+                border-bottom: none;
+                padding: 4px 4px;
+            }
+        }
         /* ── scrollbar ── */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -140,6 +211,14 @@
     </style>
 </head>
 <body>
+<script>
+(function(){
+    try {
+        var t = localStorage.getItem('stocker_theme') || '';
+        if (t) document.documentElement.setAttribute('data-theme', t);
+    } catch(_) {}
+})();
+</script>
 
 <!-- ── Header ── -->
 <div class="wt-header">
@@ -242,26 +321,38 @@
     }
 
     // ── Layout builder ─────────────────────────────────────────────────
-    var GRID = 'rgba(255,255,255,0.07)';
-    var LINE = 'rgba(255,255,255,0.12)';
+    function isOcean() {
+        return document.documentElement.getAttribute('data-theme') === 'ocean';
+    }
+    function chartColors() {
+        return isOcean()
+            ? { grid: 'rgba(255,255,255,0.07)', line: 'rgba(255,255,255,0.12)',
+                tick: 'rgba(200,220,255,0.6)',  tickSub: 'rgba(200,220,255,0.5)',
+                font: '#e7ecff', hover: 'rgba(10,15,30,0.92)' }
+            : { grid: 'rgba(0,0,0,0.07)',       line: 'rgba(0,0,0,0.12)',
+                tick: 'rgba(15,23,42,0.55)',    tickSub: 'rgba(15,23,42,0.45)',
+                font: '#0f172a', hover: 'rgba(240,244,255,0.97)' };
+    }
 
     function axisBase(extra) {
+        var c = chartColors();
         return Object.assign({
-            gridcolor: GRID, linecolor: LINE,
-            tickfont: { size: 10, color: 'rgba(200,220,255,0.6)' },
+            gridcolor: c.grid, linecolor: c.line,
+            tickfont: { size: 10, color: c.tick },
             showgrid: true,
         }, extra || {});
     }
 
     function buildLayout(rows) {
+        var c = chartColors();
         var base = {
             paper_bgcolor: 'rgba(0,0,0,0)',
             plot_bgcolor:  'rgba(0,0,0,0)',
-            font:          { color: '#e7ecff', size: 11 },
+            font:          { color: c.font, size: 11 },
             showlegend:    false,
             margin:        { t: 6, r: 16, b: 36, l: 62 },
             hovermode:     'x unified',
-            hoverlabel:    { bgcolor: 'rgba(10,15,30,0.92)', font: { size: 11 } },
+            hoverlabel:    { bgcolor: c.hover, font: { size: 11 } },
         };
         if (rows === 1) {
             return Object.assign({}, base, {
@@ -275,15 +366,15 @@
                 height: 380,
                 xaxis:  axisBase({ rangeslider: { visible: false } }),
                 yaxis:  axisBase({ domain: [0.35, 1.0] }),
-                yaxis2: axisBase({ domain: [0.00, 0.30], tickfont: { size: 9, color: 'rgba(200,220,255,0.5)' } }),
+                yaxis2: axisBase({ domain: [0.00, 0.30], tickfont: { size: 9, color: c.tickSub } }),
             });
         }
         return Object.assign({}, base, {
             height: 490,
             xaxis:  axisBase({ rangeslider: { visible: false } }),
             yaxis:  axisBase({ domain: [0.46, 1.00] }),
-            yaxis2: axisBase({ domain: [0.24, 0.42], tickfont: { size: 9, color: 'rgba(200,220,255,0.5)' } }),
-            yaxis3: axisBase({ domain: [0.02, 0.20], tickfont: { size: 9, color: 'rgba(200,220,255,0.5)' } }),
+            yaxis2: axisBase({ domain: [0.24, 0.42], tickfont: { size: 9, color: c.tickSub } }),
+            yaxis3: axisBase({ domain: [0.02, 0.20], tickfont: { size: 9, color: c.tickSub } }),
         });
     }
 
@@ -381,9 +472,12 @@
     }
 
     function buildCard(sym) {
-        var d   = allData[sym];
-        var pct = pctChange(d.c);
-        var last = d.c[d.c.length - 1];
+        var d    = allData[sym];
+        var pct  = pctChange(d.c);
+        var first = d.c[0];
+        var last  = d.c[d.c.length - 1];
+        var hi    = d.h && d.h.length ? Math.max.apply(null, d.h.filter(function(v){return v!=null;})) : null;
+        var lo    = d.l && d.l.length ? Math.min.apply(null, d.l.filter(function(v){return v!=null;})) : null;
 
         var pctHtml = '';
         if (pct !== null) {
@@ -391,7 +485,34 @@
             pctHtml = '<span class="pct-badge ' + cls + '">' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%</span>';
         }
 
-        var card  = document.createElement('div');
+        var pctValCls = pct === null ? '' : pct > 0 ? ' pos' : pct < 0 ? ' neg' : '';
+        var pctValTxt = pct === null ? '—' : (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+
+        var statsHtml =
+            '<div class="chart-right">' +
+                '<div class="stat-block">' +
+                    '<div class="stat-label">Başlangıç</div>' +
+                    '<div class="stat-val">' + escHtml(fmtPrice(first)) + '</div>' +
+                '</div>' +
+                '<div class="stat-block">' +
+                    '<div class="stat-label">Güncel</div>' +
+                    '<div class="stat-val">' + escHtml(fmtPrice(last)) + '</div>' +
+                '</div>' +
+                '<div class="stat-block">' +
+                    '<div class="stat-label">Değişim</div>' +
+                    '<div class="stat-val' + pctValCls + '">' + escHtml(pctValTxt) + '</div>' +
+                '</div>' +
+                '<div class="stat-block">' +
+                    '<div class="stat-label">Dönem Yüksek</div>' +
+                    '<div class="stat-val pos">' + escHtml(hi !== null ? fmtPrice(hi) : '—') + '</div>' +
+                '</div>' +
+                '<div class="stat-block">' +
+                    '<div class="stat-label">Dönem Düşük</div>' +
+                    '<div class="stat-val neg">' + escHtml(lo !== null ? fmtPrice(lo) : '—') + '</div>' +
+                '</div>' +
+            '</div>';
+
+        var card = document.createElement('div');
         card.className = 'chart-card';
         card.innerHTML =
             '<div class="chart-card-hdr">' +
@@ -399,7 +520,12 @@
                 pctHtml +
                 '<span class="last-price">' + escHtml(fmtPrice(last)) + '</span>' +
             '</div>' +
-            '<div class="chart-div" id="cdiv-' + escHtml(sym) + '"></div>';
+            '<div class="chart-card-body">' +
+                '<div class="chart-left">' +
+                    '<div class="chart-div" id="cdiv-' + escHtml(sym) + '"></div>' +
+                '</div>' +
+                statsHtml +
+            '</div>';
         return card;
     }
 
