@@ -3282,6 +3282,99 @@
         @media (max-width: 600px) {
             .mkt-data { grid-template-columns: repeat(11, minmax(72px, 1fr)); }
         }
+
+        /* ── Full-page scroll-snap ── */
+        :root { --toolbar-h: 76px; }
+        html { height: 100%; }
+        body { overflow: hidden; height: 100%; }
+
+        /* Fixed toolbar */
+        .top-toolbar {
+            position: fixed !important;
+            top: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 1400px;
+            z-index: 1050;
+            border-radius: 0 0 16px 16px !important;
+            margin-bottom: 0 !important;
+        }
+
+        /* Snap wrapper */
+        #snap-wrap {
+            height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            padding-top: var(--toolbar-h);
+            box-sizing: border-box;
+        }
+        .snap-section {
+            height: calc(100vh - var(--toolbar-h));
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .snap-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 10px 16px 70px; /* bottom pad clears mkt-ticker */
+            min-height: 100%;
+            box-sizing: border-box;
+        }
+        /* override .container padding-top inside snap */
+        #snap-wrap .container { padding-top: 0; }
+
+        /* Section 1 hero: center vertically */
+        #snap-hero .snap-inner {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-top: 8px;
+            padding-bottom: 70px;
+        }
+
+        /* ── Result tabs ── */
+        .res-tabs {
+            display: flex;
+            gap: 3px;
+            background: var(--parliament-blue-soft);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+        }
+        .res-tab {
+            flex: 1;
+            padding: 8px 6px;
+            border: none;
+            background: transparent;
+            color: var(--panel-muted);
+            font-size: 0.78rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all .18s;
+            white-space: nowrap;
+            text-align: center;
+        }
+        .res-tab:hover { color: var(--panel-text); background: rgba(255,255,255,0.05); }
+        .res-tab.active { background: rgba(79,142,247,0.18); color: #4f8ef7; }
+        :root:not([data-theme="ocean"]) .res-tab.active { background: rgba(99,102,241,0.14); color: #6366f1; }
+        [data-theme="sand"] .res-tab.active { background: rgba(99,102,241,0.1); color: #4338ca; }
+        .res-tab i { margin-right: 3px; }
+        .res-tab-lbl { display: inline; }
+        .res-panel { display: none; }
+        .res-panel.active { display: block; }
+
+        @media (max-width: 767px) {
+            :root { --toolbar-h: 90px; }
+            .res-tab-lbl { display: none; }
+            .res-tab { font-size: 0.95rem; }
+        }
     </style>
 </head>
 <body>
@@ -3835,65 +3928,69 @@
         </div>
     </div>
 
-    <div class="container">
-
-        <!-- ── Top toolbar ── -->
-        <div class="top-toolbar mb-3">
-            <!-- Logo -->
-            <a href="https://stocker.gultechs.net/" class="toolbar-logo-wrap">
+    <!-- ── Fixed toolbar ── -->
+    <div class="top-toolbar" id="top-toolbar">
+        <!-- Logo -->
+        <a href="https://stocker.gultechs.net/" class="toolbar-logo-wrap">
+            <picture>
+                <source srcset="{{ url_for('static', filename='stocker_logo_small.webp') }}" type="image/webp">
                 <picture>
-                    <source srcset="{{ url_for('static', filename='stocker_logo_small.webp') }}" type="image/webp">
-                    <picture>
-                      <source srcset="{{ url_for('static', filename='stocker_logo.webp') }}" type="image/webp">
-                      <img src="{{ url_for('static', filename='stocker_logo_sm.png') }}" alt="Stocker" class="toolbar-logo" width="133" height="46" decoding="async">
-                    </picture>
+                  <source srcset="{{ url_for('static', filename='stocker_logo.webp') }}" type="image/webp">
+                  <img src="{{ url_for('static', filename='stocker_logo_sm.png') }}" alt="Stocker" class="toolbar-logo" width="133" height="46" decoding="async">
                 </picture>
-            </a>
+            </picture>
+        </a>
 
-            <!-- Ticker input + Predict -->
-            <div class="toolbar-search" style="position:relative;">
-                <div class="ticker-input-wrap" style="position:relative;">
-                    <i class="fas fa-search ticker-search-icon"></i>
-                    <input id="stock-input" type="text" class="ticker-input" placeholder="e.g. AAPL, THYAO.IS" autocomplete="off" spellcheck="false" />
-                    <!-- Autocomplete dropdown -->
-                    <div class="ticker-autocomplete" id="ticker-ac"></div>
-                </div>
-                <button id="predict-btn" class="btn-predict">
-                    <i class="fas fa-chart-line"></i> Analyse
-                </button>
+        <!-- Ticker input + Predict -->
+        <div class="toolbar-search" style="position:relative;">
+            <div class="ticker-input-wrap" style="position:relative;">
+                <i class="fas fa-search ticker-search-icon"></i>
+                <input id="stock-input" type="text" class="ticker-input" placeholder="e.g. AAPL, THYAO.IS" autocomplete="off" spellcheck="false" />
+                <!-- Autocomplete dropdown -->
+                <div class="ticker-autocomplete" id="ticker-ac"></div>
             </div>
-
-            <!-- Action buttons -->
-            <div class="toolbar-actions">
-                {% if not user_email %}
-                <button id="auth-trigger" type="button" class="tb-btn tb-btn-login">
-                    <i class="fas fa-sign-in-alt"></i><span>Login</span>
-                </button>
-                {% endif %}
-                <button id="profile-trigger" type="button" class="tb-btn tb-btn-profile">
-                    <i class="fas fa-user" id="profile-btn-icon"></i><span id="profile-btn-label">{% if user_email %}{{ user_email.split('@')[0][:14] }}{% else %}Profile{% endif %}</span>
-                </button>
-            </div>
-
-            <!-- Usage / tier badge -->
-            <div class="toolbar-usage" id="usage-counter">
-                {% if user %}
-                    {% if user_tier == 'admin' %}
-                    <span class="tier-badge tier-badge-admin">admin</span>&nbsp;Full access
-                    {% elif user_tier == 'free' %}
-                    <span id="usage-text">loading…</span>
-                    {% else %}
-                    <span class="tier-badge tier-badge-{{ user_tier }}">{{ user_tier }}</span>&nbsp;Unlimited
-                    {% endif %}
-                {% else %}
-                {% set anon_remaining = [anon_daily_limit - anon_used, 0]|max %}
-                <span class="tb-anon-badge{% if anon_remaining == 0 %} warning{% endif %}" id="tb-anon-badge">{{ anon_remaining }} free {{ 'analysis' if anon_remaining == 1 else 'analyses' }} left today</span>
-                {% endif %}
-            </div>
+            <button id="predict-btn" class="btn-predict">
+                <i class="fas fa-chart-line"></i> Analyse
+            </button>
         </div>
 
+        <!-- Action buttons -->
+        <div class="toolbar-actions">
+            {% if not user_email %}
+            <button id="auth-trigger" type="button" class="tb-btn tb-btn-login">
+                <i class="fas fa-sign-in-alt"></i><span>Login</span>
+            </button>
+            {% endif %}
+            <button id="profile-trigger" type="button" class="tb-btn tb-btn-profile">
+                <i class="fas fa-user" id="profile-btn-icon"></i><span id="profile-btn-label">{% if user_email %}{{ user_email.split('@')[0][:14] }}{% else %}Profile{% endif %}</span>
+            </button>
+        </div>
 
-        <!-- Hero Banner — hidden after dismiss, shown only on first visit -->
+        <!-- Usage / tier badge -->
+        <div class="toolbar-usage" id="usage-counter">
+            {% if user %}
+                {% if user_tier == 'admin' %}
+                <span class="tier-badge tier-badge-admin">admin</span>&nbsp;Full access
+                {% elif user_tier == 'free' %}
+                <span id="usage-text">loading…</span>
+                {% else %}
+                <span class="tier-badge tier-badge-{{ user_tier }}">{{ user_tier }}</span>&nbsp;Unlimited
+                {% endif %}
+            {% else %}
+            {% set anon_remaining = [anon_daily_limit - anon_used, 0]|max %}
+            <span class="tb-anon-badge{% if anon_remaining == 0 %} warning{% endif %}" id="tb-anon-badge">{{ anon_remaining }} free {{ 'analysis' if anon_remaining == 1 else 'analyses' }} left today</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ── Snap wrapper ── -->
+    <div id="snap-wrap">
+
+    <!-- ── Section 1: Hero ── -->
+    <section class="snap-section" id="snap-hero">
+    <div class="snap-inner">
+
+        <!-- Hero Banner -->
         <div class="hero-carousel" id="hero-carousel">
             <div class="hero-carousel-track" id="hero-carousel-track">
 
@@ -3961,7 +4058,14 @@
             <button class="hero-dismiss" id="hero-dismiss" aria-label="Dismiss"><i class="fas fa-times"></i></button>
         </div>
 
-        <div class="row g-3 mt-3">
+    </div><!-- /snap-inner snap-hero -->
+    </section><!-- /snap-hero -->
+
+    <!-- ── Section 2: Market (Remarkables + Watchlist) ── -->
+    <section class="snap-section" id="snap-market">
+    <div class="snap-inner">
+
+        <div class="row g-3">
 
         <!-- LEFT: Remarkables stacked lists -->
         <div class="col-lg-5 col-xl-4">
@@ -4236,217 +4340,180 @@
         </div>
         </div><!-- /col-lg-7 col-xl-8 -->
 
-        </div><!-- /row g-3 mt-3 -->
+        </div><!-- /row g-3 -->
 
-        <!-- Results Section -->
-        <div id="results" style="display:none; margin-top:12px;">
-            <div class="row g-3">
-                <div class="col-lg-8 order-2 order-lg-1">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-chart-area"></i> Stock Price Chart</span>
-                            {% if user %}
-                            <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch" style="display:none; padding:5px 12px; font-size:0.75rem;">
-                                <i class="fas fa-star"></i><span> Save</span>
-                            </button>
-                            {% else %}
-                            <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch tb-btn-locked" style="display:none; padding:5px 12px; font-size:0.75rem;">
-                                <i class="fas fa-star"></i><span> Save</span>
-                            </button>
-                            {% endif %}
-                        </div>
-                        <div class="card-body">
-                            <div id="chart"></div>
-                        </div>
-                    </div>
-                    <div class="card mt-3">
-                        <div class="card-header">
-                            <i class="fas fa-wave-square"></i> Pattern Detection (Last 1 Month)
-                        </div>
-                        <div class="card-body">
-                            <div id="pattern-chart"></div>
-                        </div>
-                    </div>
-                    <div class="card mt-3">
-                        <div class="card-header">
-                            <i class="fas fa-wave-square"></i> Pattern Detection (Last 48 Hours)
-                        </div>
-                        <div class="card-body">
-                            <div id="pattern-chart-48h"></div>
-                        </div>
-                    </div>
-                    <div class="card mt-3">
-                        <div class="card-header">
-                            <i class="fas fa-chart-line"></i> RSI Analysis (Last 1 Month)
-                        </div>
-                        <div class="card-body">
-                            <div id="rsi-chart"></div>
-                        </div>
-                    </div>
-                    <div class="card mt-3">
-                        <div class="card-header">
-                            <i class="fas fa-user-tie"></i> Top Analysts
-                        </div>
-                        <div class="card-body">
-                            <div class="text-muted mb-2" id="analyst-top-source">Source: N/A</div>
-                            <div class="table-responsive">
-                                <table class="analyst-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Analyst</th>
-                                            <th>Overall</th>
-                                            <th>Direction</th>
-                                            <th>Price</th>
-                                            <th>Latest rating</th>
-                                            <th>Price target</th>
-                                            <th>Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="analyst-table-body"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card mt-3">
-                        <div class="card-header">
-                            <i class="fas fa-chart-bar"></i> Analyst Recommendations
-                        </div>
-                        <div class="card-body">
-                            <div class="text-muted mb-2" id="analyst-reco-source">Source: N/A</div>
-                            <div class="analyst-reco" id="analyst-reco"></div>
-                        </div>
-                    </div>
-                    <div class="card about-card mt-3">
-                        <div class="card-header">
-                            <i class="fas fa-info-circle"></i> About
-                        </div>
-                        <div class="card-body" id="about-container">
-                            <div class="text-muted">Load a symbol to see company information.</div>
-                        </div>
-                    </div>
+    </div><!-- /snap-inner snap-market -->
+    </section><!-- /snap-market -->
+
+    <!-- ── Section 3: Results (4-tab) ── -->
+    <section class="snap-section" id="snap-results" style="display:none">
+    <div class="snap-inner">
+
+        <!-- Tab navigation -->
+        <div class="res-tabs" id="res-tabs">
+            <button class="res-tab active" data-panel="0"><i class="fas fa-chart-area"></i><span class="res-tab-lbl"> Overview</span></button>
+            <button class="res-tab" data-panel="1"><i class="fas fa-wave-square"></i><span class="res-tab-lbl"> Patterns</span></button>
+            <button class="res-tab" data-panel="2"><i class="fas fa-user-tie"></i><span class="res-tab-lbl"> Analysts</span></button>
+            <button class="res-tab" data-panel="3"><i class="fas fa-robot"></i><span class="res-tab-lbl"> AI &amp; News</span></button>
+        </div>
+
+        <!-- ── Panel 0: Overview ── Stock Price Chart · Prediction Results · Peer Comparison · About -->
+        <div class="res-panel active" id="res-panel-0">
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-chart-area"></i> Stock Price Chart</span>
+                    {% if user %}
+                    <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch" style="display:none; padding:5px 12px; font-size:0.75rem;">
+                        <i class="fas fa-star"></i><span> Save</span>
+                    </button>
+                    {% else %}
+                    <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch tb-btn-locked" style="display:none; padding:5px 12px; font-size:0.75rem;">
+                        <i class="fas fa-star"></i><span> Save</span>
+                    </button>
+                    {% endif %}
                 </div>
-                <div class="col-lg-4 d-flex flex-column order-1 order-lg-2">
-                    <!-- 1. Prediction Results -->
-                    <div class="card predictions-card mb-3">
-                        <div class="card-header">
-                            <i class="fas fa-calculator"></i> Prediction Results
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover mb-0 text-nowrap" id="predictions-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Model</th>
-                                            <th>Predicted</th>
-                                            <th>Change</th>
-                                            <th>Conf.</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="predictions-body"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 2. AI Trade Thesis — Pro -->
-                    <div class="pro-card mb-3">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-robot"></i> AI Trade Thesis</span>
-                            <span class="tier-badge tier-badge-pro">Pro</span>
-                        </div>
-                        <div id="thesis-container">
-                            {% if user_tier in ('pro', 'premium', 'admin') %}
-                            <div class="pro-lock text-muted small" id="thesis-placeholder">
-                                Run a prediction to generate an AI thesis.
-                            </div>
-                            {% else %}
-                            <div class="pro-lock">
-                                <i class="fas fa-lock"></i>
-                                <span>Available on Pro &amp; Premium</span>
-                                <button class="btn btn-primary btn-sm" id="thesis-upgrade-btn">Upgrade to Pro</button>
-                                <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='AI_Trade_Thesis.png') }}', 'AI Trade Thesis')">see sample</button>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- 3. Peer Comparison — Pro -->
-                    <div class="pro-card mb-3">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-chart-bar"></i> Peer Comparison</span>
-                            <span class="tier-badge tier-badge-pro">Pro</span>
-                        </div>
-                        <div id="peers-container">
-                            {% if user_tier in ('pro', 'premium', 'admin') %}
-                            <div class="pro-lock text-muted small" id="peers-placeholder">
-                                Run a prediction to load peer data.
-                            </div>
-                            {% else %}
-                            <div class="pro-lock">
-                                <i class="fas fa-lock"></i>
-                                <span>Available on Pro &amp; Premium</span>
-                                <button class="btn btn-primary btn-sm" id="peers-upgrade-btn">Upgrade to Pro</button>
-                                <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='Peer_Comparison.png') }}', 'Peer Comparison')">see sample</button>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- 4. AI Portfolio Advisor — Premium -->
-                    <div class="pro-card mb-3">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-briefcase"></i> AI Portfolio Advisor</span>
-                            <span class="tier-badge tier-badge-premium">Premium</span>
-                        </div>
-                        <div id="advisor-container">
-                            {% if user_tier in ('premium', 'admin') %}
-                            <div class="pro-lock text-muted small" id="advisor-placeholder">
-                                Run a prediction to get portfolio advice.
-                            </div>
-                            {% else %}
-                            <div class="pro-lock">
-                                <i class="fas fa-lock"></i>
-                                <span>Available on Premium</span>
-                                <button class="btn btn-warning btn-sm" id="advisor-upgrade-btn">Upgrade to Premium</button>
-                                <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='AI_Portfolio_Adviser.png') }}', 'AI Portfolio Advisor')">see sample</button>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- 5. Earnings Summarizer — Premium -->
-                    <div class="pro-card mb-3">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-calendar-check"></i> Earnings Summarizer</span>
-                            <span class="tier-badge tier-badge-premium">Premium</span>
-                        </div>
-                        <div id="earnings-container">
-                            {% if user_tier in ('premium', 'admin') %}
-                            <div class="pro-lock text-muted small" id="earnings-placeholder">
-                                Run a prediction to generate an earnings summary.
-                            </div>
-                            {% else %}
-                            <div class="pro-lock">
-                                <i class="fas fa-lock"></i>
-                                <span>Available on Premium</span>
-                                <button class="btn btn-warning btn-sm" id="earnings-upgrade-btn">Upgrade to Premium</button>
-                                <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='Earning_Summarizer.png') }}', 'Earnings Summarizer')">see sample</button>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- 6. Latest News -->
-                    <div class="card news-card flex-grow-1">
-                        <div class="card-header">
-                            <i class="fas fa-newspaper"></i> Latest News
-                        </div>
-                        <div class="card-body" id="news-container"></div>
+                <div class="card-body"><div id="chart"></div></div>
+            </div>
+            <div class="card predictions-card mb-3">
+                <div class="card-header"><i class="fas fa-calculator"></i> Prediction Results</div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 text-nowrap" id="predictions-table">
+                            <thead><tr><th>Model</th><th>Predicted</th><th>Change</th><th>Conf.</th></tr></thead>
+                            <tbody id="predictions-body"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+            <div class="pro-card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-chart-bar"></i> Peer Comparison</span>
+                    <span class="tier-badge tier-badge-pro">Pro</span>
+                </div>
+                <div id="peers-container">
+                    {% if user_tier in ('pro', 'premium', 'admin') %}
+                    <div class="pro-lock text-muted small" id="peers-placeholder">Run a prediction to load peer data.</div>
+                    {% else %}
+                    <div class="pro-lock">
+                        <i class="fas fa-lock"></i>
+                        <span>Available on Pro &amp; Premium</span>
+                        <button class="btn btn-primary btn-sm" id="peers-upgrade-btn">Upgrade to Pro</button>
+                        <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='Peer_Comparison.png') }}', 'Peer Comparison')">see sample</button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card about-card mb-3">
+                <div class="card-header"><i class="fas fa-info-circle"></i> About</div>
+                <div class="card-body" id="about-container"><div class="text-muted">Load a symbol to see company information.</div></div>
+            </div>
+        </div><!-- /res-panel-0 -->
+
+        <!-- ── Panel 1: Patterns ── Pattern 1M · Pattern 48H · RSI -->
+        <div class="res-panel" id="res-panel-1">
+            <div class="card mb-3">
+                <div class="card-header"><i class="fas fa-wave-square"></i> Pattern Detection (Last 1 Month)</div>
+                <div class="card-body"><div id="pattern-chart"></div></div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header"><i class="fas fa-wave-square"></i> Pattern Detection (Last 48 Hours)</div>
+                <div class="card-body"><div id="pattern-chart-48h"></div></div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header"><i class="fas fa-chart-line"></i> RSI Analysis (Last 1 Month)</div>
+                <div class="card-body"><div id="rsi-chart"></div></div>
+            </div>
+        </div><!-- /res-panel-1 -->
+
+        <!-- ── Panel 2: Analysts ── Top Analysts · Analyst Reco · AI Portfolio Advisor -->
+        <div class="res-panel" id="res-panel-2">
+            <div class="card mb-3">
+                <div class="card-header"><i class="fas fa-user-tie"></i> Top Analysts</div>
+                <div class="card-body">
+                    <div class="text-muted mb-2" id="analyst-top-source">Source: N/A</div>
+                    <div class="table-responsive">
+                        <table class="analyst-table">
+                            <thead><tr><th>Analyst</th><th>Overall</th><th>Direction</th><th>Price</th><th>Latest rating</th><th>Price target</th><th>Date</th></tr></thead>
+                            <tbody id="analyst-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-header"><i class="fas fa-chart-bar"></i> Analyst Recommendations</div>
+                <div class="card-body">
+                    <div class="text-muted mb-2" id="analyst-reco-source">Source: N/A</div>
+                    <div class="analyst-reco" id="analyst-reco"></div>
+                </div>
+            </div>
+            <div class="pro-card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-briefcase"></i> AI Portfolio Advisor</span>
+                    <span class="tier-badge tier-badge-premium">Premium</span>
+                </div>
+                <div id="advisor-container">
+                    {% if user_tier in ('premium', 'admin') %}
+                    <div class="pro-lock text-muted small" id="advisor-placeholder">Run a prediction to get portfolio advice.</div>
+                    {% else %}
+                    <div class="pro-lock">
+                        <i class="fas fa-lock"></i>
+                        <span>Available on Premium</span>
+                        <button class="btn btn-warning btn-sm" id="advisor-upgrade-btn">Upgrade to Premium</button>
+                        <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='AI_Portfolio_Adviser.png') }}', 'AI Portfolio Advisor')">see sample</button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div><!-- /res-panel-2 -->
+
+        <!-- ── Panel 3: AI & News ── AI Trade Thesis · Latest News · Earnings Summarizer -->
+        <div class="res-panel" id="res-panel-3">
+            <div class="pro-card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-robot"></i> AI Trade Thesis</span>
+                    <span class="tier-badge tier-badge-pro">Pro</span>
+                </div>
+                <div id="thesis-container">
+                    {% if user_tier in ('pro', 'premium', 'admin') %}
+                    <div class="pro-lock text-muted small" id="thesis-placeholder">Run a prediction to generate an AI thesis.</div>
+                    {% else %}
+                    <div class="pro-lock">
+                        <i class="fas fa-lock"></i>
+                        <span>Available on Pro &amp; Premium</span>
+                        <button class="btn btn-primary btn-sm" id="thesis-upgrade-btn">Upgrade to Pro</button>
+                        <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='AI_Trade_Thesis.png') }}', 'AI Trade Thesis')">see sample</button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card news-card mb-3">
+                <div class="card-header"><i class="fas fa-newspaper"></i> Latest News</div>
+                <div class="card-body" id="news-container"></div>
+            </div>
+            <div class="pro-card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-calendar-check"></i> Earnings Summarizer</span>
+                    <span class="tier-badge tier-badge-premium">Premium</span>
+                </div>
+                <div id="earnings-container">
+                    {% if user_tier in ('premium', 'admin') %}
+                    <div class="pro-lock text-muted small" id="earnings-placeholder">Run a prediction to generate an earnings summary.</div>
+                    {% else %}
+                    <div class="pro-lock">
+                        <i class="fas fa-lock"></i>
+                        <span>Available on Premium</span>
+                        <button class="btn btn-warning btn-sm" id="earnings-upgrade-btn">Upgrade to Premium</button>
+                        <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='Earning_Summarizer.png') }}', 'Earnings Summarizer')">see sample</button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div><!-- /res-panel-3 -->
+
+    </div><!-- /snap-inner snap-results -->
+    </section><!-- /snap-results -->
+
+    </div><!-- /snap-wrap -->
     <!-- Disclaimer -->
     <div class="container mt-3 mb-1">
         <small style="font-size:0.66rem; color:var(--panel-muted); line-height:1.55; display:block;">
@@ -6003,6 +6070,21 @@
                 };
             })();
 
+            // ── Result tab switching ──
+            document.addEventListener('click', function(e) {
+                var btn = e.target.closest('.res-tab');
+                if (!btn) return;
+                var panel = btn.dataset.panel;
+                document.querySelectorAll('.res-tab').forEach(function(b){ b.classList.remove('active'); });
+                document.querySelectorAll('.res-panel').forEach(function(p){ p.classList.remove('active'); });
+                btn.classList.add('active');
+                var el = document.getElementById('res-panel-' + panel);
+                if (el) el.classList.add('active');
+                // scroll panel to top
+                var si = document.querySelector('#snap-results .snap-inner');
+                if (si) si.scrollTop = 0;
+            });
+
             function closeAuthModal() {
                 $authModal.removeClass('is-visible').attr('aria-hidden', 'true');
                 // reset to provider view
@@ -6391,7 +6473,7 @@
 
                 _startLoader(symbol);
                 $('.loading-spinner').addClass('is-visible');
-                $('#results').hide();
+                $('#snap-results').hide();
                 $('#add-watchlist').hide();
                 // Reset watchlist button state for new symbol
                 $('#add-watchlist').html('<i class="fas fa-star"></i><span> Save</span>').prop('disabled', false).removeClass('tb-btn-watchlisted');
@@ -6404,8 +6486,17 @@
                     success: function(response) {
                         _stopLoader();
                         setTimeout(function() { $('.loading-spinner').removeClass('is-visible'); }, 320);
-                        $('#results').show();
+                        $('#snap-results').show();
                         $('#add-watchlist').fadeIn(300);
+                        // Reset to first tab
+                        document.querySelectorAll('.res-tab').forEach(function(b){ b.classList.remove('active'); });
+                        document.querySelectorAll('.res-panel').forEach(function(p){ p.classList.remove('active'); });
+                        document.querySelector('.res-tab[data-panel="0"]').classList.add('active');
+                        document.getElementById('res-panel-0').classList.add('active');
+                        // Snap to results section
+                        setTimeout(function() {
+                            document.getElementById('snap-results').scrollIntoView({ behavior: 'smooth' });
+                        }, 80);
                         // If symbol already in watchlist, show Watchlisted state immediately
                         if (hasWatchlistAccess) {
                             loadWatchlist().then(function(wl) {
@@ -6414,11 +6505,6 @@
                                 }
                             });
                         }
-                        // Scroll results into view so user doesn't have to hunt for them
-                        setTimeout(function() {
-                            var top = $('#results').offset().top - 80;
-                            $('html, body').animate({ scrollTop: top }, 450);
-                        }, 80);
                         if (response._meta) {
                             if (isLoggedIn) {
                                 updateUsageDisplay(response._meta.used_today, response._meta.daily_limit);
