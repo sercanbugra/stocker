@@ -236,7 +236,12 @@
         }
 
         /* Market ticker */
-        :root:not([data-theme="ocean"]) .mkt-ticker { border-top-color: var(--panel-border); }
+        :root:not([data-theme="ocean"]) .mkt-ticker    { border-top-color: var(--panel-border); background: #f8fafc; }
+        :root:not([data-theme="ocean"]) .mkt-lbl       { color: rgba(15,23,42,0.65) !important; }
+        :root:not([data-theme="ocean"]) .mkt-price     { color: var(--panel-text)   !important; }
+        :root:not([data-theme="ocean"]) .mkt-chg.neu   { color: rgba(15,23,42,0.55) !important; }
+        :root:not([data-theme="ocean"]) .mkt-news-text { color: var(--panel-text)   !important; }
+        :root:not([data-theme="ocean"]) .mkt-news-sep  { color: rgba(15,23,42,0.20) !important; }
 
         /* Tables */
         :root:not([data-theme="ocean"]) #predictions-table,
@@ -2342,6 +2347,366 @@
             .promo-headline .promo-pct { font-size: 2rem; }
         }
 
+        /* ── Fintech Promo Banner (Slide-0) ── */
+        @keyframes ftbSpark {
+            from { stroke-dashoffset: 220; }
+            to   { stroke-dashoffset: 0; }
+        }
+        @keyframes ftbFlash {
+            0%   { background: transparent; }
+            20%  { background: rgba(0,200,232,0.13); }
+            100% { background: transparent; }
+        }
+        @keyframes ftbFlashLight {
+            0%   { background: transparent; }
+            20%  { background: rgba(99,102,241,0.11); }
+            100% { background: transparent; }
+        }
+        @keyframes ftbScanLine {
+            from { top: -2px; opacity: 0.9; }
+            80%  { opacity: 0.9; }
+            to   { top: 100%; opacity: 0; }
+        }
+        @keyframes ftbGlowPulse {
+            0%,100% { box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 22px rgba(0,200,232,0.12); }
+            50%     { box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 38px rgba(0,200,232,0.28); }
+        }
+        .ftb-slide {
+            background: linear-gradient(135deg, #060d1f 0%, #0b1535 55%, #091428 100%);
+            position: relative;
+            overflow: hidden;
+            min-height: 210px;
+        }
+        :root:not([data-theme="ocean"]) .ftb-slide {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 55%, #1e3a8a 100%);
+        }
+        .ftb-slide::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,200,232,0.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,200,232,0.045) 1px, transparent 1px);
+            background-size: 38px 38px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        :root:not([data-theme="ocean"]) .ftb-slide::before {
+            background-image:
+                linear-gradient(rgba(165,180,252,0.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(165,180,252,0.07) 1px, transparent 1px);
+        }
+        .ftb-slide::after {
+            content: '';
+            position: absolute;
+            top: -70px; left: -70px;
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(0,200,232,0.14) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        :root:not([data-theme="ocean"]) .ftb-slide::after {
+            background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%);
+        }
+        .ftb-inner {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
+            align-items: stretch;
+            min-height: 210px;
+        }
+        /* Left */
+        .ftb-left {
+            padding: 28px 24px 24px 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 11px;
+        }
+        .ftb-live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.6rem;
+            font-weight: 800;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: #00c8e8;
+            background: rgba(0,200,232,0.10);
+            border: 1px solid rgba(0,200,232,0.28);
+            border-radius: 999px;
+            padding: 4px 12px;
+            width: fit-content;
+        }
+        :root:not([data-theme="ocean"]) .ftb-live-badge {
+            color: #a5b4fc;
+            background: rgba(165,180,252,0.14);
+            border-color: rgba(165,180,252,0.35);
+        }
+        .ftb-live-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #00c8e8;
+            box-shadow: 0 0 8px rgba(0,200,232,0.9);
+            animation: livePulse 1.4s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+        :root:not([data-theme="ocean"]) .ftb-live-dot {
+            background: #818cf8;
+            box-shadow: 0 0 8px rgba(129,140,248,0.9);
+        }
+        .ftb-headline {
+            font-size: 2rem;
+            font-weight: 900;
+            line-height: 1.08;
+            color: #fff;
+            letter-spacing: -0.8px;
+        }
+        .ftb-grad {
+            background: linear-gradient(90deg, #00c8e8 0%, #4ade80 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        :root:not([data-theme="ocean"]) .ftb-grad {
+            background: linear-gradient(90deg, #a5b4fc 0%, #c4b5fd 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .ftb-sub {
+            font-size: 0.79rem;
+            color: rgba(200,238,255,0.48);
+            line-height: 1.62;
+            max-width: 310px;
+        }
+        :root:not([data-theme="ocean"]) .ftb-sub { color: rgba(199,210,254,0.62); }
+        .ftb-ctas {
+            display: flex;
+            gap: 9px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .ftb-cta-primary {
+            padding: 9px 19px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(90deg, #00c8e8 0%, #0ea5e9 100%);
+            color: #000;
+            font-size: 0.83rem;
+            font-weight: 800;
+            cursor: pointer;
+            letter-spacing: 0.2px;
+            transition: opacity .2s, transform .15s, box-shadow .2s;
+            box-shadow: 0 4px 18px rgba(0,200,232,0.42);
+            white-space: nowrap;
+        }
+        .ftb-cta-primary:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(0,200,232,0.58); }
+        :root:not([data-theme="ocean"]) .ftb-cta-primary {
+            background: linear-gradient(90deg, #6366f1 0%, #818cf8 100%);
+            color: #fff;
+            box-shadow: 0 4px 18px rgba(99,102,241,0.5);
+        }
+        :root:not([data-theme="ocean"]) .ftb-cta-primary:hover { box-shadow: 0 6px 24px rgba(99,102,241,0.68); }
+        .ftb-cta-ghost {
+            padding: 8px 17px;
+            border-radius: 10px;
+            border: 1px solid rgba(0,200,232,0.32);
+            background: rgba(0,200,232,0.06);
+            color: rgba(200,238,255,0.72);
+            font-size: 0.83rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: border-color .2s, background .2s, color .2s;
+            white-space: nowrap;
+        }
+        .ftb-cta-ghost:hover { border-color: rgba(0,200,232,0.7); background: rgba(0,200,232,0.12); color: #fff; }
+        :root:not([data-theme="ocean"]) .ftb-cta-ghost {
+            border-color: rgba(165,180,252,0.38);
+            background: rgba(129,140,248,0.10);
+            color: rgba(199,210,254,0.78);
+        }
+        :root:not([data-theme="ocean"]) .ftb-cta-ghost:hover { border-color: rgba(165,180,252,0.75); background: rgba(129,140,248,0.18); color: #fff; }
+        .ftb-promo-hint {
+            font-size: 0.67rem;
+            color: rgba(200,238,255,0.32);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        :root:not([data-theme="ocean"]) .ftb-promo-hint { color: rgba(199,210,254,0.42); }
+        .ftb-code {
+            font-family: 'Courier New', monospace;
+            font-weight: 800;
+            letter-spacing: 3px;
+            color: #4ade80;
+            background: rgba(74,222,128,0.10);
+            border: 1px solid rgba(74,222,128,0.25);
+            border-radius: 5px;
+            padding: 1px 7px;
+            font-size: 0.7rem;
+        }
+        :root:not([data-theme="ocean"]) .ftb-code {
+            color: #86efac;
+            background: rgba(134,239,172,0.12);
+            border-color: rgba(134,239,172,0.3);
+        }
+        /* Right: terminal */
+        .ftb-right {
+            padding: 14px 18px 14px 12px;
+            display: flex;
+            align-items: center;
+        }
+        .ftb-terminal {
+            width: 100%;
+            background: rgba(0,0,0,0.48);
+            border: 1px solid rgba(0,200,232,0.18);
+            border-radius: 13px;
+            overflow: hidden;
+            position: relative;
+            animation: ftbGlowPulse 4s ease-in-out infinite;
+        }
+        :root:not([data-theme="ocean"]) .ftb-terminal {
+            background: rgba(0,0,0,0.32);
+            border-color: rgba(165,180,252,0.22);
+            animation: none;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .ftb-term-header {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 7px 11px;
+            background: rgba(0,0,0,0.32);
+            border-bottom: 1px solid rgba(0,200,232,0.10);
+        }
+        :root:not([data-theme="ocean"]) .ftb-term-header { border-bottom-color: rgba(165,180,252,0.12); }
+        .ftb-term-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+        .ftb-dot-r { background: #ff5f57; }
+        .ftb-dot-y { background: #febc2e; }
+        .ftb-dot-g { background: #28c840; }
+        .ftb-term-title {
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            color: rgba(0,200,232,0.45);
+            letter-spacing: 1px;
+            flex: 1;
+            margin-left: 5px;
+        }
+        :root:not([data-theme="ocean"]) .ftb-term-title { color: rgba(165,180,252,0.5); }
+        .ftb-term-live {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.56rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: #4ade80;
+        }
+        .ftb-term-live-dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 5px rgba(74,222,128,0.9);
+            animation: livePulse 1.2s ease-in-out infinite;
+        }
+        .ftb-term-body { padding: 5px 0 3px; font-family: 'Courier New', monospace; }
+        .ftb-tick-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 11px;
+            transition: background .3s;
+        }
+        .ftb-tick-row.flash         { animation: ftbFlash      .65s ease-out forwards; }
+        :root:not([data-theme="ocean"]) .ftb-tick-row.flash { animation: ftbFlashLight .65s ease-out forwards; }
+        .ftb-tick-sym {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: rgba(200,238,255,0.88);
+            min-width: 38px;
+            letter-spacing: 0.5px;
+        }
+        :root:not([data-theme="ocean"]) .ftb-tick-sym { color: rgba(199,210,254,0.95); }
+        .ftb-tick-chart { flex: 1; height: 20px; min-width: 0; }
+        .ftb-tick-chart svg { width: 100%; height: 100%; }
+        .ftb-spark-path {
+            stroke-dasharray: 220;
+            stroke-dashoffset: 220;
+            fill: none;
+            stroke-linecap: round;
+        }
+        .ftb-sp1 { animation: ftbSpark 1.4s cubic-bezier(.4,0,.2,1) .15s forwards; }
+        .ftb-sp2 { animation: ftbSpark 1.4s cubic-bezier(.4,0,.2,1) .35s forwards; }
+        .ftb-sp3 { animation: ftbSpark 1.4s cubic-bezier(.4,0,.2,1) .55s forwards; }
+        .ftb-sp4 { animation: ftbSpark 1.4s cubic-bezier(.4,0,.2,1) .75s forwards; }
+        .ftb-tick-pct { font-size: 0.67rem; font-weight: 700; min-width: 46px; text-align: right; }
+        .ftb-tick-pct.up { color: #4ade80; }
+        .ftb-tick-pct.dn { color: #f87171; }
+        .ftb-tick-price {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: rgba(200,238,255,0.72);
+            min-width: 50px;
+            text-align: right;
+            letter-spacing: 0.3px;
+        }
+        :root:not([data-theme="ocean"]) .ftb-tick-price { color: rgba(199,210,254,0.78); }
+        .ftb-divider { height: 1px; background: rgba(0,200,232,0.09); margin: 3px 11px; }
+        :root:not([data-theme="ocean"]) .ftb-divider { background: rgba(165,180,252,0.12); }
+        .ftb-signal {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 11px 8px;
+        }
+        .ftb-signal-icon { font-size: 0.95rem; flex-shrink: 0; }
+        .ftb-signal-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+        .ftb-signal-title {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: rgba(200,238,255,0.6);
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        :root:not([data-theme="ocean"]) .ftb-signal-title { color: rgba(199,210,254,0.65); }
+        .ftb-signal-val { font-size: 0.6rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ftb-signal-val.bullish { color: #4ade80; }
+        .ftb-signal-val.bearish { color: #f87171; }
+        .ftb-signal-conf {
+            font-size: 0.56rem;
+            font-weight: 800;
+            color: #f59e0b;
+            background: rgba(245,158,11,0.12);
+            border: 1px solid rgba(245,158,11,0.22);
+            border-radius: 5px;
+            padding: 2px 6px;
+            white-space: nowrap;
+        }
+        .ftb-scanline {
+            position: absolute;
+            left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, rgba(0,200,232,0.5) 50%, transparent 100%);
+            animation: ftbScanLine 5s linear 1.5s infinite;
+            pointer-events: none;
+            top: -2px;
+        }
+        :root:not([data-theme="ocean"]) .ftb-scanline {
+            background: linear-gradient(90deg, transparent 0%, rgba(165,180,252,0.45) 50%, transparent 100%);
+        }
+        @media (max-width: 1024px) {
+            .ftb-inner { grid-template-columns: 1fr; }
+            .ftb-right { display: none; }
+        }
+        @media (max-width: 767px) {
+            .ftb-headline { font-size: 1.65rem; }
+            .ftb-left { padding: 22px 20px 20px; }
+        }
+
         /* ── Ticker autocomplete dropdown ── */
         .ticker-autocomplete {
             position: absolute;
@@ -3476,72 +3841,102 @@
         <div class="hero-carousel" id="hero-carousel">
             <div class="hero-carousel-track" id="hero-carousel-track">
 
-                <!-- Slide 0: AI/ML hero -->
+                <!-- Slide 0: Fintech Promo Banner -->
                 <div class="hero-carousel-slide">
-                    <div class="hero-banner" id="hero-banner">
-                        <div class="hero-orbs" aria-hidden="true"></div>
-                        <div class="hero-inner">
-                            <!-- Left: headline + sub -->
-                            <div class="hero-left">
-                                <div class="hero-headline">
-                                    AI and ML powered insights<br>
-                                    <span class="hl-grad">Confident decisions..</span>
+                    <div class="hero-banner ftb-slide" id="hero-banner">
+                        <div class="ftb-inner">
+
+                            <!-- Left: headline + CTA -->
+                            <div class="ftb-left">
+                                <div class="ftb-live-badge">
+                                    <span class="ftb-live-dot"></span>
+                                    AI-Powered · Live Markets
                                 </div>
-                                <div class="hero-sub">
-                                    Analyse any stock with AI-ensemble predictions, technical pattern detection,
-                                    news sentiment scoring, and institutional-grade peer comparisons in seconds.
+                                <div class="ftb-headline">
+                                    Predict, Analyse,<br>
+                                    <span class="ftb-grad">Outperform.</span>
+                                </div>
+                                <div class="ftb-sub">
+                                    ML ensemble forecasts, AI trade thesis &amp; real-time pattern detection —
+                                    professional-grade tools at your fingertips.
+                                </div>
+                                <div class="ftb-ctas">
+                                    <button class="ftb-cta-primary" id="ftb-cta-promo">Get 50% Off Pro →</button>
+                                    <button class="ftb-cta-ghost" id="ftb-cta-try">Try Free</button>
+                                </div>
+                                <div class="ftb-promo-hint">
+                                    <i class="fas fa-tag" style="font-size:0.58rem;"></i>
+                                    Use code <span class="ftb-code">W3LCOM3</span> &mdash; valid until 25 May 2026
                                 </div>
                             </div>
-                            <!-- Middle: pills + tickers -->
-                            <div class="hero-bottom">
-                                <div class="hero-features">
-                                    <span class="hero-feat-pill"><i class="fas fa-brain"></i> Ensemble ML Forecast
-                                        <span class="hero-pill-tip">Blends XGBoost, ExtraTrees &amp; RandomForest to generate a 30-day price forecast with confidence scoring.</span>
-                                    </span>
-                                    <span class="hero-feat-pill"><i class="fas fa-wave-square"></i> Pattern Detection
-                                        <span class="hero-pill-tip">Automatically identifies chart patterns — head &amp; shoulders, triangles, flags, double tops, cup &amp; handle and more.</span>
-                                    </span>
-                                    <span class="hero-feat-pill"><i class="fas fa-newspaper"></i> News Sentiment
-                                        <span class="hero-pill-tip">Scans the latest headlines and scores them with VADER sentiment analysis to gauge market mood around the stock.</span>
-                                    </span>
-                                    <span class="hero-feat-pill"><i class="fas fa-users"></i> Peer Comparison
-                                        <span class="hero-pill-tip">Ranks the stock side-by-side with its closest industry peers across valuation, growth, margins and return metrics.</span>
-                                    </span>
-                                    <span class="hero-feat-pill"><i class="fas fa-bolt"></i> Remarkables Scanner
-                                        <span class="hero-pill-tip">Daily scan of 4,300+ US and Turkish symbols to surface top movers, trending stocks, high dividends and undervalued picks.</span>
-                                    </span>
-                                    <span class="hero-feat-pill"><i class="fas fa-star"></i> Watchlist
-                                        <span class="hero-pill-tip">Save any analysed ticker to your personal watchlist for one-click reload — free for all registered users.</span>
-                                    </span>
-                                </div>
-                                <div class="hero-try-now">
-                                    <div class="hero-tickers-row">
-                                        <span class="hero-tickers-label hero-tickers-label-blink">TRY ONE</span>
-                                        <div class="hero-tickers">
-                                            <button class="hero-ticker-btn" data-ticker="NVDA">NVDA</button>
-                                            <button class="hero-ticker-btn" data-ticker="AMZN">AMZN</button>
-                                            <button class="hero-ticker-btn" data-ticker="THYAO.IS">THYAO.IS</button>
+
+                            <!-- Right: animated terminal -->
+                            <div class="ftb-right">
+                                <div class="ftb-terminal">
+                                    <div class="ftb-term-header">
+                                        <span class="ftb-term-dot ftb-dot-r"></span>
+                                        <span class="ftb-term-dot ftb-dot-y"></span>
+                                        <span class="ftb-term-dot ftb-dot-g"></span>
+                                        <span class="ftb-term-title">stocker &middot; live market feed</span>
+                                        <span class="ftb-term-live">
+                                            <span class="ftb-term-live-dot"></span>LIVE
+                                        </span>
+                                    </div>
+                                    <div class="ftb-term-body">
+                                        <div class="ftb-tick-row" id="ftb-row-nvda">
+                                            <span class="ftb-tick-sym">NVDA</span>
+                                            <div class="ftb-tick-chart">
+                                                <svg viewBox="0 0 80 24" preserveAspectRatio="none" fill="none">
+                                                    <path class="ftb-spark-path ftb-sp1" d="M0,20 L13,15 L27,17 L40,8 L54,11 L67,4 L80,2" stroke="#4ade80" stroke-width="1.5" stroke-linejoin="round"/>
+                                                </svg>
+                                            </div>
+                                            <span class="ftb-tick-pct up" id="ftb-nvda-pct">+3.24%</span>
+                                            <span class="ftb-tick-price" id="ftb-nvda-px">875.20</span>
+                                        </div>
+                                        <div class="ftb-tick-row" id="ftb-row-aapl">
+                                            <span class="ftb-tick-sym">AAPL</span>
+                                            <div class="ftb-tick-chart">
+                                                <svg viewBox="0 0 80 24" preserveAspectRatio="none" fill="none">
+                                                    <path class="ftb-spark-path ftb-sp2" d="M0,5 L13,8 L27,6 L40,14 L54,11 L67,18 L80,21" stroke="#f87171" stroke-width="1.5" stroke-linejoin="round"/>
+                                                </svg>
+                                            </div>
+                                            <span class="ftb-tick-pct dn" id="ftb-aapl-pct">&#8722;0.87%</span>
+                                            <span class="ftb-tick-price" id="ftb-aapl-px">192.45</span>
+                                        </div>
+                                        <div class="ftb-tick-row" id="ftb-row-tsla">
+                                            <span class="ftb-tick-sym">TSLA</span>
+                                            <div class="ftb-tick-chart">
+                                                <svg viewBox="0 0 80 24" preserveAspectRatio="none" fill="none">
+                                                    <path class="ftb-spark-path ftb-sp3" d="M0,18 L13,16 L27,19 L40,11 L54,13 L67,6 L80,4" stroke="#4ade80" stroke-width="1.5" stroke-linejoin="round"/>
+                                                </svg>
+                                            </div>
+                                            <span class="ftb-tick-pct up" id="ftb-tsla-pct">+1.62%</span>
+                                            <span class="ftb-tick-price" id="ftb-tsla-px">248.30</span>
+                                        </div>
+                                        <div class="ftb-tick-row" id="ftb-row-amzn">
+                                            <span class="ftb-tick-sym">AMZN</span>
+                                            <div class="ftb-tick-chart">
+                                                <svg viewBox="0 0 80 24" preserveAspectRatio="none" fill="none">
+                                                    <path class="ftb-spark-path ftb-sp4" d="M0,17 L13,15 L27,16 L40,12 L54,9 L67,7 L80,5" stroke="#4ade80" stroke-width="1.5" stroke-linejoin="round"/>
+                                                </svg>
+                                            </div>
+                                            <span class="ftb-tick-pct up" id="ftb-amzn-pct">+0.45%</span>
+                                            <span class="ftb-tick-price" id="ftb-amzn-px">185.90</span>
+                                        </div>
+                                        <div class="ftb-divider"></div>
+                                        <div class="ftb-signal">
+                                            <span class="ftb-signal-icon">🤖</span>
+                                            <div class="ftb-signal-text">
+                                                <span class="ftb-signal-title" id="ftb-sig-title">NVDA &middot; Ensemble Forecast</span>
+                                                <span class="ftb-signal-val bullish" id="ftb-sig-val">&#x2191; Bullish &middot; 30-day target: $912</span>
+                                            </div>
+                                            <span class="ftb-signal-conf" id="ftb-sig-conf">87% conf.</span>
                                         </div>
                                     </div>
+                                    <div class="ftb-scanline" aria-hidden="true"></div>
                                 </div>
                             </div>
-                            <!-- Right: stat cluster -->
-                            <div class="hero-right">
-                                <div class="hero-stat-cluster">
-                                    <div class="hero-stat">
-                                        <div class="hero-stat-val green">4,326</div>
-                                        <div class="hero-stat-lbl">Symbols Scanned</div>
-                                    </div>
-                                    <div class="hero-stat">
-                                        <div class="hero-stat-val blue">3</div>
-                                        <div class="hero-stat-lbl">ML Models Blended</div>
-                                    </div>
-                                    <div class="hero-stat">
-                                        <div class="hero-stat-val purple">30-day</div>
-                                        <div class="hero-stat-lbl">Price Forecast</div>
-                                    </div>
-                                </div>
-                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -5512,6 +5907,34 @@
                     });
                 }
 
+                // Fintech banner: CTA handlers
+                var ftbCtaPromo = document.getElementById('ftb-cta-promo');
+                if (ftbCtaPromo) {
+                    ftbCtaPromo.addEventListener('click', function() {
+                        setPromoCode('W3LCOM3');
+                        ['wm-promo-input','upgrade-promo-input','profile-promo-input'].forEach(function(id) {
+                            var el = document.getElementById(id); if (el) el.value = 'W3LCOM3';
+                        });
+                        {% if user_email %}
+                            openUpgradeModal();
+                        {% else %}
+                            var wm = document.getElementById('welcome-modal');
+                            if (wm) { wm.style.display = 'flex'; wm.classList.add('is-visible'); }
+                        {% endif %}
+                    });
+                }
+                var ftbCtaTry = document.getElementById('ftb-cta-try');
+                if (ftbCtaTry) {
+                    ftbCtaTry.addEventListener('click', function() {
+                        {% if not user_email %}
+                            var wm = document.getElementById('welcome-modal');
+                            if (wm) { wm.style.display = 'flex'; wm.classList.add('is-visible'); }
+                        {% endif %}
+                        var inp = document.getElementById('stock-input');
+                        if (inp) inp.focus();
+                    });
+                }
+
                 // Legacy ref used by ticker chips below
                 var banner = document.getElementById('hero-banner');
 
@@ -5531,6 +5954,64 @@
                 });
             })();
 
+            /* ── Fintech banner: live terminal animation ── */
+            (function() {
+                var tickers = [
+                    { id: 'nvda', base: 875.20, vol: 7,   pct: 3.24,  dir:  1 },
+                    { id: 'aapl', base: 192.45, vol: 1.8, pct: -0.87, dir: -1 },
+                    { id: 'tsla', base: 248.30, vol: 4.5, pct: 1.62,  dir:  1 },
+                    { id: 'amzn', base: 185.90, vol: 2.2, pct: 0.45,  dir:  1 },
+                ];
+                var signals = [
+                    { title: 'NVDA · Ensemble Forecast',   val: '↑ Bullish · 30-day target: $912', cls: 'bullish', conf: '87% conf.' },
+                    { title: 'AAPL · Pattern Detected',    val: '▶ Symmetrical Triangle → Breakout', cls: 'bullish', conf: '74% conf.' },
+                    { title: 'TSLA · RSI Signal',          val: '↑ Oversold Bounce · Support: $240', cls: 'bullish', conf: '69% conf.' },
+                    { title: 'AMZN · Trade Thesis',        val: '⚡ Accumulation Phase Detected', cls: 'bullish', conf: '81% conf.' },
+                    { title: 'AAPL · Sentiment Score',     val: '▼ Bearish Sentiment · -0.42 VADER', cls: 'bearish', conf: '63% conf.' },
+                ];
+                var sigIdx = 0, tickIdx = 0;
+
+                function rnd(a, b) { return Math.random() * (b - a) + a; }
+
+                function updateRow(t) {
+                    var delta = rnd(-t.vol * 0.25, t.vol * 0.35) * t.dir;
+                    t.base = Math.max(t.base + delta, 1);
+                    t.pct  = t.pct + rnd(-0.07, 0.11) * t.dir;
+                    if (Math.abs(t.pct) > 5.5) t.dir *= -1;
+
+                    var pxEl  = document.getElementById('ftb-' + t.id + '-px');
+                    var pctEl = document.getElementById('ftb-' + t.id + '-pct');
+                    var row   = document.getElementById('ftb-row-' + t.id);
+                    if (!pxEl) return;
+
+                    var up = t.pct >= 0;
+                    pxEl.textContent  = t.base.toFixed(2);
+                    pctEl.textContent = (up ? '+' : '−') + Math.abs(t.pct).toFixed(2) + '%';
+                    pctEl.className   = 'ftb-tick-pct ' + (up ? 'up' : 'dn');
+
+                    row.classList.remove('flash');
+                    void row.offsetWidth;
+                    row.classList.add('flash');
+                }
+
+                function rotateSig() {
+                    sigIdx = (sigIdx + 1) % signals.length;
+                    var s  = signals[sigIdx];
+                    var el = document.getElementById('ftb-sig-title');
+                    if (!el) return;
+                    document.getElementById('ftb-sig-title').textContent = s.title;
+                    var v = document.getElementById('ftb-sig-val');
+                    v.textContent = s.val;
+                    v.className   = 'ftb-signal-val ' + s.cls;
+                    document.getElementById('ftb-sig-conf').textContent = s.conf;
+                }
+
+                setInterval(function() {
+                    updateRow(tickers[tickIdx % tickers.length]);
+                    tickIdx++;
+                    if (tickIdx % tickers.length === 0) rotateSig();
+                }, 1800);
+            })();
 
             /* ── Ticker autocomplete ── */
             (function() {
