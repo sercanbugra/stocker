@@ -2348,9 +2348,40 @@
         }
 
         /* ── Fintech Promo Banner (Slide-0) ── */
-        @keyframes ftbSpark {
-            from { stroke-dashoffset: 220; }
-            to   { stroke-dashoffset: 0; }
+        /* ── Fall → BUY → Rise → SELL story animation ── */
+        @keyframes ftbFallDraw {
+            0%          { stroke-dashoffset: 80; }
+            28%         { stroke-dashoffset: 0; }
+            88%         { stroke-dashoffset: 0; }
+            96%,100%    { stroke-dashoffset: 80; }
+        }
+        @keyframes ftbRiseDraw {
+            0%,28%      { stroke-dashoffset: 80; }
+            70%         { stroke-dashoffset: 0; }
+            88%         { stroke-dashoffset: 0; }
+            96%,100%    { stroke-dashoffset: 80; }
+        }
+        @keyframes ftbBuyPop {
+            0%,26%  { opacity: 0; transform: scale(0); }
+            31%     { opacity: 1; transform: scale(1.5); }
+            36%     { transform: scale(1); }
+            87%     { opacity: 1; }
+            94%     { opacity: 0; transform: scale(0); }
+            100%    { opacity: 0; }
+        }
+        @keyframes ftbSellPop {
+            0%,68%  { opacity: 0; transform: scale(0); }
+            73%     { opacity: 1; transform: scale(1.5); }
+            78%     { transform: scale(1); }
+            87%     { opacity: 1; }
+            94%     { opacity: 0; transform: scale(0); }
+            100%    { opacity: 0; }
+        }
+        @keyframes ftbBuyRing {
+            0%,26%  { opacity: 0; r: 2.8; }
+            31%     { opacity: 0.8; r: 2.8; }
+            55%     { opacity: 0; r: 7; }
+            100%    { opacity: 0; }
         }
         @keyframes ftbFlash {
             0%   { background: transparent; }
@@ -2631,16 +2662,44 @@
         :root:not([data-theme="ocean"]) .ftb-tick-sym { color: rgba(199,210,254,0.95); }
         .ftb-tick-chart { flex: 1; height: 20px; min-width: 0; }
         .ftb-tick-chart svg { width: 100%; height: 100%; }
-        .ftb-spark-path {
-            stroke-dasharray: 220;
-            stroke-dashoffset: 220;
+        /* Fall + Rise shared base */
+        .ftb-fall, .ftb-rise {
+            stroke-dasharray: 80;
+            stroke-dashoffset: 80;
             fill: none;
             stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-width: 1.8;
         }
-        .ftb-sp1 { animation: ftbSpark 1.4s cubic-bezier(.4,0,.2,1) .15s forwards; }
-        .ftb-sp2 { animation: ftbSpark 1.4s cubic-bezier(.4,0,.2,1) .35s forwards; }
-        .ftb-sp3 { animation: ftbSpark 1.4s cubic-bezier(.4,0,.2,1) .55s forwards; }
-        .ftb-sp4 { animation: ftbSpark 1.4s cubic-bezier(.4,0,.2,1) .75s forwards; }
+        .ftb-buy, .ftb-sell {
+            opacity: 0;
+            transform-box: fill-box;
+            transform-origin: center;
+        }
+        /* Row 1 (NVDA) — delay 0s */
+        .ftb-f1 { animation: ftbFallDraw 8s linear 0s   infinite; }
+        .ftb-r1 { animation: ftbRiseDraw 8s linear 0s   infinite; }
+        .ftb-b1 { animation: ftbBuyPop   8s linear 0s   infinite; }
+        .ftb-s1 { animation: ftbSellPop  8s linear 0s   infinite; }
+        .ftb-br1{ animation: ftbBuyRing  8s linear 0s   infinite; }
+        /* Row 2 (AAPL) — delay 2s */
+        .ftb-f2 { animation: ftbFallDraw 8s linear 2s   infinite; }
+        .ftb-r2 { animation: ftbRiseDraw 8s linear 2s   infinite; }
+        .ftb-b2 { animation: ftbBuyPop   8s linear 2s   infinite; }
+        .ftb-s2 { animation: ftbSellPop  8s linear 2s   infinite; }
+        .ftb-br2{ animation: ftbBuyRing  8s linear 2s   infinite; }
+        /* Row 3 (TSLA) — delay 4s */
+        .ftb-f3 { animation: ftbFallDraw 8s linear 4s   infinite; }
+        .ftb-r3 { animation: ftbRiseDraw 8s linear 4s   infinite; }
+        .ftb-b3 { animation: ftbBuyPop   8s linear 4s   infinite; }
+        .ftb-s3 { animation: ftbSellPop  8s linear 4s   infinite; }
+        .ftb-br3{ animation: ftbBuyRing  8s linear 4s   infinite; }
+        /* Row 4 (AMZN) — delay 6s */
+        .ftb-f4 { animation: ftbFallDraw 8s linear 6s   infinite; }
+        .ftb-r4 { animation: ftbRiseDraw 8s linear 6s   infinite; }
+        .ftb-b4 { animation: ftbBuyPop   8s linear 6s   infinite; }
+        .ftb-s4 { animation: ftbSellPop  8s linear 6s   infinite; }
+        .ftb-br4{ animation: ftbBuyRing  8s linear 6s   infinite; }
         .ftb-tick-pct { font-size: 0.67rem; font-weight: 700; min-width: 46px; text-align: right; }
         .ftb-tick-pct.up { color: #4ade80; }
         .ftb-tick-pct.dn { color: #f87171; }
@@ -3886,8 +3945,12 @@
                                         <div class="ftb-tick-row" id="ftb-row-nvda">
                                             <span class="ftb-tick-sym">NVDA</span>
                                             <div class="ftb-tick-chart">
-                                                <svg viewBox="0 0 80 24" preserveAspectRatio="none" fill="none">
-                                                    <path class="ftb-spark-path ftb-sp1" d="M0,20 L13,15 L27,17 L40,8 L54,11 L67,4 L80,2" stroke="#4ade80" stroke-width="1.5" stroke-linejoin="round"/>
+                                                <svg viewBox="0 0 80 26" preserveAspectRatio="none" fill="none">
+                                                    <path class="ftb-fall ftb-f1" d="M0,3 L20,9 L32,16 L40,22" stroke="#f87171"/>
+                                                    <path class="ftb-rise ftb-r1" d="M40,22 L53,14 L64,7 L72,3 L80,1" stroke="#4ade80"/>
+                                                    <circle class="ftb-buy  ftb-b1"  cx="40" cy="22" r="2.8" fill="#4ade80"/>
+                                                    <circle class="ftb-buy  ftb-br1" cx="40" cy="22" r="2.8" fill="none" stroke="#4ade80" stroke-width="1.5"/>
+                                                    <circle class="ftb-sell ftb-s1"  cx="80" cy="1"  r="2.8" fill="#f59e0b"/>
                                                 </svg>
                                             </div>
                                             <span class="ftb-tick-pct up" id="ftb-nvda-pct">+3.24%</span>
@@ -3896,8 +3959,12 @@
                                         <div class="ftb-tick-row" id="ftb-row-aapl">
                                             <span class="ftb-tick-sym">AAPL</span>
                                             <div class="ftb-tick-chart">
-                                                <svg viewBox="0 0 80 24" preserveAspectRatio="none" fill="none">
-                                                    <path class="ftb-spark-path ftb-sp2" d="M0,5 L13,8 L27,6 L40,14 L54,11 L67,18 L80,21" stroke="#f87171" stroke-width="1.5" stroke-linejoin="round"/>
+                                                <svg viewBox="0 0 80 26" preserveAspectRatio="none" fill="none">
+                                                    <path class="ftb-fall ftb-f2" d="M0,5 L18,10 L30,15 L40,21" stroke="#f87171"/>
+                                                    <path class="ftb-rise ftb-r2" d="M40,21 L55,14 L67,8 L80,5" stroke="#4ade80"/>
+                                                    <circle class="ftb-buy  ftb-b2"  cx="40" cy="21" r="2.8" fill="#4ade80"/>
+                                                    <circle class="ftb-buy  ftb-br2" cx="40" cy="21" r="2.8" fill="none" stroke="#4ade80" stroke-width="1.5"/>
+                                                    <circle class="ftb-sell ftb-s2"  cx="80" cy="5"  r="2.8" fill="#f59e0b"/>
                                                 </svg>
                                             </div>
                                             <span class="ftb-tick-pct dn" id="ftb-aapl-pct">&#8722;0.87%</span>
@@ -3906,8 +3973,12 @@
                                         <div class="ftb-tick-row" id="ftb-row-tsla">
                                             <span class="ftb-tick-sym">TSLA</span>
                                             <div class="ftb-tick-chart">
-                                                <svg viewBox="0 0 80 24" preserveAspectRatio="none" fill="none">
-                                                    <path class="ftb-spark-path ftb-sp3" d="M0,18 L13,16 L27,19 L40,11 L54,13 L67,6 L80,4" stroke="#4ade80" stroke-width="1.5" stroke-linejoin="round"/>
+                                                <svg viewBox="0 0 80 26" preserveAspectRatio="none" fill="none">
+                                                    <path class="ftb-fall ftb-f3" d="M0,4 L16,10 L28,17 L40,23" stroke="#f87171"/>
+                                                    <path class="ftb-rise ftb-r3" d="M40,23 L54,15 L66,7 L80,3" stroke="#4ade80"/>
+                                                    <circle class="ftb-buy  ftb-b3"  cx="40" cy="23" r="2.8" fill="#4ade80"/>
+                                                    <circle class="ftb-buy  ftb-br3" cx="40" cy="23" r="2.8" fill="none" stroke="#4ade80" stroke-width="1.5"/>
+                                                    <circle class="ftb-sell ftb-s3"  cx="80" cy="3"  r="2.8" fill="#f59e0b"/>
                                                 </svg>
                                             </div>
                                             <span class="ftb-tick-pct up" id="ftb-tsla-pct">+1.62%</span>
@@ -3916,8 +3987,12 @@
                                         <div class="ftb-tick-row" id="ftb-row-amzn">
                                             <span class="ftb-tick-sym">AMZN</span>
                                             <div class="ftb-tick-chart">
-                                                <svg viewBox="0 0 80 24" preserveAspectRatio="none" fill="none">
-                                                    <path class="ftb-spark-path ftb-sp4" d="M0,17 L13,15 L27,16 L40,12 L54,9 L67,7 L80,5" stroke="#4ade80" stroke-width="1.5" stroke-linejoin="round"/>
+                                                <svg viewBox="0 0 80 26" preserveAspectRatio="none" fill="none">
+                                                    <path class="ftb-fall ftb-f4" d="M0,6 L20,11 L32,15 L40,20" stroke="#f87171"/>
+                                                    <path class="ftb-rise ftb-r4" d="M40,20 L55,13 L67,8 L80,5" stroke="#4ade80"/>
+                                                    <circle class="ftb-buy  ftb-b4"  cx="40" cy="20" r="2.8" fill="#4ade80"/>
+                                                    <circle class="ftb-buy  ftb-br4" cx="40" cy="20" r="2.8" fill="none" stroke="#4ade80" stroke-width="1.5"/>
+                                                    <circle class="ftb-sell ftb-s4"  cx="80" cy="5"  r="2.8" fill="#f59e0b"/>
                                                 </svg>
                                             </div>
                                             <span class="ftb-tick-pct up" id="ftb-amzn-pct">+0.45%</span>
@@ -3941,69 +4016,11 @@
                     </div>
                 </div>
 
-                <!-- Slide 1: Promo banner -->
-                <div class="hero-carousel-slide">
-                    <div class="hero-banner promo-slide">
-                        <div class="hero-orbs" aria-hidden="true"></div>
-                        <div class="promo-inner">
-                            <!-- Left: headline -->
-                            <div class="promo-left">
-                                <div class="promo-badge">
-                                    <span class="promo-badge-dot"></span>
-                                    Limited Time Offer
-                                </div>
-                                <div class="promo-headline">
-                                    <span class="promo-pct">50% Off</span><br>
-                                    Your First Month
-                                </div>
-                                <div class="promo-sub">
-                                    Subscribe to Pro or Premium with your promo code and pay half price for the first month. Offer valid for 2 weeks only.
-                                </div>
-                            </div>
-                            <!-- Center: code card + CTA -->
-                            <div class="promo-center">
-                                <div class="promo-code-card" id="promo-hero-code-card" title="Click to copy">
-                                    <div class="promo-code-card-label">Your promo code</div>
-                                    <div class="promo-code-card-value">W3LCOM3</div>
-                                    <div class="promo-code-card-hint">click to copy &amp; apply</div>
-                                </div>
-                                <button class="promo-cta-btn" id="promo-hero-cta">Get 50% Off Now →</button>
-                                <div class="promo-valid-line">
-                                    <i class="fas fa-clock" style="font-size:0.65rem;"></i>
-                                    Valid until 25 May 2026
-                                </div>
-                            </div>
-                            <!-- Right: pricing stats -->
-                            <div class="promo-right">
-                                <div class="promo-stat-grid">
-                                    <div class="promo-stat-item">
-                                        <div class="promo-stat-num">50%</div>
-                                        <div class="promo-stat-lbl">Discount</div>
-                                    </div>
-                                    <div class="promo-stat-item">
-                                        <div class="promo-stat-num">£2<small style="font-size:0.65rem;">/mo</small></div>
-                                        <div class="promo-stat-lbl">Pro first month</div>
-                                    </div>
-                                    <div class="promo-stat-item">
-                                        <div class="promo-stat-num">£3<small style="font-size:0.65rem;">/mo</small></div>
-                                        <div class="promo-stat-lbl">Premium first month</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
             </div>
 
-            <!-- Dismiss button (dismisses entire carousel) -->
+            <!-- Dismiss button -->
             <button class="hero-dismiss" id="hero-dismiss" aria-label="Dismiss"><i class="fas fa-times"></i></button>
-
-            <!-- Slide indicators -->
-            <div class="hero-carousel-dots" aria-label="Slide navigation">
-                <button class="hc-dot active" data-idx="0" aria-label="Slide 1"></button>
-                <button class="hc-dot" data-idx="1" aria-label="Slide 2"></button>
-            </div>
         </div>
 
         <div class="card remarkable-card mt-3">
@@ -5842,36 +5859,7 @@
                     localStorage.setItem(HERO_KEY, '1');
                 });
 
-                // Carousel slide logic
-                var current = 0;
-                var total   = 2;
-                var timer   = null;
-
-                function goTo(idx) {
-                    current = (idx + total) % total;
-                    track.style.transform = 'translateX(-' + (current * 100) + '%)';
-                    dots.forEach(function(d, i) {
-                        d.classList.toggle('active', i === current);
-                    });
-                }
-
-                function startTimer() {
-                    clearInterval(timer);
-                    timer = setInterval(function() { goTo(current + 1); }, 5000);
-                }
-
-                dots.forEach(function(d) {
-                    d.addEventListener('click', function() {
-                        goTo(parseInt(d.dataset.idx));
-                        startTimer();
-                    });
-                });
-
-                // Pause on hover
-                carousel.addEventListener('mouseenter', function() { clearInterval(timer); });
-                carousel.addEventListener('mouseleave', startTimer);
-
-                startTimer();
+                // Single-slide carousel — no timer needed
 
                 // Promo slide: click code card to copy + apply
                 var codeCard = document.getElementById('promo-hero-code-card');
@@ -5963,11 +5951,13 @@
                     { id: 'amzn', base: 185.90, vol: 2.2, pct: 0.45,  dir:  1 },
                 ];
                 var signals = [
-                    { title: 'NVDA · Ensemble Forecast',   val: '↑ Bullish · 30-day target: $912', cls: 'bullish', conf: '87% conf.' },
-                    { title: 'AAPL · Pattern Detected',    val: '▶ Symmetrical Triangle → Breakout', cls: 'bullish', conf: '74% conf.' },
-                    { title: 'TSLA · RSI Signal',          val: '↑ Oversold Bounce · Support: $240', cls: 'bullish', conf: '69% conf.' },
-                    { title: 'AMZN · Trade Thesis',        val: '⚡ Accumulation Phase Detected', cls: 'bullish', conf: '81% conf.' },
-                    { title: 'AAPL · Sentiment Score',     val: '▼ Bearish Sentiment · -0.42 VADER', cls: 'bearish', conf: '63% conf.' },
+                    { title: 'NVDA · 🟢 BUY Signal Triggered',  val: '↓ Dip to $852 · Entry confirmed · Target $912', cls: 'bullish', conf: '+7.0%' },
+                    { title: 'TSLA · 🟢 BUY — RSI Oversold',    val: '↓ RSI 27 hit · Entry $241 · Stop $231',         cls: 'bullish', conf: '+13.2%' },
+                    { title: 'NVDA · 🏆 SELL — Take Profit',    val: '💰 SOLD $914 · Profit +$62 · Return +7.3%',     cls: 'bullish', conf: '+$62' },
+                    { title: 'AAPL · 🟢 BUY — Cup & Handle',    val: '▶ Breakout at $190 · Target $200',              cls: 'bullish', conf: '+5.2%' },
+                    { title: 'AMZN · 🟢 BUY — Smart Money',     val: '⚡ Unusual volume · Entry $184 · Target $194',  cls: 'bullish', conf: '+5.4%' },
+                    { title: 'TSLA · 🏆 SELL — Target Reached', val: '💰 SOLD $273 · Profit +$32 · Return +13.3%',    cls: 'bullish', conf: '+$32' },
+                    { title: 'AMZN · 🏆 SELL — Profit Locked',  val: '💰 SOLD $193 · Profit +$9 · Return +4.9%',     cls: 'bullish', conf: '+$9' },
                 ];
                 var sigIdx = 0, tickIdx = 0;
 
