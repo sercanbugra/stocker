@@ -5941,9 +5941,9 @@
 
                     ctx.clearRect(0, 0, W, H);
 
-                    // Smoothly lerp display range toward global story bounds — no jitter
-                    dYMin += (story._yMin - dYMin) * 0.04;
-                    dYMax += (story._yMax - dYMax) * 0.04;
+                    // Use pre-computed global bounds — stable Y scale, no per-frame rescaling
+                    dYMin = story._yMin;
+                    dYMax = story._yMax;
 
                     function py(p) { return H - ((p - dYMin) / (dYMax - dYMin)) * H; }
 
@@ -5955,13 +5955,20 @@
                         ctx.beginPath(); ctx.moveTo(W*f, 0); ctx.lineTo(W*f, H); ctx.stroke();
                     });
 
-                    var first = Math.max(0, Math.floor(scrollX / STEP) - 1);
-                    var last  = Math.min(story.length - 1, first + Math.ceil(W / STEP) + 2);
+                    // Sub-pixel smooth scroll via canvas translate — candles drawn at
+                    // integer coords, entire scene shifts fractionally (no per-candle rounding jitter)
+                    var offsetX  = scrollX % STEP;
+                    var firstIdx = Math.floor(scrollX / STEP);
+                    ctx.save();
+                    ctx.translate(-offsetX, 0);
+
+                    var first = Math.max(0, firstIdx - 1);
+                    var last  = Math.min(story.length - 1, firstIdx + Math.ceil(W / STEP) + 2);
                     var latestClose = null, latestPct = null;
 
                     for (var i = first; i <= last; i++) {
                         var cd = story[i];
-                        var x  = Math.round(i * STEP - scrollX);
+                        var x  = (i - firstIdx) * STEP;  // always integer — no rounding oscillation
                         var up = cd.c >= cd.o;
                         var cx = x + Math.floor(BODY_W / 2) + 0.5;
 
@@ -6017,6 +6024,7 @@
                             ctx.setLineDash([]);
                         }
                     }
+                    ctx.restore(); // undo translate
                     ctx.textAlign = 'left';
 
                     // Update footer
