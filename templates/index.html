@@ -5846,9 +5846,9 @@
                 var canvas = document.getElementById('ftb-ohlc-canvas');
                 if (!canvas) return;
 
-                var STEP   = 11;   // px per candle
+                var STEP   = 11;
                 var BODY_W = 7;
-                var SPEED  = 0.30; // px per frame
+                var SPEED  = 0.55; // fluid motion
 
                 var sigs = [
                     { text: '🤖 Ensemble ML · Scanning markets…',    col: 'rgba(200,238,255,0.42)' },
@@ -5858,7 +5858,6 @@
                     { text: '💰 Profit locked · Cycle complete',      col: '#4ade80' },
                     { text: '🔄 New BUY zone forming…',               col: 'rgba(200,238,255,0.42)' },
                 ];
-                var curSig = 0;
 
                 function isOcean() {
                     return document.documentElement.getAttribute('data-theme') === 'ocean';
@@ -5876,22 +5875,48 @@
 
                 function generateStory() {
                     var candles = [], p = 100;
-                    for (var i = 0; i < 14; i++) {               // fall
-                        candles.push(makeCandle(p, -0.62, 0.019)); p = candles[candles.length-1].c;
+                    // Fall phase
+                    for (var i = 0; i < 16; i++) {
+                        candles.push(makeCandle(p, -0.58, 0.018)); p = candles[candles.length-1].c;
                     }
-                    candles[candles.length-1].buy = true;
-                    for (var i = 0; i < 22; i++) {               // rise
-                        candles.push(makeCandle(p, +0.62, 0.017)); p = candles[candles.length-1].c;
+                    // BUY = lowest-low candle in fall phase
+                    var buyIdx = 0, buyLow = Infinity;
+                    for (var i = 0; i < 16; i++) {
+                        if (candles[i].l < buyLow) { buyLow = candles[i].l; buyIdx = i; }
                     }
-                    candles[candles.length-1].sell = true;
-                    for (var i = 0; i < 7; i++) {                // consolidation
-                        candles.push(makeCandle(p, -0.12, 0.010)); p = candles[candles.length-1].c;
+                    candles[buyIdx].buy = true;
+                    // Rise phase
+                    var riseStart = candles.length;
+                    for (var i = 0; i < 24; i++) {
+                        candles.push(makeCandle(p, +0.60, 0.017)); p = candles[candles.length-1].c;
                     }
+                    // SELL = highest-high candle in rise phase
+                    var sellIdx = riseStart, sellHigh = -Infinity;
+                    for (var i = riseStart; i < candles.length; i++) {
+                        if (candles[i].h > sellHigh) { sellHigh = candles[i].h; sellIdx = i; }
+                    }
+                    candles[sellIdx].sell = true;
+                    // Consolidation
+                    for (var i = 0; i < 6; i++) {
+                        candles.push(makeCandle(p, -0.10, 0.009)); p = candles[candles.length-1].c;
+                    }
+                    // Pre-compute global Y bounds — eliminates per-frame rescaling jitter
+                    var gMin = Infinity, gMax = -Infinity;
+                    for (var i = 0; i < candles.length; i++) {
+                        if (candles[i].l < gMin) gMin = candles[i].l;
+                        if (candles[i].h > gMax) gMax = candles[i].h;
+                    }
+                    var gPad = (gMax - gMin) * 0.22;
+                    candles._yMin = gMin - gPad * 0.55;
+                    candles._yMax = gMax + gPad * 1.45;
+                    candles._buyPrice = candles[buyIdx].c;
                     return candles;
                 }
 
                 var story = generateStory();
                 var scrollX = 0, entryPrice = null, buyShown = false, sellShown = false;
+                // Display Y range — lerps toward global bounds, never jumps
+                var dYMin = story._yMin, dYMax = story._yMax;
 
                 function resize() {
                     canvas.width  = canvas.offsetWidth  || 260;
@@ -5900,12 +5925,12 @@
                 resize();
                 window.addEventListener('resize', resize);
 
-                function setSig(idx) {
-                    curSig = idx % sigs.length;
+                function setSig(idx, override) {
+                    var s = sigs[((idx % sigs.length) + sigs.length) % sigs.length];
                     var el = document.getElementById('ftb-cf-sig');
                     if (!el) return;
-                    el.textContent = sigs[curSig].text;
-                    el.style.color = sigs[curSig].col;
+                    el.textContent = override || s.text;
+                    el.style.color = s.col;
                 }
 
                 function draw() {
@@ -5916,40 +5941,32 @@
 
                     ctx.clearRect(0, 0, W, H);
 
+                    // Smoothly lerp display range toward global story bounds — no jitter
+                    dYMin += (story._yMin - dYMin) * 0.04;
+                    dYMax += (story._yMax - dYMax) * 0.04;
+
+                    function py(p) { return H - ((p - dYMin) / (dYMax - dYMin)) * H; }
+
                     // Grid
                     ctx.strokeStyle = ocean ? 'rgba(0,200,232,0.055)' : 'rgba(165,180,252,0.09)';
                     ctx.lineWidth = 0.5;
                     [0.25, 0.5, 0.75].forEach(function(f) {
                         ctx.beginPath(); ctx.moveTo(0, H*f); ctx.lineTo(W, H*f); ctx.stroke();
-                    });
-                    [0.25, 0.5, 0.75].forEach(function(f) {
                         ctx.beginPath(); ctx.moveTo(W*f, 0); ctx.lineTo(W*f, H); ctx.stroke();
                     });
 
                     var first = Math.max(0, Math.floor(scrollX / STEP) - 1);
                     var last  = Math.min(story.length - 1, first + Math.ceil(W / STEP) + 2);
-
-                    // Price range
-                    var minL = Infinity, maxH = -Infinity;
-                    for (var i = first; i <= last; i++) {
-                        if (story[i].l < minL) minL = story[i].l;
-                        if (story[i].h > maxH) maxH = story[i].h;
-                    }
-                    var pad = (maxH - minL) * 0.20;
-                    minL -= pad * 0.7; maxH += pad * 1.3;
-
-                    function py(p) { return H - ((p - minL) / (maxH - minL)) * H; }
-
                     var latestClose = null, latestPct = null;
 
                     for (var i = first; i <= last; i++) {
                         var cd = story[i];
                         var x  = Math.round(i * STEP - scrollX);
                         var up = cd.c >= cd.o;
+                        var cx = x + Math.floor(BODY_W / 2) + 0.5;
 
                         var bodyT = Math.min(py(cd.o), py(cd.c));
                         var bodyH = Math.max(Math.abs(py(cd.c) - py(cd.o)), 1.5);
-                        var cx    = x + Math.floor(BODY_W / 2) + 0.5;
 
                         // Wick
                         ctx.strokeStyle = up ? '#4ade80' : '#f87171';
@@ -5957,7 +5974,7 @@
                         ctx.beginPath(); ctx.moveTo(cx, py(cd.h)); ctx.lineTo(cx, py(cd.l)); ctx.stroke();
 
                         // Body
-                        ctx.fillStyle   = up ? 'rgba(74,222,128,0.82)' : 'rgba(248,113,113,0.82)';
+                        ctx.fillStyle   = up ? 'rgba(74,222,128,0.84)' : 'rgba(248,113,113,0.84)';
                         ctx.strokeStyle = up ? '#4ade80' : '#f87171';
                         ctx.lineWidth = 0.5;
                         ctx.fillRect(x, bodyT, BODY_W, bodyH);
@@ -5969,19 +5986,16 @@
                         if (cd.sell) { entryPrice = null; }
 
                         // BUY marker
-                        if (cd.buy && !buyShown) {
-                            buyShown = true; sellShown = false;
-                            setSig(1);
-                        }
+                        if (cd.buy && !buyShown) { buyShown = true; sellShown = false; setSig(1); }
                         if (cd.buy) {
-                            var bmy = Math.min(py(cd.l) + 12, H - 2);
+                            var bmy = Math.min(py(cd.l) + 13, H - 3);
                             ctx.fillStyle = '#4ade80';
                             ctx.font = 'bold 7.5px monospace';
                             ctx.textAlign = 'center';
                             ctx.fillText('▲ BUY', cx, bmy);
                             ctx.setLineDash([2, 2]);
-                            ctx.strokeStyle = 'rgba(74,222,128,0.25)'; ctx.lineWidth = 0.7;
-                            ctx.beginPath(); ctx.moveTo(cx, py(cd.l)); ctx.lineTo(cx, bmy - 3); ctx.stroke();
+                            ctx.strokeStyle = 'rgba(74,222,128,0.22)'; ctx.lineWidth = 0.8;
+                            ctx.beginPath(); ctx.moveTo(cx, py(cd.l)); ctx.lineTo(cx, bmy - 2); ctx.stroke();
                             ctx.setLineDash([]);
                         }
 
@@ -5989,16 +6003,16 @@
                         if (cd.sell && !sellShown) {
                             sellShown = true;
                             setSig(3);
-                            setTimeout(function() { setSig(4); }, 1600);
+                            setTimeout(function() { setSig(4); }, 1800);
                         }
                         if (cd.sell) {
-                            var smy = Math.max(py(cd.h) - 5, 8);
+                            var smy = Math.max(py(cd.h) - 4, 9);
                             ctx.fillStyle = '#f59e0b';
                             ctx.font = 'bold 7.5px monospace';
                             ctx.textAlign = 'center';
                             ctx.fillText('▼ SELL', cx, smy);
                             ctx.setLineDash([2, 2]);
-                            ctx.strokeStyle = 'rgba(245,158,11,0.25)'; ctx.lineWidth = 0.7;
+                            ctx.strokeStyle = 'rgba(245,158,11,0.22)'; ctx.lineWidth = 0.8;
                             ctx.beginPath(); ctx.moveTo(cx, smy + 2); ctx.lineTo(cx, py(cd.h)); ctx.stroke();
                             ctx.setLineDash([]);
                         }
@@ -6016,12 +6030,14 @@
                     }
 
                     scrollX += SPEED;
-                    if (scrollX > story.length * STEP - W + STEP * 3) {
+                    if (scrollX > story.length * STEP - W + STEP * 2) {
+                        var oldMin = dYMin, oldMax = dYMax;
                         story = generateStory();
+                        dYMin = oldMin; dYMax = oldMax; // lerp from current position
                         scrollX = 0;
                         entryPrice = null; buyShown = false; sellShown = false;
                         setSig(5);
-                        setTimeout(function() { setSig(0); }, 2000);
+                        setTimeout(function() { setSig(0); }, 2200);
                     }
 
                     requestAnimationFrame(draw);
