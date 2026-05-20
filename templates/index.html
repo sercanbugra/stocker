@@ -3285,97 +3285,152 @@
 
         /* ── Full-page scroll-snap ── */
         /* ── Full-page scroll-snap ── */
-        :root { --toolbar-h: 76px; --ticker-h: 56px; }
-        @media (max-width: 767px) { :root { --toolbar-h: 90px; } }
+        :root { --ticker-h: 56px; }
         html, body { height: 100%; overflow: hidden; }
 
-        /* Fixed toolbar */
-        .top-toolbar {
-            position: fixed !important;
-            top: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 1400px;
-            z-index: 1050;
-            border-radius: 0 0 16px 16px !important;
-            margin-bottom: 0 !important;
+        /* ── Hamburger button ── */
+        #menu-toggle {
+            position: fixed;
+            top: 14px; left: 14px;
+            z-index: 1300;
+            background: var(--parliament-blue-soft);
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            padding: 9px 14px;
+            cursor: pointer;
+            color: var(--panel-text);
+            font-size: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.28);
+            transition: background .15s;
+            line-height: 1;
+        }
+        #menu-toggle:hover { background: rgba(255,255,255,0.08); }
+
+        /* ── Drawer overlay ── */
+        #drawer-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.48);
+            z-index: 1250;
+            opacity: 0; pointer-events: none;
+            transition: opacity .28s;
+        }
+        #drawer-overlay.show { opacity: 1; pointer-events: all; }
+
+        /* ── Left side drawer ── */
+        #side-drawer {
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            width: 300px; max-width: 92vw;
+            background: var(--parliament-blue-deep);
+            border-right: 1px solid var(--panel-border);
+            z-index: 1300;
+            transform: translateX(-100%);
+            transition: transform 0.32s cubic-bezier(0.22,1,0.36,1);
+            overflow-y: auto;
+            box-shadow: 6px 0 32px rgba(0,0,0,0.38);
+            display: flex;
+            flex-direction: column;
+        }
+        #side-drawer.open { transform: translateX(0); }
+        .drawer-head {
+            display: flex; align-items: center;
+            justify-content: space-between;
+            padding: 16px 16px 12px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .drawer-logo { height: 38px; width: auto; }
+        .drawer-close {
+            background: none; border: none;
+            color: var(--panel-muted); cursor: pointer;
+            font-size: 1.3rem; padding: 4px 9px;
+            border-radius: 6px; transition: color .15s, background .15s;
+        }
+        .drawer-close:hover { color: var(--panel-text); background: rgba(255,255,255,0.07); }
+        .drawer-sec {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .drawer-sec-title {
+            font-size: 0.62rem; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--panel-muted); margin-bottom: 10px;
+        }
+        .drawer-input-wrap { position: relative; }
+        .drawer-input-wrap .fas {
+            position: absolute; left: 10px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--panel-muted); font-size: 0.78rem; pointer-events: none;
+        }
+        .drawer-ticker { width: 100%; padding: 8px 10px 8px 30px; margin-bottom: 8px; }
+        .drawer-analyse-btn { width: 100%; }
+        .drawer-auth-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .drawer-auth-row .tb-btn { flex: 1; justify-content: center; }
+        .drawer-usage { font-size: 0.72rem; color: var(--panel-muted); }
+        .drawer-badge-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .drawer-badge-row img { display: block; height: 36px; width: auto; }
+        .drawer-links {
+            margin-top: auto; padding: 14px 16px;
+            display: flex; flex-wrap: wrap; gap: 6px 14px;
+            font-size: 0.72rem;
+        }
+        .drawer-links a { color: var(--panel-muted); text-decoration: none; }
+        .drawer-links a:hover { color: var(--panel-text); }
+        .drawer-promo-hint {
+            font-size: 0.72rem; color: var(--panel-muted);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .drawer-promo-hint .ftb-code {
+            font-family: monospace; letter-spacing: 2px;
+            color: #f59e0b; font-weight: 700;
         }
 
-        /* Snap wrapper: sits between toolbar and ticker */
+        /* Snap wrapper: full area between top and ticker */
         #snap-wrap {
             position: fixed;
-            top: var(--toolbar-h);
-            left: 0; right: 0;
+            top: 0; left: 0; right: 0;
             bottom: var(--ticker-h);
             overflow-y: scroll;
             scroll-snap-type: y mandatory;
             scroll-behavior: smooth;
         }
-
-        /* Each section fills the snap-wrap viewport exactly */
         .snap-section {
-            height: calc(100vh - var(--toolbar-h) - var(--ticker-h));
+            height: calc(100vh - var(--ticker-h));
             scroll-snap-align: start;
             scroll-snap-stop: always;
             overflow-y: auto;
             overflow-x: hidden;
         }
-
-        /* Generic inner wrapper */
         .snap-inner {
             max-width: 1400px;
             margin: 0 auto;
             padding: 10px 16px 12px;
             box-sizing: border-box;
         }
+        /* Hero: vertically centred */
+        #snap-hero { display: flex; align-items: center; }
+        #snap-hero .snap-inner { width: 100%; padding-top: 8px; }
 
-        /* Hero section: vertically center the banner */
-        #snap-hero {
-            display: flex;
-            align-items: center;
-        }
-        #snap-hero .snap-inner {
-            width: 100%;
-            padding-top: 8px;
-        }
-
-        /* Results section: flex column so tab bar + panel fill height exactly */
-        #snap-results {
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+        /* Results: flex column — tabs fixed, panel scrolls */
+        #snap-results { display: flex; flex-direction: column; overflow: hidden; }
         #snap-results .snap-inner {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            padding-bottom: 4px;
+            flex: 1; display: flex; flex-direction: column;
+            overflow: hidden; padding-bottom: 4px;
         }
 
         /* ── Result tabs ── */
         .res-tabs {
-            flex-shrink: 0;
-            display: flex;
-            gap: 3px;
+            flex-shrink: 0; display: flex; gap: 3px;
             background: var(--parliament-blue-soft);
             border: 1px solid var(--panel-border);
-            border-radius: 12px;
-            padding: 4px;
-            margin-bottom: 8px;
+            border-radius: 12px; padding: 4px; margin-bottom: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.18);
         }
         .res-tab {
-            flex: 1;
-            padding: 8px 6px;
-            border: none;
-            background: transparent;
-            color: var(--panel-muted);
-            font-size: 0.78rem;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all .18s;
-            white-space: nowrap;
-            text-align: center;
+            flex: 1; padding: 8px 6px; border: none;
+            background: transparent; color: var(--panel-muted);
+            font-size: 0.78rem; font-weight: 600; border-radius: 8px;
+            cursor: pointer; transition: all .18s;
+            white-space: nowrap; text-align: center;
         }
         .res-tab:hover { color: var(--panel-text); background: rgba(255,255,255,0.05); }
         .res-tab.active { background: rgba(79,142,247,0.18); color: #4f8ef7; }
@@ -3383,12 +3438,16 @@
         [data-theme="sand"] .res-tab.active { background: rgba(99,102,241,0.1); color: #4338ca; }
         .res-tab i { margin-right: 3px; }
         .res-tab-lbl { display: inline; }
-
-        /* Panels fill remaining height and scroll internally */
         .res-panel { display: none; flex: 1; overflow-y: auto; min-height: 0; }
         .res-panel.active { display: flex; flex-direction: column; }
-        /* chart height fits the panel */
-        #snap-results #chart { height: clamp(220px, calc(100vh - var(--toolbar-h) - var(--ticker-h) - 220px), 420px); }
+        #snap-results #chart { height: clamp(220px, calc(100vh - var(--ticker-h) - 220px), 420px); }
+
+        /* Hero image placeholder */
+        .hero-img-wrap {
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px; height: 100%;
+        }
+        .hero-img-wrap svg { width: 100%; max-width: 420px; height: auto; }
 
         @media (max-width: 767px) {
             .res-tab-lbl { display: none; }
@@ -3947,58 +4006,96 @@
         </div>
     </div>
 
-    <!-- ── Fixed toolbar ── -->
-    <div class="top-toolbar" id="top-toolbar">
-        <!-- Logo -->
-        <a href="https://stocker.gultechs.net/" class="toolbar-logo-wrap">
-            <picture>
-                <source srcset="{{ url_for('static', filename='stocker_logo_small.webp') }}" type="image/webp">
-                <picture>
-                  <source srcset="{{ url_for('static', filename='stocker_logo.webp') }}" type="image/webp">
-                  <img src="{{ url_for('static', filename='stocker_logo_sm.png') }}" alt="Stocker" class="toolbar-logo" width="133" height="46" decoding="async">
-                </picture>
-            </picture>
-        </a>
+    <!-- ── Hamburger button ── -->
+    <button id="menu-toggle" aria-label="Open menu"><i class="fas fa-bars"></i></button>
 
-        <!-- Ticker input + Predict -->
-        <div class="toolbar-search" style="position:relative;">
-            <div class="ticker-input-wrap" style="position:relative;">
+    <!-- ── Drawer overlay ── -->
+    <div id="drawer-overlay"></div>
+
+    <!-- ── Left side drawer ── -->
+    <div id="side-drawer" role="dialog" aria-label="Menu">
+        <div class="drawer-head">
+            <a href="https://stocker.gultechs.net/" class="toolbar-logo-wrap">
+                <picture>
+                    <source srcset="{{ url_for('static', filename='stocker_logo_small.webp') }}" type="image/webp">
+                    <img src="{{ url_for('static', filename='stocker_logo_sm.png') }}" alt="Stocker" class="drawer-logo" decoding="async">
+                </picture>
+            </a>
+            <button class="drawer-close" id="drawer-close" aria-label="Close"><i class="fas fa-times"></i></button>
+        </div>
+
+        <!-- Search -->
+        <div class="drawer-sec">
+            <div class="drawer-sec-title"><i class="fas fa-search"></i> Analyse a Stock</div>
+            <div class="ticker-input-wrap" style="position:relative; margin-bottom:8px;">
                 <i class="fas fa-search ticker-search-icon"></i>
                 <input id="stock-input" type="text" class="ticker-input" placeholder="e.g. AAPL, THYAO.IS" autocomplete="off" spellcheck="false" />
-                <!-- Autocomplete dropdown -->
                 <div class="ticker-autocomplete" id="ticker-ac"></div>
             </div>
-            <button id="predict-btn" class="btn-predict">
+            <button id="predict-btn" class="btn-predict" style="width:100%;">
                 <i class="fas fa-chart-line"></i> Analyse
             </button>
         </div>
 
-        <!-- Action buttons -->
-        <div class="toolbar-actions">
-            {% if not user_email %}
-            <button id="auth-trigger" type="button" class="tb-btn tb-btn-login">
-                <i class="fas fa-sign-in-alt"></i><span>Login</span>
-            </button>
-            {% endif %}
-            <button id="profile-trigger" type="button" class="tb-btn tb-btn-profile">
-                <i class="fas fa-user" id="profile-btn-icon"></i><span id="profile-btn-label">{% if user_email %}{{ user_email.split('@')[0][:14] }}{% else %}Profile{% endif %}</span>
-            </button>
+        <!-- Account -->
+        <div class="drawer-sec">
+            <div class="drawer-sec-title"><i class="fas fa-user"></i> Account</div>
+            <div class="drawer-auth-row">
+                {% if not user_email %}
+                <button id="auth-trigger" type="button" class="tb-btn tb-btn-login">
+                    <i class="fas fa-sign-in-alt"></i><span>Login</span>
+                </button>
+                {% endif %}
+                <button id="profile-trigger" type="button" class="tb-btn tb-btn-profile">
+                    <i class="fas fa-user" id="profile-btn-icon"></i><span id="profile-btn-label">{% if user_email %}{{ user_email.split('@')[0][:14] }}{% else %}Profile{% endif %}</span>
+                </button>
+            </div>
+            <div class="drawer-usage mt-2" id="usage-counter">
+                {% if user %}
+                    {% if user_tier == 'admin' %}
+                    <span class="tier-badge tier-badge-admin">admin</span>&nbsp;Full access
+                    {% elif user_tier == 'free' %}
+                    <span id="usage-text">loading…</span>
+                    {% else %}
+                    <span class="tier-badge tier-badge-{{ user_tier }}">{{ user_tier }}</span>&nbsp;Unlimited
+                    {% endif %}
+                {% else %}
+                {% set anon_remaining = [anon_daily_limit - anon_used, 0]|max %}
+                <span class="tb-anon-badge{% if anon_remaining == 0 %} warning{% endif %}" id="tb-anon-badge">{{ anon_remaining }} free {{ 'analysis' if anon_remaining == 1 else 'analyses' }} left today</span>
+                {% endif %}
+            </div>
         </div>
 
-        <!-- Usage / tier badge -->
-        <div class="toolbar-usage" id="usage-counter">
-            {% if user %}
-                {% if user_tier == 'admin' %}
-                <span class="tier-badge tier-badge-admin">admin</span>&nbsp;Full access
-                {% elif user_tier == 'free' %}
-                <span id="usage-text">loading…</span>
-                {% else %}
-                <span class="tier-badge tier-badge-{{ user_tier }}">{{ user_tier }}</span>&nbsp;Unlimited
-                {% endif %}
-            {% else %}
-            {% set anon_remaining = [anon_daily_limit - anon_used, 0]|max %}
-            <span class="tb-anon-badge{% if anon_remaining == 0 %} warning{% endif %}" id="tb-anon-badge">{{ anon_remaining }} free {{ 'analysis' if anon_remaining == 1 else 'analyses' }} left today</span>
-            {% endif %}
+        <!-- Promo -->
+        <div class="drawer-sec">
+            <div class="drawer-sec-title"><i class="fas fa-tag"></i> Special Offer</div>
+            <div class="drawer-promo-hint">
+                <i class="fas fa-tag"></i>
+                50% off first month — use code <span class="ftb-code">W3LCOM3</span>
+            </div>
+        </div>
+
+        <!-- Badges -->
+        <div class="drawer-sec">
+            <div class="drawer-sec-title">Featured On</div>
+            <div class="drawer-badge-row">
+                <a href="https://www.producthunt.com/products/stocker-4?embed=true&utm_source=badge-featured" target="_blank" rel="noopener noreferrer">
+                    <img alt="Product Hunt" src="{{ url_for('static', filename='badge_producthunt.svg') }}" style="height:36px;width:auto;" loading="lazy">
+                </a>
+                <a href="https://www.shipit.buzz/products/stocker?ref=badge" target="_blank" rel="noopener noreferrer">
+                    <img src="{{ url_for('static', filename='badge_shipit.svg') }}" alt="Shipit" style="height:36px;width:auto;" loading="lazy">
+                </a>
+                <a href="https://backlinklog.com/listing/stocker.gultechs.net" target="_blank" rel="noopener noreferrer">
+                    <img src="{{ url_for('static', filename='badge_backlinklog.svg') }}" alt="BacklinkLog" style="height:36px;width:auto;" loading="lazy">
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer links -->
+        <div class="drawer-links">
+            <a href="/privacy">Privacy Policy</a>
+            <a href="mailto:info@gultechs.net">Contact</a>
+            <span style="color:var(--panel-muted);">© 2025 Gultechs</span>
         </div>
     </div>
 
@@ -4033,36 +4130,47 @@
                                     professional-grade tools at your fingertips.
                                 </div>
                                 <div class="ftb-ctas">
-                                    <button class="ftb-cta-primary" id="ftb-cta-promo">Get 50% Off Pro →</button>
-                                    <button class="ftb-cta-ghost" id="ftb-cta-try">Try Free</button>
-                                </div>
-                                <div class="ftb-promo-hint">
-                                    <i class="fas fa-tag" style="font-size:0.58rem;"></i>
-                                    Use code <span class="ftb-code">W3LCOM3</span> &mdash; valid until 25 May 2026
+                                    <button class="ftb-cta-ghost" id="ftb-cta-try">Try Free →</button>
                                 </div>
                             </div>
 
-                            <!-- Right: animated terminal -->
+                            <!-- Right: stock market illustration -->
                             <div class="ftb-right">
-                                <div class="ftb-terminal">
-                                    <div class="ftb-term-header">
-                                        <span class="ftb-term-dot ftb-dot-r"></span>
-                                        <span class="ftb-term-dot ftb-dot-y"></span>
-                                        <span class="ftb-term-dot ftb-dot-g"></span>
-                                        <span class="ftb-term-title">stocker &middot; ohlc chart</span>
-                                        <span class="ftb-term-live">
-                                            <span class="ftb-term-live-dot"></span>LIVE
-                                        </span>
-                                    </div>
-                                    <div class="ftb-chart-wrap">
-                                        <div class="ftb-chart-scroll" id="ftb-chart-scroll"></div>
-                                    </div>
-                                    <div class="ftb-chart-footer">
-                                        <span class="ftb-cf-price" id="ftb-cf-price">$100.00</span>
-                                        <span class="ftb-cf-pct dn" id="ftb-cf-pct">−0.00%</span>
-                                        <span class="ftb-cf-sig" id="ftb-cf-sig">🤖 Ensemble ML · Scanning…</span>
-                                    </div>
-                                    <div class="ftb-scanline" aria-hidden="true"></div>
+                                <div class="hero-img-wrap">
+                                    <svg viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <rect width="400" height="240" fill="rgba(5,21,40,0.55)" rx="14"/>
+                                        <line x1="36" y1="55" x2="390" y2="55" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                                        <line x1="36" y1="110" x2="390" y2="110" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                                        <line x1="36" y1="165" x2="390" y2="165" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                                        <text x="8" y="58" fill="rgba(255,255,255,0.28)" font-size="9" font-family="monospace">190</text>
+                                        <text x="8" y="113" fill="rgba(255,255,255,0.28)" font-size="9" font-family="monospace">175</text>
+                                        <text x="8" y="168" fill="rgba(255,255,255,0.28)" font-size="9" font-family="monospace">160</text>
+                                        <defs>
+                                            <linearGradient id="hg" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stop-color="rgba(74,222,128,0.22)"/>
+                                                <stop offset="100%" stop-color="rgba(74,222,128,0)"/>
+                                            </linearGradient>
+                                        </defs>
+                                        <path d="M40,185 L72,172 L104,178 L136,158 L168,152 L200,132 L232,126 L264,108 L296,92 L328,76 L360,58 L380,50 L380,210 L40,210Z" fill="url(#hg)"/>
+                                        <polyline points="40,185 72,172 104,178 136,158 168,152 200,132 232,126 264,108 296,92 328,76 360,58 380,50" fill="none" stroke="#4ade80" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <polyline points="40,195 104,188 168,172 232,152 296,118 360,82 380,68" fill="none" stroke="rgba(251,191,36,0.55)" stroke-width="1.5" stroke-dasharray="5,3"/>
+                                        <circle cx="380" cy="50" r="4.5" fill="#4ade80"/>
+                                        <rect x="356" y="28" width="48" height="18" rx="4" fill="rgba(74,222,128,0.18)" stroke="rgba(74,222,128,0.4)" stroke-width="1"/>
+                                        <text x="380" y="40" fill="#4ade80" font-size="9.5" font-family="monospace" font-weight="bold" text-anchor="middle">+24.8%</text>
+                                        <rect x="36" y="205" width="9" height="16" rx="1" fill="rgba(74,222,128,0.28)"/>
+                                        <rect x="66" y="200" width="9" height="21" rx="1" fill="rgba(248,113,113,0.28)"/>
+                                        <rect x="96" y="207" width="9" height="14" rx="1" fill="rgba(248,113,113,0.28)"/>
+                                        <rect x="126" y="201" width="9" height="20" rx="1" fill="rgba(74,222,128,0.28)"/>
+                                        <rect x="156" y="202" width="9" height="19" rx="1" fill="rgba(74,222,128,0.28)"/>
+                                        <rect x="186" y="197" width="9" height="24" rx="1" fill="rgba(74,222,128,0.28)"/>
+                                        <rect x="216" y="200" width="9" height="21" rx="1" fill="rgba(74,222,128,0.28)"/>
+                                        <rect x="246" y="195" width="9" height="26" rx="1" fill="rgba(74,222,128,0.28)"/>
+                                        <rect x="276" y="198" width="9" height="23" rx="1" fill="rgba(74,222,128,0.28)"/>
+                                        <rect x="306" y="193" width="9" height="28" rx="1" fill="rgba(74,222,128,0.28)"/>
+                                        <rect x="336" y="190" width="9" height="31" rx="1" fill="rgba(74,222,128,0.28)"/>
+                                        <rect x="366" y="188" width="9" height="33" rx="1" fill="rgba(74,222,128,0.28)"/>
+                                        <text x="200" y="16" fill="rgba(255,255,255,0.22)" font-size="8.5" font-family="monospace" text-anchor="middle" letter-spacing="2">AI-POWERED · STOCK ANALYSIS</text>
+                                    </svg>
                                 </div>
                             </div>
 
@@ -4533,56 +4641,6 @@
     </section><!-- /snap-results -->
 
     </div><!-- /snap-wrap -->
-    <!-- Disclaimer -->
-    <div class="container mt-3 mb-1">
-        <small style="font-size:0.66rem; color:var(--panel-muted); line-height:1.55; display:block;">
-            <strong style="color:var(--panel-muted);">DISCLAIMER:</strong>
-            The information, analysis, and price projections provided on this platform are generated by automated statistical models and artificial intelligence tools for <strong>informational and educational purposes only</strong>.
-            They do not constitute financial advice, investment recommendations, or an offer or solicitation to buy or sell any financial instrument.
-            Past performance and model outputs are not indicative of future results.
-            All investments involve risk, including the possible loss of principal.
-            You should consult a qualified financial adviser before making any investment decision.
-            Stocker and its operators accept no liability for any financial loss arising directly or indirectly from the use of this platform.
-        </small>
-    </div>
-
-    <footer class="site-footer mt-4">
-        <div class="container">
-            <div class="d-flex align-items-center gap-3 flex-wrap justify-content-between">
-                <div class="d-flex align-items-center gap-3">
-                    <a href="https://www.gultechs.net/" target="_blank" rel="noopener noreferrer">
-                        <picture>
-                            <source srcset="{{ url_for('static', filename='logo_small.webp') }}" type="image/webp">
-                            <img src="{{ url_for('static', filename='logo.png') }}" alt="Company logo" class="footer-logo" width="64" height="64" loading="lazy" decoding="async">
-                        </picture>
-                    </a>
-                    <div class="footer-text">
-                        <strong>Stocker</strong>
-                        <p class="mb-0">
-                            Gultechs build data-driven market tools for faster, clearer decisions.
-                            Secure, research-backed, and designed for everyday investors.
-                        </p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <a href="https://www.producthunt.com/products/stocker-4?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-stocker-21495855-3e03-4662-a2f5-c2ccfbd5d808" target="_blank" rel="noopener noreferrer">
-                        <img alt="Stocker - Predict, analyse, and act on stocks | powered by ML and AI. | Product Hunt" width="250" height="54" src="{{ url_for('static', filename='badge_producthunt.svg') }}" style="display:block;" loading="lazy">
-                    </a>
-                    <a href="https://www.shipit.buzz/products/stocker?ref=badge" target="_blank" rel="noopener noreferrer">
-                        <img src="{{ url_for('static', filename='badge_shipit.svg') }}" alt="Featured on Shipit" height="54" style="display:block;" loading="lazy">
-                    </a>
-                    <a href="https://backlinklog.com/listing/stocker.gultechs.net?utm_source=backlinklog&utm_medium=badge" target="_blank" rel="noopener noreferrer">
-                        <img src="{{ url_for('static', filename='badge_backlinklog.svg') }}" alt="Listed on BacklinkLog" width="160" height="40" style="display:block;" loading="lazy">
-                    </a>
-                    <div class="d-flex gap-3 flex-wrap align-items-center" style="font-size:0.82rem;">
-                        <a href="/privacy" class="footer-link">Privacy Policy</a>
-                        <a href="mailto:info@gultechs.net" class="footer-link">Contact</a>
-                        <span style="color:var(--panel-muted);">© 2025 Gultechs</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
 
     <!-- ── Modal helpers + toolbar wiring (pure vanilla, no jQuery needed) ── -->
     <script>
@@ -5718,11 +5776,10 @@
                 const dots     = document.querySelectorAll('.hc-dot');
                 if (!carousel) return;
 
-                // Dismiss button — snap to market section (don't hide carousel)
+                // Dismiss button — snap to market section
                 dismiss && dismiss.addEventListener('click', function() {
                     var wrap = document.getElementById('snap-wrap');
-                    var hero = document.getElementById('snap-hero');
-                    if (wrap && hero) wrap.scrollTo({ top: hero.offsetHeight, behavior: 'smooth' });
+                    if (wrap) wrap.scrollTo({ top: wrap.clientHeight, behavior: 'smooth' });
                     localStorage.setItem(HERO_KEY, '1');
                 });
 
@@ -6081,6 +6138,25 @@
                     apply(finalSel);
                     if (triggerRefresh) loadRemarkables(true);
                 };
+            })();
+
+            // ── Side drawer toggle ──
+            (function() {
+                var toggle  = document.getElementById('menu-toggle');
+                var drawer  = document.getElementById('side-drawer');
+                var overlay = document.getElementById('drawer-overlay');
+                var closeBtn= document.getElementById('drawer-close');
+                function openDrawer()  { drawer.classList.add('open');  overlay.classList.add('show'); }
+                function closeDrawer() { drawer.classList.remove('open'); overlay.classList.remove('show'); }
+                if (toggle)   toggle.addEventListener('click', openDrawer);
+                if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+                if (overlay)  overlay.addEventListener('click', closeDrawer);
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && drawer && drawer.classList.contains('open')) closeDrawer();
+                });
+                // Close drawer when Analyse is clicked
+                var pb = document.getElementById('predict-btn');
+                if (pb) pb.addEventListener('click', closeDrawer, true);
             })();
 
             // ── Result tab switching ──
@@ -6506,16 +6582,10 @@
                         document.querySelectorAll('.res-panel').forEach(function(p){ p.classList.remove('active'); });
                         document.querySelector('.res-tab[data-panel="0"]').classList.add('active');
                         document.getElementById('res-panel-0').classList.add('active');
-                        // Snap to results section
+                        // Snap to results section (3rd section = 2 × viewport)
                         setTimeout(function() {
                             var wrap = document.getElementById('snap-wrap');
-                            var hero = document.getElementById('snap-hero');
-                            var mkt  = document.getElementById('snap-market');
-                            if (wrap && hero && mkt) {
-                                var heroH = hero.offsetHeight;
-                                var mktH  = mkt.offsetHeight;
-                                wrap.scrollTo({ top: heroH + mktH, behavior: 'smooth' });
-                            }
+                            if (wrap) wrap.scrollTo({ top: wrap.clientHeight * 2, behavior: 'smooth' });
                         }, 80);
                         // If symbol already in watchlist, show Watchlisted state immediately
                         if (hasWatchlistAccess) {
