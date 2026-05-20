@@ -3804,6 +3804,10 @@ def delete_account():
 
 @app.route('/')
 def home():
+    # Strip any query params (e.g. ?ref=producthunt from ProductHunt links) so Google
+    # never sees a 200 at /?ref=... and flags it as "Alternative page with proper canonical".
+    if request.query_string:
+        return redirect(url_for('home'), 301)
     stocks = fetch_sp500_stocks()
     remarkables = get_remarkables(force_refresh=False)
     new_listings = fetch_top_dividend_stocks()

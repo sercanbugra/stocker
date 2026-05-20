@@ -1,3 +1,14 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /login/
+Disallow: /register/
+Disallow: /logout
+Disallow: /verify-email
+Disallow: /billing-portal
+Disallow: /create-checkout-session
+Disallow: /webhook/
+Disallow: /delete-account
+Disallow: /*?*
+
 Sitemap: https://stocker.gultechs.net/sitemap.xml
