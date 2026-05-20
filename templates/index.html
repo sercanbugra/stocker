@@ -2662,89 +2662,47 @@
         :root:not([data-theme="ocean"]) .ftb-tick-sym { color: rgba(199,210,254,0.95); }
         .ftb-tick-chart { flex: 1; height: 20px; min-width: 0; }
         .ftb-tick-chart svg { width: 100%; height: 100%; }
-        /* Fall + Rise shared base */
-        .ftb-fall, .ftb-rise {
-            stroke-dasharray: 80;
-            stroke-dashoffset: 80;
-            fill: none;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            stroke-width: 1.8;
+        /* ── OHLC canvas chart ── */
+        .ftb-chart-wrap {
+            position: relative;
+            height: 114px;
+            overflow: hidden;
         }
-        .ftb-buy, .ftb-sell {
-            opacity: 0;
-            transform-box: fill-box;
-            transform-origin: center;
+        .ftb-ohlc-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
         }
-        /* Row 1 (NVDA) — delay 0s */
-        .ftb-f1 { animation: ftbFallDraw 8s linear 0s   infinite; }
-        .ftb-r1 { animation: ftbRiseDraw 8s linear 0s   infinite; }
-        .ftb-b1 { animation: ftbBuyPop   8s linear 0s   infinite; }
-        .ftb-s1 { animation: ftbSellPop  8s linear 0s   infinite; }
-        .ftb-br1{ animation: ftbBuyRing  8s linear 0s   infinite; }
-        /* Row 2 (AAPL) — delay 2s */
-        .ftb-f2 { animation: ftbFallDraw 8s linear 2s   infinite; }
-        .ftb-r2 { animation: ftbRiseDraw 8s linear 2s   infinite; }
-        .ftb-b2 { animation: ftbBuyPop   8s linear 2s   infinite; }
-        .ftb-s2 { animation: ftbSellPop  8s linear 2s   infinite; }
-        .ftb-br2{ animation: ftbBuyRing  8s linear 2s   infinite; }
-        /* Row 3 (TSLA) — delay 4s */
-        .ftb-f3 { animation: ftbFallDraw 8s linear 4s   infinite; }
-        .ftb-r3 { animation: ftbRiseDraw 8s linear 4s   infinite; }
-        .ftb-b3 { animation: ftbBuyPop   8s linear 4s   infinite; }
-        .ftb-s3 { animation: ftbSellPop  8s linear 4s   infinite; }
-        .ftb-br3{ animation: ftbBuyRing  8s linear 4s   infinite; }
-        /* Row 4 (AMZN) — delay 6s */
-        .ftb-f4 { animation: ftbFallDraw 8s linear 6s   infinite; }
-        .ftb-r4 { animation: ftbRiseDraw 8s linear 6s   infinite; }
-        .ftb-b4 { animation: ftbBuyPop   8s linear 6s   infinite; }
-        .ftb-s4 { animation: ftbSellPop  8s linear 6s   infinite; }
-        .ftb-br4{ animation: ftbBuyRing  8s linear 6s   infinite; }
-        .ftb-tick-pct { font-size: 0.67rem; font-weight: 700; min-width: 46px; text-align: right; }
-        .ftb-tick-pct.up { color: #4ade80; }
-        .ftb-tick-pct.dn { color: #f87171; }
-        .ftb-tick-price {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: rgba(200,238,255,0.72);
-            min-width: 50px;
-            text-align: right;
-            letter-spacing: 0.3px;
-        }
-        :root:not([data-theme="ocean"]) .ftb-tick-price { color: rgba(199,210,254,0.78); }
-        .ftb-divider { height: 1px; background: rgba(0,200,232,0.09); margin: 3px 11px; }
-        :root:not([data-theme="ocean"]) .ftb-divider { background: rgba(165,180,252,0.12); }
-        .ftb-signal {
+        .ftb-chart-footer {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 6px 11px 8px;
+            padding: 5px 11px 8px;
+            border-top: 1px solid rgba(0,200,232,0.09);
         }
-        .ftb-signal-icon { font-size: 0.95rem; flex-shrink: 0; }
-        .ftb-signal-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-        .ftb-signal-title {
-            font-size: 0.6rem;
-            font-weight: 700;
-            color: rgba(200,238,255,0.6);
-            letter-spacing: 0.3px;
-            white-space: nowrap;
+        :root:not([data-theme="ocean"]) .ftb-chart-footer { border-top-color: rgba(165,180,252,0.12); }
+        .ftb-cf-price {
+            font-family: 'Courier New', monospace;
+            font-size: 0.76rem;
+            font-weight: 800;
+            color: rgba(200,238,255,0.88);
+        }
+        :root:not([data-theme="ocean"]) .ftb-cf-price { color: rgba(199,210,254,0.95); }
+        .ftb-cf-pct { font-size: 0.68rem; font-weight: 700; min-width: 50px; }
+        .ftb-cf-pct.up { color: #4ade80; }
+        .ftb-cf-pct.dn { color: #f87171; }
+        .ftb-cf-sig {
+            font-size: 0.57rem;
+            color: rgba(200,238,255,0.42);
+            font-family: 'Courier New', monospace;
+            flex: 1;
+            text-align: right;
             overflow: hidden;
             text-overflow: ellipsis;
-        }
-        :root:not([data-theme="ocean"]) .ftb-signal-title { color: rgba(199,210,254,0.65); }
-        .ftb-signal-val { font-size: 0.6rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .ftb-signal-val.bullish { color: #4ade80; }
-        .ftb-signal-val.bearish { color: #f87171; }
-        .ftb-signal-conf {
-            font-size: 0.56rem;
-            font-weight: 800;
-            color: #f59e0b;
-            background: rgba(245,158,11,0.12);
-            border: 1px solid rgba(245,158,11,0.22);
-            border-radius: 5px;
-            padding: 2px 6px;
             white-space: nowrap;
+            transition: color .45s;
         }
+        :root:not([data-theme="ocean"]) .ftb-cf-sig { color: rgba(199,210,254,0.5); }
         .ftb-scanline {
             position: absolute;
             left: 0; right: 0;
@@ -3936,77 +3894,18 @@
                                         <span class="ftb-term-dot ftb-dot-r"></span>
                                         <span class="ftb-term-dot ftb-dot-y"></span>
                                         <span class="ftb-term-dot ftb-dot-g"></span>
-                                        <span class="ftb-term-title">stocker &middot; live market feed</span>
+                                        <span class="ftb-term-title">stocker &middot; ohlc chart</span>
                                         <span class="ftb-term-live">
                                             <span class="ftb-term-live-dot"></span>LIVE
                                         </span>
                                     </div>
-                                    <div class="ftb-term-body">
-                                        <div class="ftb-tick-row" id="ftb-row-nvda">
-                                            <span class="ftb-tick-sym">NVDA</span>
-                                            <div class="ftb-tick-chart">
-                                                <svg viewBox="0 0 80 26" preserveAspectRatio="none" fill="none">
-                                                    <path class="ftb-fall ftb-f1" d="M0,3 L20,9 L32,16 L40,22" stroke="#f87171"/>
-                                                    <path class="ftb-rise ftb-r1" d="M40,22 L53,14 L64,7 L72,3 L80,1" stroke="#4ade80"/>
-                                                    <circle class="ftb-buy  ftb-b1"  cx="40" cy="22" r="2.8" fill="#4ade80"/>
-                                                    <circle class="ftb-buy  ftb-br1" cx="40" cy="22" r="2.8" fill="none" stroke="#4ade80" stroke-width="1.5"/>
-                                                    <circle class="ftb-sell ftb-s1"  cx="80" cy="1"  r="2.8" fill="#f59e0b"/>
-                                                </svg>
-                                            </div>
-                                            <span class="ftb-tick-pct up" id="ftb-nvda-pct">+3.24%</span>
-                                            <span class="ftb-tick-price" id="ftb-nvda-px">875.20</span>
-                                        </div>
-                                        <div class="ftb-tick-row" id="ftb-row-aapl">
-                                            <span class="ftb-tick-sym">AAPL</span>
-                                            <div class="ftb-tick-chart">
-                                                <svg viewBox="0 0 80 26" preserveAspectRatio="none" fill="none">
-                                                    <path class="ftb-fall ftb-f2" d="M0,5 L18,10 L30,15 L40,21" stroke="#f87171"/>
-                                                    <path class="ftb-rise ftb-r2" d="M40,21 L55,14 L67,8 L80,5" stroke="#4ade80"/>
-                                                    <circle class="ftb-buy  ftb-b2"  cx="40" cy="21" r="2.8" fill="#4ade80"/>
-                                                    <circle class="ftb-buy  ftb-br2" cx="40" cy="21" r="2.8" fill="none" stroke="#4ade80" stroke-width="1.5"/>
-                                                    <circle class="ftb-sell ftb-s2"  cx="80" cy="5"  r="2.8" fill="#f59e0b"/>
-                                                </svg>
-                                            </div>
-                                            <span class="ftb-tick-pct dn" id="ftb-aapl-pct">&#8722;0.87%</span>
-                                            <span class="ftb-tick-price" id="ftb-aapl-px">192.45</span>
-                                        </div>
-                                        <div class="ftb-tick-row" id="ftb-row-tsla">
-                                            <span class="ftb-tick-sym">TSLA</span>
-                                            <div class="ftb-tick-chart">
-                                                <svg viewBox="0 0 80 26" preserveAspectRatio="none" fill="none">
-                                                    <path class="ftb-fall ftb-f3" d="M0,4 L16,10 L28,17 L40,23" stroke="#f87171"/>
-                                                    <path class="ftb-rise ftb-r3" d="M40,23 L54,15 L66,7 L80,3" stroke="#4ade80"/>
-                                                    <circle class="ftb-buy  ftb-b3"  cx="40" cy="23" r="2.8" fill="#4ade80"/>
-                                                    <circle class="ftb-buy  ftb-br3" cx="40" cy="23" r="2.8" fill="none" stroke="#4ade80" stroke-width="1.5"/>
-                                                    <circle class="ftb-sell ftb-s3"  cx="80" cy="3"  r="2.8" fill="#f59e0b"/>
-                                                </svg>
-                                            </div>
-                                            <span class="ftb-tick-pct up" id="ftb-tsla-pct">+1.62%</span>
-                                            <span class="ftb-tick-price" id="ftb-tsla-px">248.30</span>
-                                        </div>
-                                        <div class="ftb-tick-row" id="ftb-row-amzn">
-                                            <span class="ftb-tick-sym">AMZN</span>
-                                            <div class="ftb-tick-chart">
-                                                <svg viewBox="0 0 80 26" preserveAspectRatio="none" fill="none">
-                                                    <path class="ftb-fall ftb-f4" d="M0,6 L20,11 L32,15 L40,20" stroke="#f87171"/>
-                                                    <path class="ftb-rise ftb-r4" d="M40,20 L55,13 L67,8 L80,5" stroke="#4ade80"/>
-                                                    <circle class="ftb-buy  ftb-b4"  cx="40" cy="20" r="2.8" fill="#4ade80"/>
-                                                    <circle class="ftb-buy  ftb-br4" cx="40" cy="20" r="2.8" fill="none" stroke="#4ade80" stroke-width="1.5"/>
-                                                    <circle class="ftb-sell ftb-s4"  cx="80" cy="5"  r="2.8" fill="#f59e0b"/>
-                                                </svg>
-                                            </div>
-                                            <span class="ftb-tick-pct up" id="ftb-amzn-pct">+0.45%</span>
-                                            <span class="ftb-tick-price" id="ftb-amzn-px">185.90</span>
-                                        </div>
-                                        <div class="ftb-divider"></div>
-                                        <div class="ftb-signal">
-                                            <span class="ftb-signal-icon">🤖</span>
-                                            <div class="ftb-signal-text">
-                                                <span class="ftb-signal-title" id="ftb-sig-title">NVDA &middot; Ensemble Forecast</span>
-                                                <span class="ftb-signal-val bullish" id="ftb-sig-val">&#x2191; Bullish &middot; 30-day target: $912</span>
-                                            </div>
-                                            <span class="ftb-signal-conf" id="ftb-sig-conf">87% conf.</span>
-                                        </div>
+                                    <div class="ftb-chart-wrap">
+                                        <canvas id="ftb-ohlc-canvas" class="ftb-ohlc-canvas"></canvas>
+                                    </div>
+                                    <div class="ftb-chart-footer">
+                                        <span class="ftb-cf-price" id="ftb-cf-price">$100.00</span>
+                                        <span class="ftb-cf-pct dn" id="ftb-cf-pct">−0.00%</span>
+                                        <span class="ftb-cf-sig" id="ftb-cf-sig">🤖 Ensemble ML · Scanning…</span>
                                     </div>
                                     <div class="ftb-scanline" aria-hidden="true"></div>
                                 </div>
@@ -5942,65 +5841,194 @@
                 });
             })();
 
-            /* ── Fintech banner: live terminal animation ── */
+            /* ── Fintech banner: OHLC canvas animation ── */
             (function() {
-                var tickers = [
-                    { id: 'nvda', base: 875.20, vol: 7,   pct: 3.24,  dir:  1 },
-                    { id: 'aapl', base: 192.45, vol: 1.8, pct: -0.87, dir: -1 },
-                    { id: 'tsla', base: 248.30, vol: 4.5, pct: 1.62,  dir:  1 },
-                    { id: 'amzn', base: 185.90, vol: 2.2, pct: 0.45,  dir:  1 },
+                var canvas = document.getElementById('ftb-ohlc-canvas');
+                if (!canvas) return;
+
+                var STEP   = 11;   // px per candle
+                var BODY_W = 7;
+                var SPEED  = 0.30; // px per frame
+
+                var sigs = [
+                    { text: '🤖 Ensemble ML · Scanning markets…',    col: 'rgba(200,238,255,0.42)' },
+                    { text: '▲ BUY signal triggered · Entry locked',  col: '#4ade80' },
+                    { text: '📈 Position open · Tracking upside…',    col: '#4ade80' },
+                    { text: '▼ SELL · Take profit now',               col: '#f59e0b' },
+                    { text: '💰 Profit locked · Cycle complete',      col: '#4ade80' },
+                    { text: '🔄 New BUY zone forming…',               col: 'rgba(200,238,255,0.42)' },
                 ];
-                var signals = [
-                    { title: 'NVDA · 🟢 BUY Signal Triggered',  val: '↓ Dip to $852 · Entry confirmed · Target $912', cls: 'bullish', conf: '+7.0%' },
-                    { title: 'TSLA · 🟢 BUY — RSI Oversold',    val: '↓ RSI 27 hit · Entry $241 · Stop $231',         cls: 'bullish', conf: '+13.2%' },
-                    { title: 'NVDA · 🏆 SELL — Take Profit',    val: '💰 SOLD $914 · Profit +$62 · Return +7.3%',     cls: 'bullish', conf: '+$62' },
-                    { title: 'AAPL · 🟢 BUY — Cup & Handle',    val: '▶ Breakout at $190 · Target $200',              cls: 'bullish', conf: '+5.2%' },
-                    { title: 'AMZN · 🟢 BUY — Smart Money',     val: '⚡ Unusual volume · Entry $184 · Target $194',  cls: 'bullish', conf: '+5.4%' },
-                    { title: 'TSLA · 🏆 SELL — Target Reached', val: '💰 SOLD $273 · Profit +$32 · Return +13.3%',    cls: 'bullish', conf: '+$32' },
-                    { title: 'AMZN · 🏆 SELL — Profit Locked',  val: '💰 SOLD $193 · Profit +$9 · Return +4.9%',     cls: 'bullish', conf: '+$9' },
-                ];
-                var sigIdx = 0, tickIdx = 0;
+                var curSig = 0;
 
-                function rnd(a, b) { return Math.random() * (b - a) + a; }
+                function isOcean() {
+                    return document.documentElement.getAttribute('data-theme') === 'ocean';
+                }
+                function rnd(a, b) { return a + Math.random() * (b - a); }
 
-                function updateRow(t) {
-                    var delta = rnd(-t.vol * 0.25, t.vol * 0.35) * t.dir;
-                    t.base = Math.max(t.base + delta, 1);
-                    t.pct  = t.pct + rnd(-0.07, 0.11) * t.dir;
-                    if (Math.abs(t.pct) > 5.5) t.dir *= -1;
-
-                    var pxEl  = document.getElementById('ftb-' + t.id + '-px');
-                    var pctEl = document.getElementById('ftb-' + t.id + '-pct');
-                    var row   = document.getElementById('ftb-row-' + t.id);
-                    if (!pxEl) return;
-
-                    var up = t.pct >= 0;
-                    pxEl.textContent  = t.base.toFixed(2);
-                    pctEl.textContent = (up ? '+' : '−') + Math.abs(t.pct).toFixed(2) + '%';
-                    pctEl.className   = 'ftb-tick-pct ' + (up ? 'up' : 'dn');
-
-                    row.classList.remove('flash');
-                    void row.offsetWidth;
-                    row.classList.add('flash');
+                function makeCandle(price, bias, vol) {
+                    var chg = (rnd(-0.5, 0.5) + bias) * price * vol;
+                    var o = price, c = Math.max(o + chg, price * 0.3);
+                    var br = Math.abs(c - o);
+                    var h = Math.max(o, c) + rnd(0, br * 0.8 + price * 0.002);
+                    var l = Math.min(o, c) - rnd(0, br * 0.6 + price * 0.0015);
+                    return { o: o, h: h, l: l, c: c };
                 }
 
-                function rotateSig() {
-                    sigIdx = (sigIdx + 1) % signals.length;
-                    var s  = signals[sigIdx];
-                    var el = document.getElementById('ftb-sig-title');
+                function generateStory() {
+                    var candles = [], p = 100;
+                    for (var i = 0; i < 14; i++) {               // fall
+                        candles.push(makeCandle(p, -0.62, 0.019)); p = candles[candles.length-1].c;
+                    }
+                    candles[candles.length-1].buy = true;
+                    for (var i = 0; i < 22; i++) {               // rise
+                        candles.push(makeCandle(p, +0.62, 0.017)); p = candles[candles.length-1].c;
+                    }
+                    candles[candles.length-1].sell = true;
+                    for (var i = 0; i < 7; i++) {                // consolidation
+                        candles.push(makeCandle(p, -0.12, 0.010)); p = candles[candles.length-1].c;
+                    }
+                    return candles;
+                }
+
+                var story = generateStory();
+                var scrollX = 0, entryPrice = null, buyShown = false, sellShown = false;
+
+                function resize() {
+                    canvas.width  = canvas.offsetWidth  || 260;
+                    canvas.height = canvas.offsetHeight || 114;
+                }
+                resize();
+                window.addEventListener('resize', resize);
+
+                function setSig(idx) {
+                    curSig = idx % sigs.length;
+                    var el = document.getElementById('ftb-cf-sig');
                     if (!el) return;
-                    document.getElementById('ftb-sig-title').textContent = s.title;
-                    var v = document.getElementById('ftb-sig-val');
-                    v.textContent = s.val;
-                    v.className   = 'ftb-signal-val ' + s.cls;
-                    document.getElementById('ftb-sig-conf').textContent = s.conf;
+                    el.textContent = sigs[curSig].text;
+                    el.style.color = sigs[curSig].col;
                 }
 
-                setInterval(function() {
-                    updateRow(tickers[tickIdx % tickers.length]);
-                    tickIdx++;
-                    if (tickIdx % tickers.length === 0) rotateSig();
-                }, 1800);
+                function draw() {
+                    var W = canvas.width, H = canvas.height;
+                    if (!W || !H) { requestAnimationFrame(draw); return; }
+                    var ctx = canvas.getContext('2d');
+                    var ocean = isOcean();
+
+                    ctx.clearRect(0, 0, W, H);
+
+                    // Grid
+                    ctx.strokeStyle = ocean ? 'rgba(0,200,232,0.055)' : 'rgba(165,180,252,0.09)';
+                    ctx.lineWidth = 0.5;
+                    [0.25, 0.5, 0.75].forEach(function(f) {
+                        ctx.beginPath(); ctx.moveTo(0, H*f); ctx.lineTo(W, H*f); ctx.stroke();
+                    });
+                    [0.25, 0.5, 0.75].forEach(function(f) {
+                        ctx.beginPath(); ctx.moveTo(W*f, 0); ctx.lineTo(W*f, H); ctx.stroke();
+                    });
+
+                    var first = Math.max(0, Math.floor(scrollX / STEP) - 1);
+                    var last  = Math.min(story.length - 1, first + Math.ceil(W / STEP) + 2);
+
+                    // Price range
+                    var minL = Infinity, maxH = -Infinity;
+                    for (var i = first; i <= last; i++) {
+                        if (story[i].l < minL) minL = story[i].l;
+                        if (story[i].h > maxH) maxH = story[i].h;
+                    }
+                    var pad = (maxH - minL) * 0.20;
+                    minL -= pad * 0.7; maxH += pad * 1.3;
+
+                    function py(p) { return H - ((p - minL) / (maxH - minL)) * H; }
+
+                    var latestClose = null, latestPct = null;
+
+                    for (var i = first; i <= last; i++) {
+                        var cd = story[i];
+                        var x  = Math.round(i * STEP - scrollX);
+                        var up = cd.c >= cd.o;
+
+                        var bodyT = Math.min(py(cd.o), py(cd.c));
+                        var bodyH = Math.max(Math.abs(py(cd.c) - py(cd.o)), 1.5);
+                        var cx    = x + Math.floor(BODY_W / 2) + 0.5;
+
+                        // Wick
+                        ctx.strokeStyle = up ? '#4ade80' : '#f87171';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath(); ctx.moveTo(cx, py(cd.h)); ctx.lineTo(cx, py(cd.l)); ctx.stroke();
+
+                        // Body
+                        ctx.fillStyle   = up ? 'rgba(74,222,128,0.82)' : 'rgba(248,113,113,0.82)';
+                        ctx.strokeStyle = up ? '#4ade80' : '#f87171';
+                        ctx.lineWidth = 0.5;
+                        ctx.fillRect(x, bodyT, BODY_W, bodyH);
+                        ctx.strokeRect(x, bodyT, BODY_W, bodyH);
+
+                        latestClose = cd.c;
+                        if (cd.buy)  { entryPrice = cd.c; }
+                        if (entryPrice !== null) latestPct = (latestClose - entryPrice) / entryPrice * 100;
+                        if (cd.sell) { entryPrice = null; }
+
+                        // BUY marker
+                        if (cd.buy && !buyShown) {
+                            buyShown = true; sellShown = false;
+                            setSig(1);
+                        }
+                        if (cd.buy) {
+                            var bmy = Math.min(py(cd.l) + 12, H - 2);
+                            ctx.fillStyle = '#4ade80';
+                            ctx.font = 'bold 7.5px monospace';
+                            ctx.textAlign = 'center';
+                            ctx.fillText('▲ BUY', cx, bmy);
+                            ctx.setLineDash([2, 2]);
+                            ctx.strokeStyle = 'rgba(74,222,128,0.25)'; ctx.lineWidth = 0.7;
+                            ctx.beginPath(); ctx.moveTo(cx, py(cd.l)); ctx.lineTo(cx, bmy - 3); ctx.stroke();
+                            ctx.setLineDash([]);
+                        }
+
+                        // SELL marker
+                        if (cd.sell && !sellShown) {
+                            sellShown = true;
+                            setSig(3);
+                            setTimeout(function() { setSig(4); }, 1600);
+                        }
+                        if (cd.sell) {
+                            var smy = Math.max(py(cd.h) - 5, 8);
+                            ctx.fillStyle = '#f59e0b';
+                            ctx.font = 'bold 7.5px monospace';
+                            ctx.textAlign = 'center';
+                            ctx.fillText('▼ SELL', cx, smy);
+                            ctx.setLineDash([2, 2]);
+                            ctx.strokeStyle = 'rgba(245,158,11,0.25)'; ctx.lineWidth = 0.7;
+                            ctx.beginPath(); ctx.moveTo(cx, smy + 2); ctx.lineTo(cx, py(cd.h)); ctx.stroke();
+                            ctx.setLineDash([]);
+                        }
+                    }
+                    ctx.textAlign = 'left';
+
+                    // Update footer
+                    var prEl = document.getElementById('ftb-cf-price');
+                    var pcEl = document.getElementById('ftb-cf-pct');
+                    if (prEl && latestClose) prEl.textContent = '$' + latestClose.toFixed(2);
+                    if (pcEl && latestPct !== null) {
+                        var pu = latestPct >= 0;
+                        pcEl.textContent = (pu ? '+' : '−') + Math.abs(latestPct).toFixed(2) + '%';
+                        pcEl.className   = 'ftb-cf-pct ' + (pu ? 'up' : 'dn');
+                    }
+
+                    scrollX += SPEED;
+                    if (scrollX > story.length * STEP - W + STEP * 3) {
+                        story = generateStory();
+                        scrollX = 0;
+                        entryPrice = null; buyShown = false; sellShown = false;
+                        setSig(5);
+                        setTimeout(function() { setSig(0); }, 2000);
+                    }
+
+                    requestAnimationFrame(draw);
+                }
+
+                setSig(0);
+                draw();
             })();
 
             /* ── Ticker autocomplete ── */
