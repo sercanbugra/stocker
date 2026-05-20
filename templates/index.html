@@ -1794,6 +1794,39 @@
             user-select: none;
         }
         .rm-mkt-chip:hover { border-color: rgba(255,255,255,0.28); color: var(--panel-text); }
+        /* ── Remarkables 2-column stacked layout ── */
+        .rm2-picker { display:flex; gap:4px; }
+        .rm2-mkt-btn {
+            padding: 3px 11px; font-size: 0.7rem; font-weight: 600;
+            border-radius: 20px; border: 1px solid var(--panel-border);
+            background: transparent; color: var(--panel-muted);
+            cursor: pointer; transition: all .18s;
+        }
+        .rm2-mkt-btn:hover { color: var(--panel-text); border-color: rgba(255,255,255,0.25); }
+        .rm2-mkt-btn.active {
+            background: rgba(79,142,247,0.14); border-color: rgba(79,142,247,0.5); color: #4f8ef7;
+        }
+        :root:not([data-theme="ocean"]) .rm2-mkt-btn.active {
+            background: rgba(99,102,241,0.12); border-color: rgba(99,102,241,0.45); color: #6366f1;
+        }
+        .rm2-section-wrap { padding: 7px 11px 6px; }
+        .rm2-section-wrap + .rm2-section-wrap { border-top: 1px solid var(--panel-border); }
+        .rm2-section-hdr { display:flex; align-items:center; gap:7px; margin-bottom:5px; }
+        .rm2-icon {
+            width:20px; height:20px; border-radius:5px; display:flex;
+            align-items:center; justify-content:center; font-size:0.6rem; flex-shrink:0;
+        }
+        .rm2-title { font-size:0.73rem; font-weight:700; color:var(--panel-text); }
+        .rm2-sub { font-size:0.6rem; color:var(--panel-muted); margin-left:auto; }
+        .rm2-list { list-style:none; padding:0; margin:0; }
+        .rm2-list li {
+            display:flex; align-items:center; gap:5px;
+            padding: 2px 0; font-size:0.74rem;
+        }
+        .rm2-list .rm-rank { min-width:13px; color:var(--panel-muted); font-size:0.63rem; }
+        .rm2-list .remarkable-symbol,
+        .rm2-list .nl-symbol-link { font-weight:700; font-size:0.74rem; flex:1; min-width:0; }
+        /* ── */
         .rm-mkt-chip.active {
             border-color: #4f8ef7;
             background: rgba(79,142,247,0.14);
@@ -3928,62 +3961,40 @@
             <button class="hero-dismiss" id="hero-dismiss" aria-label="Dismiss"><i class="fas fa-times"></i></button>
         </div>
 
-        <div class="card remarkable-card mt-3">
+        <div class="row g-3 mt-3">
+
+        <!-- LEFT: Remarkables stacked lists -->
+        <div class="col-lg-5 col-xl-4">
+        <div class="card remarkable-card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-bolt"></i> Remarkables</span>
-                <small class="text-muted" id="remarkables-updated" style="font-size:0.72rem;">
-                    {% if remarkables and remarkables.updated_at %}updated {{ remarkables.updated_at }}{% else %}not ready{% endif %}
-                </small>
+                <span><i class="fas fa-bolt"></i> Remarkables
+                    <small class="text-muted ms-2" id="remarkables-updated" style="font-size:0.67rem;">
+                        {% if remarkables and remarkables.updated_at %}{{ remarkables.updated_at }}{% endif %}
+                    </small>
+                </span>
+                <div class="rm2-picker">
+                    <button class="rm2-mkt-btn active" data-market="us">🇺🇸 US</button>
+                    <button class="rm2-mkt-btn" data-market="tr">🇹🇷 TR</button>
+                </div>
             </div>
-
-            <!-- Market picker -->
-            <div class="rm-picker-wrap">
-                <span class="rm-picker-label">Show market:</span>
-                <button class="rm-mkt-chip" data-market="us">
-                    <span class="rm-chip-flag">🇺🇸</span> US &mdash; S&amp;P 500
-                </button>
-                <button class="rm-mkt-chip" data-market="tr">
-                    <span class="rm-chip-flag">🇹🇷</span> Turkey &mdash; BIST
-                </button>
-            </div>
-
-            <div class="rm-no-market-msg" id="rm-no-selection" style="display:none;">
-                <i class="fas fa-globe me-2"></i>Select one or more markets above to see Remarkables.
-            </div>
-
-            <div class="card-body p-0">
+            <div class="card-body p-0" style="overflow-y:auto; max-height:540px;">
 
                 <!-- US Market section -->
-                <div id="rm-section-us" style="display:none;">
-                <div class="rm-market-section-header">
-                    <span class="rm-market-flag-lg">🇺🇸</span>
-                    <span class="rm-market-section-title">US Markets &mdash; S&amp;P 500 / NASDAQ</span>
-                </div>
-                <div class="row g-0" style="border-bottom:1px solid var(--panel-border);">
+                <div id="rm-section-us">
 
-                    <!-- Risk Lovers -->
-                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
-                        <div class="rm-col-header">
-                            <div class="rm-col-icon rm-col-icon-risk"><i class="fas fa-fire"></i></div>
-                            <div>
-                                <div class="rm-col-title">Risk Lovers</div>
-                                <div class="rm-col-subtitle">High volatility movers</div>
-                            </div>
+                    <div class="rm2-section-wrap">
+                        <div class="rm2-section-hdr">
+                            <span class="rm2-icon rm-col-icon-risk"><i class="fas fa-fire"></i></span>
+                            <span class="rm2-title">Risk Lovers</span>
+                            <span class="rm2-sub">High volatility movers</span>
                         </div>
-                        <div class="rm-col-labels">
-                            <span class="rm-lbl-rank">#</span>
-                            <span class="rm-lbl-ticker">Ticker</span>
-                            <span class="rm-lbl-info"></span>
-                            <span class="rm-lbl-val">Change (%)</span>
-                        </div>
-                        <ol class="rm-list remarkables-list" id="risk-lovers-list">
+                        <ol class="rm2-list remarkables-list" id="risk-lovers-list">
                             {% if remarkables and remarkables.for_risk_lovers %}
                                 {% for item in remarkables.for_risk_lovers %}
                                 <li>
                                     <span class="rm-rank">{{ loop.index }}</span>
                                     <a href="#" class="remarkable-symbol" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
-                                    <span class="rm-info-wrap">
-                                        <span class="rm-info-icon">i</span>
+                                    <span class="rm-info-wrap"><span class="rm-info-icon">i</span>
                                         <span class="rm-tooltip">
                                             <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend (3M)</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
                                             <div class="rm-tooltip-row"><span class="rm-tooltip-key">Low hits (&le;0.9×)</span><span class="rm-tooltip-val">{{ item.down_hits or item.loss_hits }}</span></div>
@@ -3992,43 +4003,26 @@
                                         </span>
                                     </span>
                                     {% set d = item.day_change_pct if item.day_change_pct is defined else none %}
-                                    {% if d is not none %}
-                                        {% if d > 0 %}<span class="rm-chg-pos">+{{ d }}%</span>
-                                        {% elif d < 0 %}<span class="rm-chg-neg">{{ d }}%</span>
-                                        {% else %}<span class="rm-chg-flat">0.00%</span>{% endif %}
-                                    {% endif %}
+                                    {% if d is not none %}{% if d > 0 %}<span class="rm-chg-pos">+{{ d }}%</span>{% elif d < 0 %}<span class="rm-chg-neg">{{ d }}%</span>{% else %}<span class="rm-chg-flat">0.00%</span>{% endif %}{% endif %}
                                 </li>
                                 {% endfor %}
-                            {% else %}
-                                <li><span class="text-muted small">No candidate yet.</span></li>
-                            {% endif %}
+                            {% else %}<li><span class="text-muted small">No candidate yet.</span></li>{% endif %}
                         </ol>
-                        <div style="height:10px;"></div>
                     </div>
 
-                    <!-- Trending Stocks -->
-                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
-                        <div class="rm-col-header">
-                            <div class="rm-col-icon rm-col-icon-trend"><i class="fas fa-chart-line"></i></div>
-                            <div>
-                                <div class="rm-col-title">Trending Stocks</div>
-                                <div class="rm-col-subtitle">Steady upward momentum</div>
-                            </div>
+                    <div class="rm2-section-wrap">
+                        <div class="rm2-section-hdr">
+                            <span class="rm2-icon rm-col-icon-trend"><i class="fas fa-chart-line"></i></span>
+                            <span class="rm2-title">Trending Stocks</span>
+                            <span class="rm2-sub">Steady upward momentum</span>
                         </div>
-                        <div class="rm-col-labels">
-                            <span class="rm-lbl-rank">#</span>
-                            <span class="rm-lbl-ticker">Ticker</span>
-                            <span class="rm-lbl-info"></span>
-                            <span class="rm-lbl-val">Change (%)</span>
-                        </div>
-                        <ol class="rm-list remarkables-list" id="no-pain-list">
+                        <ol class="rm2-list remarkables-list" id="no-pain-list">
                             {% if remarkables and remarkables.no_pain_but_gain %}
                                 {% for item in remarkables.no_pain_but_gain %}
                                 <li>
                                     <span class="rm-rank">{{ loop.index }}</span>
                                     <a href="#" class="remarkable-symbol" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
-                                    <span class="rm-info-wrap">
-                                        <span class="rm-info-icon">i</span>
+                                    <span class="rm-info-wrap"><span class="rm-info-icon">i</span>
                                         <span class="rm-tooltip">
                                             <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend (6M)</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
                                             <div class="rm-tooltip-row"><span class="rm-tooltip-key">Max daily drop</span><span class="rm-tooltip-val">{{ item.max_daily_drop_percent }}%</span></div>
@@ -4036,43 +4030,25 @@
                                         </span>
                                     </span>
                                     {% set d = item.day_change_pct if item.day_change_pct is defined else none %}
-                                    {% if d is not none %}
-                                        {% if d > 0 %}<span class="rm-chg-pos">+{{ d }}%</span>
-                                        {% elif d < 0 %}<span class="rm-chg-neg">{{ d }}%</span>
-                                        {% else %}<span class="rm-chg-flat">0.00%</span>{% endif %}
-                                    {% endif %}
+                                    {% if d is not none %}{% if d > 0 %}<span class="rm-chg-pos">+{{ d }}%</span>{% elif d < 0 %}<span class="rm-chg-neg">{{ d }}%</span>{% else %}<span class="rm-chg-flat">0.00%</span>{% endif %}{% endif %}
                                 </li>
                                 {% endfor %}
-                            {% else %}
-                                <li><span class="text-muted small">No candidate yet.</span></li>
-                            {% endif %}
+                            {% else %}<li><span class="text-muted small">No candidate yet.</span></li>{% endif %}
                         </ol>
-                        <div style="height:10px;"></div>
                     </div>
 
-                    <!-- Top Dividend Stocks -->
-                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
-                        <div class="rm-col-header">
-                            <div class="rm-col-icon rm-col-icon-dividend"><i class="fas fa-hand-holding-usd"></i></div>
-                            <div>
-                                <div class="rm-col-title">Top Dividend Stocks</div>
-                                <div class="rm-col-subtitle">Highest yield payers</div>
-                            </div>
+                    <div class="rm2-section-wrap">
+                        <div class="rm2-section-hdr">
+                            <span class="rm2-icon rm-col-icon-dividend"><i class="fas fa-hand-holding-usd"></i></span>
+                            <span class="rm2-title">Top Dividend Stocks</span>
+                            <span class="rm2-sub">Highest yield payers</span>
                         </div>
-                        {% if dividend_stocks %}
-                        <div class="rm-col-labels">
-                            <span class="rm-lbl-rank">#</span>
-                            <span class="rm-lbl-ticker">Ticker</span>
-                            <span class="rm-lbl-info"></span>
-                            <span class="rm-lbl-val">Yield (%)</span>
-                        </div>
-                        <ul class="rm-list">
-                            {% for item in dividend_stocks %}
+                        <ol class="rm2-list">
+                            {% if dividend_stocks %}{% for item in dividend_stocks %}
                             <li>
                                 <span class="rm-rank">{{ loop.index }}</span>
                                 <a href="#" class="remarkable-symbol nl-symbol-link" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
-                                <span class="rm-info-wrap">
-                                    <span class="rm-info-icon">i</span>
+                                <span class="rm-info-wrap"><span class="rm-info-icon">i</span>
                                     <span class="rm-tooltip">
                                         <div class="rm-tooltip-row"><span class="rm-tooltip-key">Div. Yield</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.yield_pct) }}%</span></div>
                                         <div class="rm-tooltip-row"><span class="rm-tooltip-key">Annual Div.</span><span class="rm-tooltip-val">${{ "%.2f"|format(item.annual_div) }}</span></div>
@@ -4081,38 +4057,22 @@
                                 </span>
                                 <span class="rm-yield-badge">{{ "%.1f"|format(item.yield_pct) }}%</span>
                             </li>
-                            {% endfor %}
-                        </ul>
-                        {% else %}
-                        <p class="text-muted small px-3 mt-2">Loading dividend data…</p>
-                        {% endif %}
-                        <div style="height:10px;"></div>
+                            {% endfor %}{% else %}<li><span class="text-muted small">Loading…</span></li>{% endif %}
+                        </ol>
                     </div>
 
-                    <!-- Undervalued Stocks -->
-                    <div class="col-md-3">
-                        <div class="rm-col-header">
-                            <div class="rm-col-icon rm-col-icon-undervalued"><i class="fas fa-tags"></i></div>
-                            <div>
-                                <div class="rm-col-title">Undervalued</div>
-                                <div class="rm-col-subtitle">Top FCF yield stocks</div>
-                            </div>
+                    <div class="rm2-section-wrap">
+                        <div class="rm2-section-hdr">
+                            <span class="rm2-icon rm-col-icon-undervalued"><i class="fas fa-tags"></i></span>
+                            <span class="rm2-title">Undervalued</span>
+                            <span class="rm2-sub">Top FCF yield stocks</span>
                         </div>
-                        {% if undervalued_stocks %}
-                        <div class="rm-col-labels">
-                            <span class="rm-lbl-rank">#</span>
-                            <span class="rm-lbl-ticker">Ticker</span>
-                            <span class="rm-lbl-info"></span>
-                            <span class="rm-lbl-val">FCF Yield</span>
-                            <span class="rm-lbl-val">Price</span>
-                        </div>
-                        <ul class="rm-list">
-                            {% for item in undervalued_stocks %}
+                        <ol class="rm2-list">
+                            {% if undervalued_stocks %}{% for item in undervalued_stocks %}
                             <li>
                                 <span class="rm-rank">{{ loop.index }}</span>
                                 <a href="#" class="remarkable-symbol nl-symbol-link" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
-                                <span class="rm-info-wrap">
-                                    <span class="rm-info-icon">i</span>
+                                <span class="rm-info-wrap"><span class="rm-info-icon">i</span>
                                     <span class="rm-tooltip">
                                         <div class="rm-tooltip-row"><span class="rm-tooltip-key">FCF Yield</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.fcf_yield) }}%</span></div>
                                         {% if item.pfcf %}<div class="rm-tooltip-row"><span class="rm-tooltip-key">P/FCF</span><span class="rm-tooltip-val">{{ item.pfcf }}×</span></div>{% endif %}
@@ -4120,136 +4080,77 @@
                                     </span>
                                 </span>
                                 <span class="rm-fcf-badge">{{ "%.1f"|format(item.fcf_yield) }}%</span>
-                                {% if item.price %}<span class="rm-chg-flat">${{ "%.2f"|format(item.price) }}</span>{% endif %}
                             </li>
-                            {% endfor %}
-                        </ul>
-                        {% else %}
-                        <p class="text-muted small px-3 mt-2">Loading undervalued data…</p>
-                        {% endif %}
-                        <div style="height:10px;"></div>
+                            {% endfor %}{% else %}<li><span class="text-muted small">Loading…</span></li>{% endif %}
+                        </ol>
                     </div>
-
-                </div>
 
                 </div><!-- /rm-section-us -->
 
                 <!-- Turkish Market section -->
                 <div id="rm-section-tr" style="display:none;">
-                <div class="rm-market-section-header" style="border-top:1px solid var(--panel-border);">
-                    <span class="rm-market-flag-lg">🇹🇷</span>
-                    <span class="rm-market-section-title">Turkish Markets &mdash; BIST</span>
-                </div>
-                <div class="row g-0" style="border-bottom:1px solid var(--panel-border);">
 
-                    <!-- BIST Risk Lovers -->
-                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
-                        <div class="rm-col-header">
-                            <div class="rm-col-icon rm-col-icon-risk"><i class="fas fa-fire"></i></div>
-                            <div>
-                                <div class="rm-col-title">Risk Lovers</div>
-                                <div class="rm-col-subtitle">High volatility movers</div>
-                            </div>
+                    <div class="rm2-section-wrap">
+                        <div class="rm2-section-hdr">
+                            <span class="rm2-icon rm-col-icon-risk"><i class="fas fa-fire"></i></span>
+                            <span class="rm2-title">Risk Lovers</span>
+                            <span class="rm2-sub">High volatility movers</span>
                         </div>
-                        <div class="rm-col-labels">
-                            <span class="rm-lbl-rank">#</span>
-                            <span class="rm-lbl-ticker">Ticker</span>
-                            <span class="rm-lbl-info"></span>
-                            <span class="rm-lbl-val">Change (%)</span>
-                        </div>
-                        <ol class="rm-list">
-                            {% if bist_data and bist_data.for_risk_lovers is defined %}
-                                {% for item in bist_data.for_risk_lovers %}
-                                <li>
-                                    <span class="rm-rank">{{ loop.index }}</span>
-                                    <a href="#" class="remarkable-symbol" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.IS','') }}</a>
-                                    <span class="rm-info-wrap">
-                                        <span class="rm-info-icon">i</span>
-                                        <span class="rm-tooltip">
-                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend (3M)</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
-                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Low hits</span><span class="rm-tooltip-val">{{ item.down_hits }}</span></div>
-                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">High hits</span><span class="rm-tooltip-val">{{ item.up_hits }}</span></div>
-                                        </span>
+                        <ol class="rm2-list">
+                            {% if bist_data and bist_data.for_risk_lovers is defined %}{% for item in bist_data.for_risk_lovers %}
+                            <li>
+                                <span class="rm-rank">{{ loop.index }}</span>
+                                <a href="#" class="remarkable-symbol" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.IS','') }}</a>
+                                <span class="rm-info-wrap"><span class="rm-info-icon">i</span>
+                                    <span class="rm-tooltip">
+                                        <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend (3M)</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
+                                        <div class="rm-tooltip-row"><span class="rm-tooltip-key">Low hits</span><span class="rm-tooltip-val">{{ item.down_hits }}</span></div>
+                                        <div class="rm-tooltip-row"><span class="rm-tooltip-key">High hits</span><span class="rm-tooltip-val">{{ item.up_hits }}</span></div>
                                     </span>
-                                    {% set d = item.day_change_pct if item.day_change_pct is defined else none %}
-                                    {% if d is not none %}
-                                        {% if d > 0 %}<span class="rm-chg-pos">+{{ d }}%</span>
-                                        {% elif d < 0 %}<span class="rm-chg-neg">{{ d }}%</span>
-                                        {% else %}<span class="rm-chg-flat">0.00%</span>{% endif %}
-                                    {% endif %}
-                                </li>
-                                {% endfor %}
-                            {% endif %}
+                                </span>
+                                {% set d = item.day_change_pct if item.day_change_pct is defined else none %}
+                                {% if d is not none %}{% if d > 0 %}<span class="rm-chg-pos">+{{ d }}%</span>{% elif d < 0 %}<span class="rm-chg-neg">{{ d }}%</span>{% else %}<span class="rm-chg-flat">0.00%</span>{% endif %}{% endif %}
+                            </li>
+                            {% endfor %}{% else %}<li><span class="text-muted small">Loading…</span></li>{% endif %}
                         </ol>
-                        <div style="height:10px;"></div>
                     </div>
 
-                    <!-- BIST Trending Stocks -->
-                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
-                        <div class="rm-col-header">
-                            <div class="rm-col-icon rm-col-icon-trend"><i class="fas fa-chart-line"></i></div>
-                            <div>
-                                <div class="rm-col-title">Trending Stocks</div>
-                                <div class="rm-col-subtitle">Steady upward momentum</div>
-                            </div>
+                    <div class="rm2-section-wrap">
+                        <div class="rm2-section-hdr">
+                            <span class="rm2-icon rm-col-icon-trend"><i class="fas fa-chart-line"></i></span>
+                            <span class="rm2-title">Trending Stocks</span>
+                            <span class="rm2-sub">Steady upward momentum</span>
                         </div>
-                        <div class="rm-col-labels">
-                            <span class="rm-lbl-rank">#</span>
-                            <span class="rm-lbl-ticker">Ticker</span>
-                            <span class="rm-lbl-info"></span>
-                            <span class="rm-lbl-val">Change (%)</span>
-                        </div>
-                        <ol class="rm-list">
-                            {% if bist_data and bist_data.no_pain_but_gain %}
-                                {% for item in bist_data.no_pain_but_gain %}
-                                <li>
-                                    <span class="rm-rank">{{ loop.index }}</span>
-                                    <a href="#" class="remarkable-symbol" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.IS','') }}</a>
-                                    <span class="rm-info-wrap">
-                                        <span class="rm-info-icon">i</span>
-                                        <span class="rm-tooltip">
-                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend (6M)</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
-                                            <div class="rm-tooltip-row"><span class="rm-tooltip-key">Max daily drop</span><span class="rm-tooltip-val">{{ item.max_daily_drop_percent }}%</span></div>
-                                        </span>
+                        <ol class="rm2-list">
+                            {% if bist_data and bist_data.no_pain_but_gain %}{% for item in bist_data.no_pain_but_gain %}
+                            <li>
+                                <span class="rm-rank">{{ loop.index }}</span>
+                                <a href="#" class="remarkable-symbol" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.IS','') }}</a>
+                                <span class="rm-info-wrap"><span class="rm-info-icon">i</span>
+                                    <span class="rm-tooltip">
+                                        <div class="rm-tooltip-row"><span class="rm-tooltip-key">Trend (6M)</span><span class="rm-tooltip-val">{{ item.trend_percent }}%</span></div>
+                                        <div class="rm-tooltip-row"><span class="rm-tooltip-key">Max daily drop</span><span class="rm-tooltip-val">{{ item.max_daily_drop_percent }}%</span></div>
                                     </span>
-                                    {% set d = item.day_change_pct if item.day_change_pct is defined else none %}
-                                    {% if d is not none %}
-                                        {% if d > 0 %}<span class="rm-chg-pos">+{{ d }}%</span>
-                                        {% elif d < 0 %}<span class="rm-chg-neg">{{ d }}%</span>
-                                        {% else %}<span class="rm-chg-flat">0.00%</span>{% endif %}
-                                    {% endif %}
-                                </li>
-                                {% endfor %}
-                            {% else %}
-                                <li><span class="text-muted small">Loading…</span></li>
-                            {% endif %}
+                                </span>
+                                {% set d = item.day_change_pct if item.day_change_pct is defined else none %}
+                                {% if d is not none %}{% if d > 0 %}<span class="rm-chg-pos">+{{ d }}%</span>{% elif d < 0 %}<span class="rm-chg-neg">{{ d }}%</span>{% else %}<span class="rm-chg-flat">0.00%</span>{% endif %}{% endif %}
+                            </li>
+                            {% endfor %}{% else %}<li><span class="text-muted small">Loading…</span></li>{% endif %}
                         </ol>
-                        <div style="height:10px;"></div>
                     </div>
 
-                    <!-- BIST Dividend -->
-                    <div class="col-md-3" style="border-right:1px solid var(--panel-border);">
-                        <div class="rm-col-header">
-                            <div class="rm-col-icon rm-col-icon-dividend"><i class="fas fa-hand-holding-usd"></i></div>
-                            <div>
-                                <div class="rm-col-title">Top Dividend Stocks</div>
-                                <div class="rm-col-subtitle">Highest yield payers</div>
-                            </div>
+                    <div class="rm2-section-wrap">
+                        <div class="rm2-section-hdr">
+                            <span class="rm2-icon rm-col-icon-dividend"><i class="fas fa-hand-holding-usd"></i></span>
+                            <span class="rm2-title">Top Dividend Stocks</span>
+                            <span class="rm2-sub">Highest yield payers</span>
                         </div>
-                        {% if bist_data and bist_data.top_dividend %}
-                        <div class="rm-col-labels">
-                            <span class="rm-lbl-rank">#</span>
-                            <span class="rm-lbl-ticker">Ticker</span>
-                            <span class="rm-lbl-info"></span>
-                            <span class="rm-lbl-val">Yield (%)</span>
-                        </div>
-                        <ul class="rm-list">
-                            {% for item in bist_data.top_dividend %}
+                        <ol class="rm2-list">
+                            {% if bist_data and bist_data.top_dividend %}{% for item in bist_data.top_dividend %}
                             <li>
                                 <span class="rm-rank">{{ loop.index }}</span>
                                 <a href="#" class="remarkable-symbol nl-symbol-link" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.IS','') }}</a>
-                                <span class="rm-info-wrap">
-                                    <span class="rm-info-icon">i</span>
+                                <span class="rm-info-wrap"><span class="rm-info-icon">i</span>
                                     <span class="rm-tooltip">
                                         <div class="rm-tooltip-row"><span class="rm-tooltip-key">Div. Yield</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.yield_pct) }}%</span></div>
                                         <div class="rm-tooltip-row"><span class="rm-tooltip-key">Annual Div.</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.annual_div) }}</span></div>
@@ -4258,38 +4159,22 @@
                                 </span>
                                 <span class="rm-yield-badge">{{ "%.1f"|format(item.yield_pct) }}%</span>
                             </li>
-                            {% endfor %}
-                        </ul>
-                        {% else %}
-                        <p class="text-muted small px-3 mt-2">Loading…</p>
-                        {% endif %}
-                        <div style="height:10px;"></div>
+                            {% endfor %}{% else %}<li><span class="text-muted small">Loading…</span></li>{% endif %}
+                        </ol>
                     </div>
 
-                    <!-- BIST Undervalued -->
-                    <div class="col-md-3">
-                        <div class="rm-col-header">
-                            <div class="rm-col-icon rm-col-icon-undervalued"><i class="fas fa-tags"></i></div>
-                            <div>
-                                <div class="rm-col-title">Undervalued</div>
-                                <div class="rm-col-subtitle">Top FCF yield stocks</div>
-                            </div>
+                    <div class="rm2-section-wrap">
+                        <div class="rm2-section-hdr">
+                            <span class="rm2-icon rm-col-icon-undervalued"><i class="fas fa-tags"></i></span>
+                            <span class="rm2-title">Undervalued</span>
+                            <span class="rm2-sub">Top FCF yield stocks</span>
                         </div>
-                        {% if bist_data and bist_data.undervalued %}
-                        <div class="rm-col-labels">
-                            <span class="rm-lbl-rank">#</span>
-                            <span class="rm-lbl-ticker">Ticker</span>
-                            <span class="rm-lbl-info"></span>
-                            <span class="rm-lbl-val">FCF Yield</span>
-                            <span class="rm-lbl-val">Price</span>
-                        </div>
-                        <ul class="rm-list">
-                            {% for item in bist_data.undervalued %}
+                        <ol class="rm2-list">
+                            {% if bist_data and bist_data.undervalued %}{% for item in bist_data.undervalued %}
                             <li>
                                 <span class="rm-rank">{{ loop.index }}</span>
                                 <a href="#" class="remarkable-symbol nl-symbol-link" data-symbol="{{ item.symbol }}">{{ item.symbol | replace('.IS','') }}</a>
-                                <span class="rm-info-wrap">
-                                    <span class="rm-info-icon">i</span>
+                                <span class="rm-info-wrap"><span class="rm-info-icon">i</span>
                                     <span class="rm-tooltip">
                                         <div class="rm-tooltip-row"><span class="rm-tooltip-key">FCF Yield</span><span class="rm-tooltip-val">{{ "%.2f"|format(item.fcf_yield) }}%</span></div>
                                         {% if item.pfcf %}<div class="rm-tooltip-row"><span class="rm-tooltip-key">P/FCF</span><span class="rm-tooltip-val">{{ item.pfcf }}×</span></div>{% endif %}
@@ -4297,17 +4182,11 @@
                                     </span>
                                 </span>
                                 <span class="rm-fcf-badge">{{ "%.1f"|format(item.fcf_yield) }}%</span>
-                                {% if item.price %}<span class="rm-chg-flat">{{ "%.2f"|format(item.price) }}</span>{% endif %}
                             </li>
-                            {% endfor %}
-                        </ul>
-                        {% else %}
-                        <p class="text-muted small px-3 mt-2">Loading…</p>
-                        {% endif %}
-                        <div style="height:10px;"></div>
+                            {% endfor %}{% else %}<li><span class="text-muted small">Loading…</span></li>{% endif %}
+                        </ol>
                     </div>
 
-                </div>
                 </div><!-- /rm-section-tr -->
 
                 <div class="remarkables-meta" id="remarkables-meta">
@@ -4326,6 +4205,38 @@
                 </div>
             </div>
         </div>
+        </div><!-- /col-lg-5 col-xl-4 -->
+
+        <!-- RIGHT: Watchlist -->
+        <div class="col-lg-7 col-xl-8">
+        <div class="card watchlist-card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-star"></i> Watchlist</span>
+                <div class="d-flex align-items-center gap-2">
+                    {% if user_tier in ['pro', 'premium', 'admin'] %}
+                    <a href="/watchlist-trends" target="_blank"
+                       style="font-size:0.72rem; font-weight:600; padding:3px 11px; border-radius:20px;
+                              border:1px solid rgba(79,142,247,0.4); color:#4f8ef7; text-decoration:none;
+                              white-space:nowrap; transition:all .15s;"
+                       onmouseover="this.style.background='rgba(79,142,247,0.12)'"
+                       onmouseout="this.style.background=''"
+                       title="Open watchlist trend charts in a new window">
+                        <i class="fas fa-chart-area me-1"></i>Show Trends
+                    </a>
+                    {% endif %}
+                    <small class="text-muted" style="font-size:0.7rem;">Click Save to add a symbol</small>
+                </div>
+            </div>
+            <div class="card-body p-2">
+                <div class="row row-cols-3 row-cols-md-5 row-cols-lg-6 g-2" id="watchlist-body">
+                    <!-- watchlist items -->
+                </div>
+                <div class="text-muted small mt-2" id="watchlist-notice"></div>
+            </div>
+        </div>
+        </div><!-- /col-lg-7 col-xl-8 -->
+
+        </div><!-- /row g-3 mt-3 -->
 
         <!-- Results Section -->
         <div id="results" style="display:none; margin-top:12px;">
@@ -4536,35 +4447,6 @@
             </div>
         </div>
     </div>
-    <!-- Full-width Watchlist -->
-    <div class="container">
-        <div class="card watchlist-card mt-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-star"></i> Watchlist</span>
-                <div class="d-flex align-items-center gap-2">
-                    {% if user_tier in ['pro', 'premium', 'admin'] %}
-                    <a href="/watchlist-trends" target="_blank"
-                       style="font-size:0.72rem; font-weight:600; padding:3px 11px; border-radius:20px;
-                              border:1px solid rgba(79,142,247,0.4); color:#4f8ef7; text-decoration:none;
-                              white-space:nowrap; transition:all .15s;"
-                       onmouseover="this.style.background='rgba(79,142,247,0.12)'"
-                       onmouseout="this.style.background=''"
-                       title="Open watchlist trend charts in a new window">
-                        <i class="fas fa-chart-area me-1"></i>Show Trends
-                    </a>
-                    {% endif %}
-                    <small class="text-muted">Click the Save button to add any symbol to your watchlist</small>
-                </div>
-            </div>
-            <div class="card-body p-2">
-                <div class="row row-cols-3 row-cols-md-5 row-cols-lg-8 g-2" id="watchlist-body">
-                    <!-- watchlist items -->
-                </div>
-                <div class="text-muted small mt-2" id="watchlist-notice"></div>
-            </div>
-        </div>
-    </div>
-
     <!-- Disclaimer -->
     <div class="container mt-3 mb-1">
         <small style="font-size:0.66rem; color:var(--panel-muted); line-height:1.55; display:block;">
@@ -6079,8 +5961,8 @@
 
                 function apply(selected) {
                     window._rm_selected_markets = selected;
-                    // Update chips
-                    document.querySelectorAll('.rm-mkt-chip').forEach(function(btn) {
+                    // Update buttons (single-select)
+                    document.querySelectorAll('.rm2-mkt-btn').forEach(function(btn) {
                         btn.classList.toggle('active', selected.includes(btn.dataset.market));
                     });
                     // Show/hide sections
@@ -6097,19 +5979,14 @@
                 let selected = load();
                 apply(selected);
                 if (isLoggedIn && !(userMarkets && userMarkets.length)) {
-                    // save defaults to server for this user so next login has their own copy
                     save(selected);
                 }
 
-                // Chip click: toggle on/off (multi-select)
-                document.querySelectorAll('.rm-mkt-chip').forEach(function(btn) {
+                // Button click: single-select (always switch to clicked market)
+                document.querySelectorAll('.rm2-mkt-btn').forEach(function(btn) {
                     btn.addEventListener('click', function() {
                         const m = btn.dataset.market;
-                        if (selected.includes(m)) {
-                            selected = selected.filter(function(x) { return x !== m; });
-                        } else {
-                            selected = selected.concat(m);
-                        }
+                        selected = [m];
                         save(selected);
                         apply(selected);
                         loadRemarkables(true);
@@ -6119,7 +5996,7 @@
                 // expose setter for profile modal
                 window.setMarketSelection = function(arr, triggerRefresh=true) {
                     const cleaned = (arr || []).filter(m => ALL.includes(m));
-                    const finalSel = cleaned.length ? cleaned : ['us'];
+                    const finalSel = cleaned.length ? [cleaned[0]] : ['us'];
                     save(finalSel);
                     apply(finalSel);
                     if (triggerRefresh) loadRemarkables(true);
@@ -6442,7 +6319,6 @@
 
             function _startLoader(symbol) {
                 // Reset UI
-                $('.rm-picker-wrap').show();
                 _resetSteps();
                 _buildCandles();
                 document.getElementById('loader-symbol').textContent = symbol || '—';
@@ -6529,7 +6405,6 @@
                         _stopLoader();
                         setTimeout(function() { $('.loading-spinner').removeClass('is-visible'); }, 320);
                         $('#results').show();
-                        $('.rm-picker-wrap').hide();
                         $('#add-watchlist').fadeIn(300);
                         // If symbol already in watchlist, show Watchlisted state immediately
                         if (hasWatchlistAccess) {
