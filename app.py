@@ -110,8 +110,8 @@ _CSP = "; ".join([
     "img-src 'self' data:",
     # XHR/fetch: all API calls are same-origin
     "connect-src 'self'",
-    # No iframes anywhere on the site
-    "frame-src 'none'",
+    # Same-origin iframes allowed (e.g. watchlist-trends embedded in main page)
+    "frame-src 'self'",
     # Block Flash/plugins entirely
     "object-src 'none'",
     # Prevent base-tag injection attacks
