@@ -106,8 +106,8 @@ _CSP = "; ".join([
     "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
     # Font Awesome webfonts
     "font-src 'self' https://cdnjs.cloudflare.com",
-    # Images: self + data: URIs (Plotly exports charts as data: URLs)
-    "img-src 'self' data:",
+    # Images: self + data: URIs + Yahoo Finance news thumbnails
+    "img-src 'self' data: https://s.yimg.com https://media.zenfs.com https://finance.yahoo.com",
     # XHR/fetch: all API calls are same-origin
     "connect-src 'self'",
     # Same-origin iframes allowed (e.g. watchlist-trends embedded in main page)
@@ -5466,6 +5466,76 @@ def api_watchlist_trends():
         except Exception as exc:
             logger.warning(f"watchlist-trends {sym}: {exc}")
     return jsonify({"symbols": result})
+
+_WL_NEWS_CACHE: dict[str, tuple[float, list]] = {}
+_WL_NEWS_TTL = 1800  # 30 minutes
+
+
+def _parse_yf_news_with_image(n: dict) -> dict | None:
+    item = _parse_yf_news_item(n)
+    if not item:
+        return None
+    # Extract thumbnail image
+    content = n.get("content") or {}
+    if content:
+        thumb = content.get("thumbnail") or {}
+    else:
+        thumb = n.get("thumbnail") or {}
+    resolutions = thumb.get("resolutions") or []
+    if resolutions:
+        best = max(resolutions, key=lambda r: r.get("width", 0))
+        item["image"] = best.get("url")
+    return item
+
+
+def _fetch_wl_news_for_symbol(symbol: str) -> list:
+    now = time.time()
+    cached = _WL_NEWS_CACHE.get(symbol)
+    if cached and now - cached[0] < _WL_NEWS_TTL:
+        return cached[1]
+    items = []
+    try:
+        import yfinance as yf
+        raw = yf.Ticker(symbol).news or []
+        for n in raw:
+            item = _parse_yf_news_with_image(n)
+            if item:
+                items.append(item)
+            if len(items) >= 3:
+                break
+    except Exception as e:
+        logger.warning(f"wl news {symbol}: {e}")
+    _WL_NEWS_CACHE[symbol] = (now, items)
+    return items
+
+
+@app.route("/api/watchlist-news")
+@subscription_required("pro")
+def api_watchlist_news():
+    email = _get_current_user_email()
+    path = _get_watchlist_path(email)
+    symbols: list[str] = []
+    if os.path.exists(path):
+        try:
+            with open(path) as f:
+                symbols = json.load(f)
+        except Exception:
+            pass
+    symbols = symbols[:8]
+    if not symbols:
+        return jsonify([])
+    results = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+        futs = {pool.submit(_fetch_wl_news_for_symbol, s): s for s in symbols}
+        for fut, sym in futs.items():
+            try:
+                news = fut.result(timeout=6)
+                if news:
+                    results.append({"symbol": sym, "news": news})
+            except Exception:
+                pass
+    return jsonify(results)
+
 
 @app.route("/api/heartbeat", methods=["POST"])
 def api_heartbeat():

@@ -3841,6 +3841,78 @@
             /* ── Touch targets ── */
             .remarkable-symbol, .rm-info-icon { min-height: 32px; display: inline-flex; align-items: center; }
         }
+        /* ── Watchlist news feed ── */
+        .wl-news-wrap {
+            border-top: 1px solid var(--panel-border);
+            margin-top: 6px; padding-top: 6px;
+            display: flex; flex-direction: column; flex-shrink: 0;
+            min-height: 0;
+        }
+        .wl-news-header {
+            display: flex; align-items: center; gap: 5px;
+            margin-bottom: 5px; flex-shrink: 0;
+        }
+        .wl-news-lbl {
+            font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--panel-muted);
+        }
+        .wl-news-sym {
+            font-size: 0.8rem; font-weight: 800; color: #4f8ef7;
+        }
+        .wl-news-progress {
+            flex: 1; height: 2px; background: var(--panel-border); border-radius: 2px; overflow: hidden;
+        }
+        .wl-news-progress-bar {
+            height: 100%; background: #4f8ef7; width: 0%; transition: width linear;
+        }
+        .wl-news-nav { display: flex; gap: 3px; }
+        .wl-news-nav-btn {
+            background: none; border: 1px solid var(--panel-border);
+            color: var(--panel-muted); cursor: pointer;
+            width: 22px; height: 22px; border-radius: 4px; font-size: 0.65rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: color .12s, border-color .12s;
+        }
+        .wl-news-nav-btn:hover { color: var(--panel-text); border-color: var(--panel-text); }
+        .wl-news-slides { flex: 1; min-height: 0; overflow: hidden; }
+        .wl-news-slide { display: none; }
+        .wl-news-slide.active { display: block; }
+        .wl-news-item {
+            display: flex; gap: 8px; align-items: flex-start;
+            padding: 4px 0; border-bottom: 1px solid var(--panel-border);
+        }
+        .wl-news-item:last-child { border-bottom: none; }
+        .wl-news-img {
+            width: 52px; height: 40px; object-fit: cover;
+            border-radius: 5px; flex-shrink: 0;
+            background: var(--parliament-blue-soft);
+        }
+        .wl-news-img-placeholder {
+            width: 52px; height: 40px; border-radius: 5px; flex-shrink: 0;
+            background: var(--parliament-blue-soft);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--panel-muted); font-size: 1.1rem;
+        }
+        .wl-news-text { flex: 1; min-width: 0; }
+        .wl-news-title {
+            font-size: 0.74rem; font-weight: 600; color: var(--panel-text);
+            line-height: 1.35; margin-bottom: 2px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .wl-news-title a { color: inherit; text-decoration: none; }
+        .wl-news-title a:hover { color: #4f8ef7; }
+        .wl-news-meta { font-size: 0.63rem; color: var(--panel-muted); }
+        .wl-news-dots { display: flex; gap: 4px; align-items: center; padding: 4px 0 0; flex-shrink: 0; }
+        .wl-news-dot {
+            width: 5px; height: 5px; border-radius: 50%;
+            background: var(--panel-border); cursor: pointer; transition: background .15s;
+        }
+        .wl-news-dot.active { background: #4f8ef7; }
+        :root:not([data-theme="ocean"]) .wl-news-sym { color: #6366f1; }
+        :root:not([data-theme="ocean"]) .wl-news-progress-bar { background: #6366f1; }
+        :root:not([data-theme="ocean"]) .wl-news-dot.active { background: #6366f1; }
+        :root:not([data-theme="ocean"]) .wl-news-title a:hover { color: #6366f1; }
     </style>
 </head>
 <body>
@@ -4783,11 +4855,26 @@
                     <small class="text-muted" style="font-size:0.7rem;">Click Save to add a symbol</small>
                 </div>
             </div>
-            <div class="card-body p-2" id="watchlist-card-body">
-                <div class="row row-cols-3 row-cols-md-5 row-cols-lg-6 g-2" id="watchlist-body">
+            <div class="card-body p-2" id="watchlist-card-body" style="display:flex;flex-direction:column;overflow:hidden;">
+                <div class="row row-cols-3 row-cols-md-5 row-cols-lg-6 g-2 flex-shrink-0" id="watchlist-body">
                     <!-- watchlist items -->
                 </div>
-                <div class="text-muted small mt-2" id="watchlist-notice"></div>
+                <div class="text-muted small mt-1 flex-shrink-0" id="watchlist-notice"></div>
+                {% if user_tier in ['pro', 'premium', 'admin'] %}
+                <div class="wl-news-wrap" id="wl-news-wrap" style="display:none;">
+                    <div class="wl-news-header">
+                        <span class="wl-news-lbl"><i class="fas fa-newspaper me-1"></i>News</span>
+                        <span class="wl-news-sym" id="wl-news-sym-lbl"></span>
+                        <div class="wl-news-progress"><div class="wl-news-progress-bar" id="wl-news-pbar"></div></div>
+                        <div class="wl-news-nav">
+                            <button class="wl-news-nav-btn" id="wl-news-prev"><i class="fas fa-chevron-left"></i></button>
+                            <button class="wl-news-nav-btn" id="wl-news-next"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="wl-news-slides" id="wl-news-slides"></div>
+                    <div class="wl-news-dots" id="wl-news-dots"></div>
+                </div>
+                {% endif %}
             </div>
         </div>
         </div><!-- /col-lg-7 col-xl-8 -->
@@ -6320,6 +6407,98 @@
                 });
                 // Open by default on page load
                 openDrawer();
+
+                // ── Watchlist news feed (sliding per-symbol) ──
+                (function() {
+                    var wrap = document.getElementById('wl-news-wrap');
+                    if (!wrap) return;
+                    var slidesEl = document.getElementById('wl-news-slides');
+                    var dotsEl   = document.getElementById('wl-news-dots');
+                    var symLbl   = document.getElementById('wl-news-sym-lbl');
+                    var pbar     = document.getElementById('wl-news-pbar');
+                    var prevBtn  = document.getElementById('wl-news-prev');
+                    var nextBtn  = document.getElementById('wl-news-next');
+                    var data = [], cur = 0, timer = null, progTimer = null;
+                    var INTERVAL = 7000;
+
+                    function relTime(pub) {
+                        if (!pub) return '';
+                        var d = typeof pub === 'number' ? new Date(pub * 1000) : new Date(pub);
+                        if (isNaN(d)) return '';
+                        var diff = Math.floor((Date.now() - d) / 60000);
+                        if (diff < 2)  return 'just now';
+                        if (diff < 60) return diff + 'm ago';
+                        if (diff < 1440) return Math.floor(diff/60) + 'h ago';
+                        return Math.floor(diff/1440) + 'd ago';
+                    }
+
+                    function buildSlides() {
+                        slidesEl.innerHTML = '';
+                        dotsEl.innerHTML = '';
+                        data.forEach(function(d, i) {
+                            var slide = document.createElement('div');
+                            slide.className = 'wl-news-slide' + (i === 0 ? ' active' : '');
+                            var html = '';
+                            d.news.forEach(function(n) {
+                                var img = n.image
+                                    ? '<img class="wl-news-img" src="' + n.image + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">'
+                                    : '<div class="wl-news-img-placeholder"><i class="fas fa-newspaper"></i></div>';
+                                var meta = [n.publisher, relTime(n.published)].filter(Boolean).join(' · ');
+                                html += '<div class="wl-news-item">' + img +
+                                    '<div class="wl-news-text">' +
+                                    '<div class="wl-news-title"><a href="' + n.link + '" target="_blank" rel="noopener">' + n.title + '</a></div>' +
+                                    (meta ? '<div class="wl-news-meta">' + meta + '</div>' : '') +
+                                    '</div></div>';
+                            });
+                            slide.innerHTML = html;
+                            slidesEl.appendChild(slide);
+                            var dot = document.createElement('div');
+                            dot.className = 'wl-news-dot' + (i === 0 ? ' active' : '');
+                            dot.addEventListener('click', (function(idx){ return function(){ goTo(idx); }; })(i));
+                            dotsEl.appendChild(dot);
+                        });
+                    }
+
+                    function goTo(idx) {
+                        clearTimeout(timer); clearTimeout(progTimer);
+                        var slides = slidesEl.querySelectorAll('.wl-news-slide');
+                        var dots   = dotsEl.querySelectorAll('.wl-news-dot');
+                        if (!slides.length) return;
+                        cur = (idx + data.length) % data.length;
+                        slides.forEach(function(s, i) { s.classList.toggle('active', i === cur); });
+                        dots.forEach(function(d, i)   { d.classList.toggle('active', i === cur); });
+                        symLbl.textContent = data[cur].symbol;
+                        startProgress();
+                        timer = setTimeout(function() { goTo(cur + 1); }, INTERVAL);
+                    }
+
+                    function startProgress() {
+                        if (pbar) { pbar.style.transition = 'none'; pbar.style.width = '0%'; }
+                        clearTimeout(progTimer);
+                        progTimer = setTimeout(function() {
+                            if (pbar) { pbar.style.transition = 'width ' + INTERVAL + 'ms linear'; pbar.style.width = '100%'; }
+                        }, 30);
+                    }
+
+                    function loadNews() {
+                        fetch('/api/watchlist-news')
+                            .then(function(r) { return r.ok ? r.json() : []; })
+                            .then(function(arr) {
+                                if (!arr.length) return;
+                                data = arr;
+                                wrap.style.display = '';
+                                buildSlides();
+                                goTo(0);
+                            })
+                            .catch(function() {});
+                    }
+
+                    if (prevBtn) prevBtn.addEventListener('click', function() { goTo(cur - 1); });
+                    if (nextBtn) nextBtn.addEventListener('click', function() { goTo(cur + 1); });
+
+                    // Load news once watchlist is populated (small delay)
+                    setTimeout(loadNews, 2000);
+                })();
 
                 // Watchlist → Show Trends inline iframe
                 (function() {
