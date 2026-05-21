@@ -5526,8 +5526,10 @@ def api_watchlist_news():
     symbols: list[str] = []
     if os.path.exists(path):
         try:
-            with open(path) as f:
-                symbols = json.load(f)
+            with open(path, encoding="utf-8") as f:
+                payload = json.load(f)
+            symbols = payload.get("symbols", []) if isinstance(payload, dict) else payload
+            symbols = [s for s in symbols if isinstance(s, str)]
         except Exception:
             pass
     symbols = symbols[:10]
