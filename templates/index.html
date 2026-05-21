@@ -3728,6 +3728,9 @@
         .drawer-gultechs-arrow { color: var(--panel-muted); font-size: 0.75rem; }
 
         @media (max-width: 767px) {
+            /* Allow natural page scroll — desktop locks overflow on html/body */
+            html, body { overflow: auto !important; height: auto !important; }
+
             /* ── Mobile: disable snap-scroll, let the page scroll naturally ── */
             #snap-wrap {
                 position: static !important;
