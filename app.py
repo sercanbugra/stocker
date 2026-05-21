@@ -4925,7 +4925,7 @@ def api_trade_thesis():
 
 
 @app.route("/api/earnings-summary", methods=["POST"])
-@subscription_required("premium")
+@subscription_required("pro")
 def api_earnings_summary():
     data = request.get_json(silent=True) or {}
     symbol = (data.get("symbol") or "").strip().upper()
@@ -5053,7 +5053,7 @@ def generate_earnings_summary(symbol: str) -> dict:
 
 
 @app.route("/api/portfolio-advisor", methods=["POST"])
-@subscription_required("premium")
+@subscription_required("pro")
 def api_portfolio_advisor():
     data = request.get_json(silent=True) or {}
     symbol = (data.get("symbol") or "").strip().upper()

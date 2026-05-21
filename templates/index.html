@@ -738,7 +738,7 @@
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 1200;
+            z-index: 1500;
         }
         .auth-modal.is-visible {
             display: flex;
@@ -781,16 +781,25 @@
         }
         .welcome-modal.is-visible { display: flex; }
         .wm-card {
-            width: min(540px, 94vw);
-            background: var(--parliament-blue-soft);
+            width: min(620px, 96vw);
+            background: var(--parliament-blue-deep);
             border: 1px solid var(--panel-border);
             border-radius: 22px;
-            padding: 36px 32px 28px;
-            box-shadow: 0 28px 70px rgba(0,0,0,0.55);
+            padding: 0 0 24px;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(79,142,247,0.12);
             position: relative;
-            max-height: 92vh;
+            max-height: 96vh;
             overflow-y: auto;
         }
+        .wm-accent-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #4f8ef7, #4ade80, #4f8ef7);
+            background-size: 200% 100%;
+            border-radius: 22px 22px 0 0;
+            animation: wm-shimmer 3s linear infinite;
+        }
+        @keyframes wm-shimmer { 0%{background-position:0% 0%} 100%{background-position:200% 0%} }
+        .wm-body { padding: 28px 28px 0; }
         .wm-close {
             position: absolute;
             top: 16px;
@@ -820,20 +829,26 @@
         /* Plan grid */
         .wm-plans {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 22px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
         }
         .wm-plan {
             background: rgba(0,0,0,0.22);
             border: 1px solid var(--panel-border);
             border-radius: 13px;
-            padding: 12px 8px 10px;
+            padding: 14px 10px 12px;
             text-align: center;
+            position: relative;
         }
         .wm-plan-highlight {
-            border-color: rgba(0,200,232,0.4);
-            background: rgba(0,200,232,0.06);
+            border-color: rgba(0,200,232,0.35);
+            background: rgba(0,200,232,0.05);
+        }
+        .wm-plan-pro {
+            border-color: rgba(79,142,247,0.55);
+            background: rgba(79,142,247,0.08);
+            box-shadow: 0 0 22px rgba(79,142,247,0.15);
         }
         .wm-plan-name {
             font-size: 0.68rem;
@@ -1014,8 +1029,8 @@
         :root:not([data-theme="ocean"]) .promo-box-feedback.ok  { color: #14532d; }
         :root:not([data-theme="ocean"]) .promo-box-feedback.err { color: #7f1d1d; }
         @media (max-width: 480px) {
-            .wm-plans { grid-template-columns: repeat(2, 1fr); }
-            .wm-card { padding: 28px 18px 22px; }
+            .wm-plans { grid-template-columns: 1fr 1fr; }
+            .wm-body { padding: 20px 16px 0; }
         }
         #auth-view-email .form-control {
             background: var(--parliament-blue-deep);
@@ -3650,12 +3665,14 @@
     {% if not user_email %}
     <div class="welcome-modal" id="welcome-modal" role="dialog" aria-modal="true" aria-labelledby="wm-title">
         <div class="wm-card">
+            <div class="wm-accent-bar"></div>
+            <div class="wm-body">
             <button class="wm-close" id="wm-close" aria-label="Continue as guest"><i class="fas fa-times"></i></button>
 
             <div class="wm-logo-wrap">
                 <picture>
                   <source srcset="{{ url_for('static', filename='stocker_logo.webp') }}" type="image/webp">
-                  <img src="{{ url_for('static', filename='stocker_logo_sm.png') }}" alt="Stocker" style="height:68px;width:auto;" width="102" height="68">
+                  <img src="{{ url_for('static', filename='stocker_logo_sm.png') }}" alt="Stocker" style="height:60px;width:auto;" width="90" height="60">
                 </picture>
             </div>
             <p class="wm-tagline" id="wm-title">AI-powered stock prediction &amp; technical analysis</p>
@@ -3666,49 +3683,32 @@
                     <div class="wm-plan-name">Guest</div>
                     <div class="wm-plan-quota">1<sup>/day</sup></div>
                     <div class="wm-plan-feats">
-                        Basic charts<br>
-                        No sign-up
+                        Basic charts<br>No sign-up
                     </div>
                 </div>
                 <div class="wm-plan wm-plan-highlight">
-                    <div class="wm-plan-name">Logged-in User</div>
-                    <div class="wm-plan-quota" style="font-size:0.95rem;">£0<sup style="font-size:0.55rem;">/mo</sup></div>
+                    <div class="wm-plan-name">Free</div>
+                    <div class="wm-plan-quota" style="font-size:0.95rem;">£0<sup style="font-size:0.5rem;">/mo</sup></div>
                     <div class="wm-plan-feats">
-                        3 analyses/day<br>
-                        ML predictions<br>
-                        Pattern detection<br>
-                        News &amp; sentiment<br>
-                        Watchlist
+                        3 analyses/day<br>ML predictions<br>Pattern detection<br>News &amp; sentiment<br>Watchlist
                     </div>
                 </div>
-                <div class="wm-plan wm-plan-cta" data-tier="pro" role="button" tabindex="0" title="Choose Pro — sign in to subscribe" style="position:relative;">
-                    <span class="popular-badge" style="font-size:0.62rem;">Most Popular</span>
+                <div class="wm-plan wm-plan-pro wm-plan-cta" data-tier="pro" role="button" tabindex="0" title="Choose Pro">
+                    <span class="popular-badge" style="font-size:0.6rem;">All Features</span>
                     <div class="wm-plan-name" style="color:#4f8ef7;">Pro</div>
-                    <div class="wm-plan-quota" style="font-size:0.95rem;">£3.99<sup style="font-size:0.55rem;">/mo</sup></div>
+                    <div class="wm-plan-quota" style="font-size:0.95rem;">£3.99<sup style="font-size:0.5rem;">/mo</sup></div>
                     <div class="wm-plan-feats">
-                        Unlimited analyses<br>
-                        Everything in Free<br>
-                        AI Trade Thesis<br>
-                        Peer comparison
+                        Unlimited analyses<br>AI Trade Thesis<br>Peer Comparison<br>Portfolio Advisor<br>Earnings Summarizer
                     </div>
                     <div class="wm-plan-cta-label">Start Pro <i class="fas fa-arrow-right" style="font-size:0.6rem;"></i></div>
                 </div>
-                <div class="wm-plan wm-plan-cta" data-tier="premium" role="button" tabindex="0" title="Choose Premium — sign in to subscribe">
-                    <div class="wm-plan-name" style="color:#f7c04f;">Premium</div>
-                    <div class="wm-plan-quota" style="font-size:0.95rem;">£5.99<sup style="font-size:0.55rem;">/mo</sup></div>
-                    <div class="wm-plan-feats">
-                        Everything in Pro<br>
-                        AI Portfolio Advisor<br>
-                        Earnings Summarizer
-                    </div>
-                    <div class="wm-plan-cta-label">Unlock Premium <i class="fas fa-arrow-right" style="font-size:0.6rem;"></i></div>
-                </div>
             </div>
 
+            <!-- Promo -->
             <div class="promo-box" id="wm-promo-box">
-                <div class="promo-box-label">🎟 Promo code <span>— get 50% off your first month</span></div>
+                <div class="promo-box-label">🎟 Promo code <span>— 50% off your first month</span></div>
                 <div class="promo-box-row">
-                    <input type="text" id="wm-promo-input" class="promo-box-field" placeholder="Enter your code" autocomplete="off" spellcheck="false" maxlength="32">
+                    <input type="text" id="wm-promo-input" class="promo-box-field" placeholder="Enter code e.g. W3LCOM3" autocomplete="off" spellcheck="false" maxlength="32">
                     <button type="button" class="promo-box-apply" id="wm-promo-apply">Apply</button>
                 </div>
                 <div id="wm-promo-feedback" class="promo-box-feedback"></div>
@@ -3725,21 +3725,17 @@
                 </svg>
                 Continue with Google
             </a>
-
             <button class="wm-btn-email" id="wm-email-btn" type="button">
-                <i class="fas fa-envelope"></i>
-                Continue with Email
+                <i class="fas fa-envelope"></i> Continue with Email
             </button>
-
             <button class="wm-btn-guest" id="wm-guest-btn" type="button">
                 Continue as Guest &mdash; 1 free analysis today
             </button>
-
             <p class="wm-terms">
-                By continuing you agree to our
-                <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>.
+                By continuing you agree to our <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>.
                 Free account: 3 analyses/day &bull; No credit card required.
             </p>
+            </div><!-- /wm-body -->
         </div>
     </div>
     {% endif %}
@@ -3847,8 +3843,8 @@
                     <button class="btn btn-outline-secondary btn-sm" disabled>Current plan</button>
                 </div>
                 <!-- Pro -->
-                <div class="pricing-card {% if user_tier == 'pro' %}featured{% endif %}">
-                    <span class="popular-badge">Most Popular</span>
+                <div class="pricing-card {% if user_tier in ('pro','premium') %}featured{% endif %}">
+                    <span class="popular-badge">All Features</span>
                     <div>
                         <span class="tier-badge tier-badge-pro">Pro</span>
                         <div class="price mt-2"><sup>£</sup>3.99<sub>/mo</sub></div>
@@ -3857,29 +3853,14 @@
                         <li>Unlimited analyses</li>
                         <li>Everything in Free</li>
                         <li>AI Trade Thesis</li>
-                        <li>Peer comparison</li>
-                    </ul>
-                    {% if user_tier == 'pro' %}
-                    <button class="btn btn-outline-secondary btn-sm" disabled>Current plan</button>
-                    {% else %}
-                    <button class="btn btn-primary btn-sm upgrade-btn" data-tier="pro">Start Pro &rarr;</button>
-                    {% endif %}
-                </div>
-                <!-- Premium -->
-                <div class="pricing-card {% if user_tier == 'premium' %}featured{% endif %}">
-                    <div>
-                        <span class="tier-badge tier-badge-premium">Premium</span>
-                        <div class="price mt-2"><sup>£</sup>5.99<sub>/mo</sub></div>
-                    </div>
-                    <ul>
-                        <li>Everything in Pro</li>
+                        <li>Peer Comparison</li>
                         <li>AI Portfolio Advisor</li>
                         <li>Earnings Summarizer</li>
                     </ul>
-                    {% if user_tier == 'premium' %}
+                    {% if user_tier in ('pro', 'premium') %}
                     <button class="btn btn-outline-secondary btn-sm" disabled>Current plan</button>
                     {% else %}
-                    <button class="btn btn-warning btn-sm upgrade-btn" data-tier="premium">Unlock Premium &rarr;</button>
+                    <button class="btn btn-primary btn-sm upgrade-btn" data-tier="pro">Start Pro &rarr;</button>
                     {% endif %}
                 </div>
             </div>
@@ -4072,8 +4053,8 @@
                             </button>
                         </div>
                         <!-- Pro -->
-                        <div class="pricing-card {% if user_tier == 'pro' %}featured{% endif %}">
-                            <span class="popular-badge">Most Popular</span>
+                        <div class="pricing-card {% if user_tier in ('pro','premium') %}featured{% endif %}">
+                            <span class="popular-badge">All Features</span>
                             <div>
                                 <span class="tier-badge tier-badge-pro">Pro</span>
                                 <div class="price mt-2"><sup>£</sup>3.99<sub>/mo</sub></div>
@@ -4082,29 +4063,14 @@
                                 <li>Unlimited analyses</li>
                                 <li>Everything in Free</li>
                                 <li>AI Trade Thesis</li>
-                                <li>Peer comparison</li>
-                            </ul>
-                            {% if user_tier == 'pro' %}
-                            <button class="btn btn-outline-secondary btn-sm" disabled>Current plan</button>
-                            {% else %}
-                            <button class="btn btn-primary btn-sm upgrade-btn" data-tier="pro">Start Pro &rarr;</button>
-                            {% endif %}
-                        </div>
-                        <!-- Premium -->
-                        <div class="pricing-card {% if user_tier == 'premium' %}featured{% endif %}">
-                            <div>
-                                <span class="tier-badge tier-badge-premium">Premium</span>
-                                <div class="price mt-2"><sup>£</sup>5.99<sub>/mo</sub></div>
-                            </div>
-                            <ul>
-                                <li>Everything in Pro</li>
+                                <li>Peer Comparison</li>
                                 <li>AI Portfolio Advisor</li>
                                 <li>Earnings Summarizer</li>
                             </ul>
-                            {% if user_tier == 'premium' %}
+                            {% if user_tier in ('pro', 'premium') %}
                             <button class="btn btn-outline-secondary btn-sm" disabled>Current plan</button>
                             {% else %}
-                            <button class="btn btn-warning btn-sm upgrade-btn" data-tier="premium">Unlock Premium &rarr;</button>
+                            <button class="btn btn-primary btn-sm upgrade-btn" data-tier="pro">Start Pro &rarr;</button>
                             {% endif %}
                         </div>
                     </div>
@@ -4256,15 +4222,12 @@
                 <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> AI Trade Thesis <small>(Pro)</small></div>
                 <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> Peer Comparison <small>(Pro)</small></div>
                 {% endif %}
-                {% if user_tier in ('admin', 'premium') %}
+                {% if user_tier in ('admin', 'premium', 'pro') %}
                 <div class="drawer-cap cap-ok"><i class="fas fa-check-circle"></i> Earnings Summarizer</div>
                 <div class="drawer-cap cap-ok"><i class="fas fa-check-circle"></i> AI Portfolio Advisor</div>
-                {% elif user_tier == 'pro' %}
-                <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> Earnings Summarizer <small>(Premium)</small></div>
-                <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> AI Portfolio Advisor <small>(Premium)</small></div>
                 {% else %}
-                <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> Earnings Summarizer <small>(Premium)</small></div>
-                <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> AI Portfolio Advisor <small>(Premium)</small></div>
+                <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> Earnings Summarizer <small>(Pro)</small></div>
+                <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> AI Portfolio Advisor <small>(Pro)</small></div>
                 {% endif %}
             </div>
 
@@ -4306,10 +4269,16 @@
         <!-- Promo -->
         <div class="drawer-sec">
             <div class="drawer-sec-title"><i class="fas fa-tag"></i> Special Offer</div>
-            <div class="drawer-promo-hint">
-                <i class="fas fa-tag"></i>
-                50% off first month — use code <span class="ftb-code">W3LCOM3</span>
-            </div>
+            <button type="button" id="drawer-promo-btn" style="
+                width:100%; padding:10px 14px; border-radius:9px; cursor:pointer;
+                background:rgba(110,231,168,0.08); border:1px dashed rgba(110,231,168,0.4);
+                color:#6ee7a8; font-size:0.78rem; font-weight:700; text-align:left;
+                display:flex; align-items:center; gap:8px; transition:background .15s;">
+                <i class="fas fa-ticket-alt"></i>
+                <span>50% off — apply code <strong>W3LCOM3</strong></span>
+                <i class="fas fa-arrow-right" style="margin-left:auto;font-size:0.65rem;opacity:0.7;"></i>
+            </button>
+            <div id="drawer-promo-feedback" style="font-size:0.7rem;margin-top:5px;min-height:14px;"></div>
         </div>
 
         <!-- Footer: links + Gultechs logo -->
@@ -4768,16 +4737,16 @@
             <div class="pro-card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-briefcase"></i> AI Portfolio Advisor</span>
-                    <span class="tier-badge tier-badge-premium">Premium</span>
+                    <span class="tier-badge tier-badge-pro">Pro</span>
                 </div>
                 <div id="advisor-container">
-                    {% if user_tier in ('premium', 'admin') %}
+                    {% if user_tier in ('pro', 'premium', 'admin') %}
                     <div class="pro-lock text-muted small" id="advisor-placeholder">Run a prediction to get portfolio advice.</div>
                     {% else %}
                     <div class="pro-lock">
                         <i class="fas fa-lock"></i>
-                        <span>Available on Premium</span>
-                        <button class="btn btn-warning btn-sm" id="advisor-upgrade-btn">Upgrade to Premium</button>
+                        <span>Available on Pro</span>
+                        <button class="btn btn-primary btn-sm" id="advisor-upgrade-btn">Upgrade to Pro</button>
                         <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='AI_Portfolio_Adviser.png') }}', 'AI Portfolio Advisor')">see sample</button>
                     </div>
                     {% endif %}
@@ -4812,16 +4781,16 @@
             <div class="pro-card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-calendar-check"></i> Earnings Summarizer</span>
-                    <span class="tier-badge tier-badge-premium">Premium</span>
+                    <span class="tier-badge tier-badge-pro">Pro</span>
                 </div>
                 <div id="earnings-container">
-                    {% if user_tier in ('premium', 'admin') %}
+                    {% if user_tier in ('pro', 'premium', 'admin') %}
                     <div class="pro-lock text-muted small" id="earnings-placeholder">Run a prediction to generate an earnings summary.</div>
                     {% else %}
                     <div class="pro-lock">
                         <i class="fas fa-lock"></i>
-                        <span>Available on Premium</span>
-                        <button class="btn btn-warning btn-sm" id="earnings-upgrade-btn">Upgrade to Premium</button>
+                        <span>Available on Pro</span>
+                        <button class="btn btn-primary btn-sm" id="earnings-upgrade-btn">Upgrade to Pro</button>
                         <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='Earning_Summarizer.png') }}', 'Earnings Summarizer')">see sample</button>
                     </div>
                     {% endif %}
@@ -6165,6 +6134,21 @@
                 });
                 var pb = document.getElementById('predict-btn');
                 if (pb) pb.addEventListener('click', closeDrawer, true);
+                // Auth trigger: close drawer first so auth-modal appears cleanly on top
+                var at = document.getElementById('auth-trigger');
+                if (at) at.addEventListener('click', closeDrawer);
+                // Drawer promo button: apply W3LCOM3 and show feedback
+                var dpBtn = document.getElementById('drawer-promo-btn');
+                var dpFb  = document.getElementById('drawer-promo-feedback');
+                if (dpBtn) dpBtn.addEventListener('click', function() {
+                    var code = 'W3LCOM3';
+                    if (window.setPromoCode) setPromoCode(code);
+                    ['wm-promo-input','upgrade-promo-input','profile-promo-input'].forEach(function(id) {
+                        var el = document.getElementById(id); if (el) el.value = code;
+                    });
+                    if (dpFb) { dpFb.style.color = '#4ade80'; dpFb.textContent = '✓ Code W3LCOM3 applied!'; }
+                    setTimeout(function() { if (dpFb) dpFb.textContent = ''; }, 3000);
+                });
                 // Open by default on page load
                 openDrawer();
 
