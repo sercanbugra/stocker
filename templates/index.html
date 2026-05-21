@@ -6322,25 +6322,22 @@
                     var btn = document.getElementById('wl-trends-btn');
                     if (!btn) return;
                     var cardBody = document.getElementById('watchlist-card-body');
-                    var wlCol = cardBody.closest('[class*="col-"]');
-                    var rmCol = wlCol ? wlCol.previousElementSibling : null;
                     var originalHTML = null;
                     btn.addEventListener('click', function() {
                         if (originalHTML === null) {
-                            // Enter trends view — expand to full row width
+                            // Enter trends view — fill the card body in-place
                             originalHTML = cardBody.innerHTML;
                             btn.innerHTML = '<i class="fas fa-arrow-left me-1"></i>Back';
-                            if (rmCol) rmCol.style.display = 'none';
-                            if (wlCol) { wlCol.style.flex = '0 0 100%'; wlCol.style.maxWidth = '100%'; }
                             var currentTheme = document.documentElement.getAttribute('data-theme') || 'ocean';
-                            cardBody.innerHTML = '<iframe src="/watchlist-trends?theme=' + encodeURIComponent(currentTheme) + '" style="width:100%;height:100%;min-height:480px;border:none;border-radius:8px;" loading="lazy"></iframe>';
+                            var h = cardBody.offsetHeight || 400;
+                            cardBody.innerHTML = '<iframe src="/watchlist-trends?theme=' + encodeURIComponent(currentTheme) + '&embedded=1" allowtransparency="true" style="width:100%;height:' + h + 'px;border:none;display:block;" loading="lazy"></iframe>';
                             cardBody.style.padding = '0';
+                            cardBody.style.overflow = 'hidden';
                         } else {
                             // Return to watchlist
                             cardBody.innerHTML = originalHTML;
                             cardBody.style.padding = '';
-                            if (rmCol) rmCol.style.display = '';
-                            if (wlCol) { wlCol.style.flex = ''; wlCol.style.maxWidth = ''; }
+                            cardBody.style.overflow = '';
                             originalHTML = null;
                             btn.innerHTML = '<i class="fas fa-chart-area me-1"></i>Show Trends';
                         }

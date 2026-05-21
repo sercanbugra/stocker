@@ -40,6 +40,15 @@
             min-height: 100vh;
             padding-bottom: 48px;
         }
+        /* When embedded in an iframe, let the parent card background show through */
+        body.embedded, html.embedded {
+            background: transparent !important;
+            min-height: 0 !important;
+        }
+        body.embedded .wt-header {
+            background: rgba(0,0,0,0.25);
+            backdrop-filter: blur(8px);
+        }
         /* ── sticky header ── */
         .wt-header {
             position: sticky;
@@ -608,13 +617,20 @@
         renderAll();
     });
 
+    // ── Embedded mode ──────────────────────────────────────────────────
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('embedded') === '1') {
+        document.documentElement.classList.add('embedded');
+        document.body.classList.add('embedded');
+    }
+
     // ── Theme sync ─────────────────────────────────────────────────────
     function applyWtTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme || 'ocean');
     }
     // Priority: URL param → localStorage → default ocean
     (function() {
-        var urlTheme = new URLSearchParams(window.location.search).get('theme');
+        var urlTheme = params.get('theme');
         if (urlTheme !== null) { applyWtTheme(urlTheme); }
         else {
             try { applyWtTheme(localStorage.getItem('stocker_theme') || 'ocean'); }
