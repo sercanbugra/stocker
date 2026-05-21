@@ -3366,6 +3366,34 @@
         .drawer-auth-row { display: flex; gap: 8px; margin-bottom: 8px; }
         .drawer-auth-row .tb-btn { flex: 1; justify-content: center; }
         .drawer-usage { font-size: 0.72rem; color: var(--panel-muted); }
+        .drawer-user-row {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+        }
+        .drawer-user-info { flex: 1; min-width: 0; }
+        .drawer-user-email {
+            display: block; font-size: 0.82rem; font-weight: 600;
+            color: var(--panel-text); margin-bottom: 4px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .drawer-caps {
+            display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px;
+        }
+        .drawer-cap {
+            font-size: 0.7rem; display: flex; align-items: center; gap: 6px; line-height: 1.2;
+        }
+        .drawer-cap.cap-ok { color: #4ade80; }
+        .drawer-cap.cap-no { color: var(--panel-muted); }
+        .drawer-cap i { font-size: 0.65rem; flex-shrink: 0; }
+        .drawer-signout {
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 12px; border-radius: 8px;
+            background: rgba(248,113,113,0.08);
+            border: 1px solid rgba(248,113,113,0.2);
+            color: #f87171; font-size: 0.76rem; font-weight: 600;
+            text-decoration: none; margin-top: 6px;
+            transition: background .15s;
+        }
+        .drawer-signout:hover { background: rgba(248,113,113,0.16); color: #f87171; }
         .drawer-badge-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
         .drawer-badge-row img { display: block; height: 36px; width: auto; }
         .drawer-links {
@@ -4201,30 +4229,77 @@
         <!-- Account -->
         <div class="drawer-sec">
             <div class="drawer-sec-title"><i class="fas fa-user"></i> Account</div>
-            <div class="drawer-auth-row">
-                {% if not user_email %}
-                <button id="auth-trigger" type="button" class="tb-btn tb-btn-login">
-                    <i class="fas fa-sign-in-alt"></i><span>Login</span>
+
+            {% if user_email %}
+            <!-- Logged-in user -->
+            <div class="drawer-user-row">
+                <div class="drawer-user-info">
+                    <span class="drawer-user-email">{{ user_email }}</span>
+                    <span class="tier-badge tier-badge-{{ user_tier }}">{{ user_tier }}</span>
+                </div>
+                <button id="profile-trigger" type="button" class="tb-btn tb-btn-profile" title="Settings">
+                    <i class="fas fa-cog" id="profile-btn-icon"></i>
                 </button>
+            </div>
+
+            <!-- What this tier can do -->
+            <div class="drawer-caps">
+                {% if user_tier in ('admin', 'premium', 'pro') %}
+                <div class="drawer-cap cap-ok"><i class="fas fa-check-circle"></i> Unlimited analyses</div>
+                <div class="drawer-cap cap-ok"><i class="fas fa-check-circle"></i> Watchlist</div>
+                <div class="drawer-cap cap-ok"><i class="fas fa-check-circle"></i> AI Trade Thesis</div>
+                <div class="drawer-cap cap-ok"><i class="fas fa-check-circle"></i> Peer Comparison</div>
+                {% else %}
+                <div class="drawer-cap cap-ok"><i class="fas fa-check-circle"></i> 3 analyses / day</div>
+                <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> Watchlist <small>(Pro)</small></div>
+                <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> AI Trade Thesis <small>(Pro)</small></div>
+                <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> Peer Comparison <small>(Pro)</small></div>
                 {% endif %}
-                <button id="profile-trigger" type="button" class="tb-btn tb-btn-profile">
-                    <i class="fas fa-user" id="profile-btn-icon"></i><span id="profile-btn-label">{% if user_email %}{{ user_email.split('@')[0][:14] }}{% else %}Profile{% endif %}</span>
+                {% if user_tier in ('admin', 'premium') %}
+                <div class="drawer-cap cap-ok"><i class="fas fa-check-circle"></i> Earnings Summarizer</div>
+                <div class="drawer-cap cap-ok"><i class="fas fa-check-circle"></i> AI Portfolio Advisor</div>
+                {% elif user_tier == 'pro' %}
+                <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> Earnings Summarizer <small>(Premium)</small></div>
+                <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> AI Portfolio Advisor <small>(Premium)</small></div>
+                {% else %}
+                <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> Earnings Summarizer <small>(Premium)</small></div>
+                <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> AI Portfolio Advisor <small>(Premium)</small></div>
+                {% endif %}
+            </div>
+
+            <!-- Usage (free tier only) -->
+            <div class="drawer-usage" id="usage-counter">
+                {% if user_tier == 'free' %}
+                <span id="usage-text">loading…</span>
+                {% endif %}
+            </div>
+
+            <!-- Sign out -->
+            <a href="/logout" id="logout-link" class="drawer-signout">
+                <i class="fas fa-sign-out-alt"></i> Sign out
+            </a>
+
+            {% else %}
+            <!-- Guest -->
+            <div class="drawer-auth-row">
+                <button id="auth-trigger" type="button" class="tb-btn tb-btn-login" style="flex:1; justify-content:center;">
+                    <i class="fas fa-sign-in-alt"></i><span>Login / Register</span>
                 </button>
+                <button id="profile-trigger" type="button" class="tb-btn tb-btn-profile">
+                    <i class="fas fa-user" id="profile-btn-icon"></i>
+                </button>
+            </div>
+            <div class="drawer-caps" style="margin-top:8px;">
+                <div class="drawer-cap cap-ok"><i class="fas fa-check-circle"></i> 1 analysis / day (guest)</div>
+                <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> Watchlist <small>(Pro)</small></div>
+                <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> AI Trade Thesis <small>(Pro)</small></div>
+                <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> Earnings &amp; Portfolio <small>(Premium)</small></div>
             </div>
             <div class="drawer-usage mt-2" id="usage-counter">
-                {% if user %}
-                    {% if user_tier == 'admin' %}
-                    <span class="tier-badge tier-badge-admin">admin</span>&nbsp;Full access
-                    {% elif user_tier == 'free' %}
-                    <span id="usage-text">loading…</span>
-                    {% else %}
-                    <span class="tier-badge tier-badge-{{ user_tier }}">{{ user_tier }}</span>&nbsp;Unlimited
-                    {% endif %}
-                {% else %}
                 {% set anon_remaining = [anon_daily_limit - anon_used, 0]|max %}
                 <span class="tb-anon-badge{% if anon_remaining == 0 %} warning{% endif %}" id="tb-anon-badge">{{ anon_remaining }} free {{ 'analysis' if anon_remaining == 1 else 'analyses' }} left today</span>
-                {% endif %}
             </div>
+            {% endif %}
         </div>
 
         <!-- Promo -->
@@ -6100,6 +6175,39 @@
                     var wrap = document.getElementById('snap-wrap');
                     if (wrap) wrap.scrollTo({ top: wrap.clientHeight, behavior: 'smooth' });
                 });
+            })();
+
+            // ── Auto-resize: charts + layout on any viewport change ──
+            (function() {
+                var CHART_IDS = ['chart','pattern-chart','pattern-chart-48h','rsi-chart'];
+                var resizeTimer;
+                function resizeCharts() {
+                    if (!window.Plotly) return;
+                    CHART_IDS.forEach(function(id) {
+                        var el = document.getElementById(id);
+                        if (el && el._fullLayout) Plotly.Plots.resize(el);
+                    });
+                }
+                function scheduleResize(delay) {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(resizeCharts, delay || 120);
+                }
+                window.addEventListener('resize', function() { scheduleResize(120); });
+                window.addEventListener('orientationchange', function() { scheduleResize(300); });
+                // Keep --ticker-h in sync so snap-wrap always fills the gap correctly
+                var ticker = document.getElementById('mkt-ticker');
+                if (ticker && window.ResizeObserver) {
+                    new ResizeObserver(function(entries) {
+                        var h = Math.round(entries[0].contentRect.height);
+                        if (h > 0) document.documentElement.style.setProperty('--ticker-h', h + 'px');
+                        scheduleResize(80);
+                    }).observe(ticker);
+                }
+                // Resize charts whenever the results section changes size (drawer open/close, etc.)
+                var snapResults = document.getElementById('snap-results');
+                if (snapResults && window.ResizeObserver) {
+                    new ResizeObserver(function() { scheduleResize(80); }).observe(snapResults);
+                }
             })();
 
             // ── Result tab switching ──
