@@ -10,7 +10,7 @@
       gtag('config', 'G-5BPHKL6RCH');
     </script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Stocker — Stock Prediction & Analysis</title>
     <link rel="icon" type="image/x-icon"  href="{{ url_for('static', filename='favicon-v3.ico') }}">
     <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='favicon-192.png') }}">
@@ -1832,7 +1832,7 @@
             align-items:center; justify-content:center; font-size:0.6rem; flex-shrink:0;
         }
         .rm2-title { font-size:0.73rem; font-weight:700; color:var(--panel-text); }
-        .rm2-sub { font-size:0.6rem; color:var(--panel-muted); margin-left:auto; }
+        .rm2-sub { font-size:0.72rem; color:var(--panel-muted); margin-left:auto; }
         .rm2-list { list-style:none; padding:0; margin:0; }
         .rm2-list li {
             display:flex; align-items:center; gap:5px;
@@ -3148,6 +3148,7 @@
             box-shadow: 0 -4px 28px rgba(0,0,0,0.55);
             transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
             font-family: 'SF Mono', 'Consolas', 'Menlo', monospace;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
         }
         .mkt-ticker.mkt-hidden { transform: translateY(100%); }
         .mkt-data {
@@ -3334,7 +3335,9 @@
         /* ── Left side drawer ── */
         #side-drawer {
             position: fixed;
-            top: 0; left: 0; bottom: 0;
+            top: env(safe-area-inset-top, 0px);
+            left: 0;
+            bottom: env(safe-area-inset-bottom, 0px);
             width: 300px; max-width: 92vw;
             background: var(--parliament-blue-deep);
             border-right: 1px solid var(--panel-border);
@@ -3357,8 +3360,10 @@
         .drawer-close {
             background: none; border: none;
             color: var(--panel-muted); cursor: pointer;
-            font-size: 1.3rem; padding: 4px 9px;
+            font-size: 1.3rem; padding: 10px 13px;
             border-radius: 6px; transition: color .15s, background .15s;
+            min-width: 44px; min-height: 44px;
+            display: flex; align-items: center; justify-content: center;
         }
         .drawer-close:hover { color: var(--panel-text); background: rgba(255,255,255,0.07); }
         .drawer-sec {
@@ -3430,15 +3435,16 @@
         /* Snap wrapper: full area between top and ticker */
         #snap-wrap {
             position: fixed;
-            top: 0; left: 0; right: 0;
-            bottom: var(--ticker-h);
+            top: env(safe-area-inset-top, 0px);
+            left: 0; right: 0;
+            bottom: calc(var(--ticker-h) + env(safe-area-inset-bottom, 0px));
             overflow-y: scroll;
             scroll-snap-type: y mandatory;
             scroll-behavior: smooth;
         }
         .snap-section {
             /* height set by JS syncSectionHeights() — CSS fallback only */
-            height: calc(100vh - var(--ticker-h));
+            height: calc(100vh - var(--ticker-h) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
             scroll-snap-align: start;
             scroll-snap-stop: always;
             overflow-y: hidden;
@@ -3504,10 +3510,11 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.18);
         }
         .res-tab {
-            flex: 1; padding: 8px 6px; border: none;
+            flex: 1; padding: 10px 6px; border: none;
             background: transparent; color: var(--panel-muted);
             font-size: 0.78rem; font-weight: 600; border-radius: 8px;
             cursor: pointer; transition: all .18s;
+            min-height: 44px;
             white-space: nowrap; text-align: center;
         }
         .res-tab:hover { color: var(--panel-text); background: rgba(255,255,255,0.05); }
@@ -3542,8 +3549,9 @@
         .pnav-btn {
             background: var(--parliament-blue-deep); border: 1px solid var(--panel-border);
             color: var(--panel-muted); cursor: pointer;
-            font-size: 0.85rem; padding: 6px 14px; border-radius: 7px;
+            font-size: 0.85rem; padding: 6px 16px; border-radius: 7px;
             transition: color .15s, background .15s;
+            min-height: 44px; min-width: 44px;
         }
         .pnav-btn:hover { color: var(--panel-text); background: rgba(255,255,255,0.07); }
         .pnav-indicator { font-size: 0.76rem; color: var(--panel-text); font-weight: 600; text-align:center; flex:1; }
@@ -3646,18 +3654,20 @@
         .hero-btn-primary {
             background: linear-gradient(135deg, #4f8ef7, #6366f1);
             color: #fff; border: none;
-            border-radius: 10px; padding: 12px 28px;
+            border-radius: 10px; padding: 14px 28px;
             font-size: 0.92rem; font-weight: 700; cursor: pointer;
             box-shadow: 0 4px 18px rgba(79,142,247,0.35);
             transition: transform .15s, box-shadow .15s;
+            min-height: 44px;
         }
         .hero-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(79,142,247,0.45); }
         .hero-btn-ghost {
             background: transparent; color: var(--panel-muted);
             border: 1px solid var(--panel-border);
-            border-radius: 10px; padding: 12px 24px;
+            border-radius: 10px; padding: 14px 24px;
             font-size: 0.92rem; font-weight: 600; cursor: pointer;
             transition: color .15s, border-color .15s;
+            min-height: 44px;
         }
         .hero-btn-ghost:hover { color: var(--panel-text); border-color: var(--panel-text); }
         .hero-metrics {
@@ -3729,6 +3739,21 @@
             #res-panel-2 > :nth-child(3),
             #res-panel-3 > :nth-child(2) { grid-column: auto; }
             #res-panel-0 > *:first-child { grid-row: auto; }
+            /* Section 2: stack columns vertically on phones */
+            #snap-market .row { display: flex; flex-direction: column; }
+            #snap-market [class*="col-"] { width: 100%; max-width: 100%; }
+            /* Remarkable card takes 60% of section height, watchlist 40% */
+            #snap-market .remarkable-card { flex: 3; }
+            #snap-market .watchlist-card { flex: 2; }
+            /* Hero adjustments for small screens */
+            .hero-heading { font-size: clamp(1.7rem, 8vw, 2.8rem); margin-bottom: 10px; }
+            .hero-desc { font-size: 0.9rem; margin-bottom: 14px; }
+            .hero-feats { gap: 6px; margin-bottom: 18px; }
+            .hero-feat { padding: 5px 11px; font-size: 0.74rem; }
+            .hero-ctas { gap: 10px; margin-bottom: 20px; }
+            #snap-hero .snap-inner { padding: 14px 16px; }
+            /* Increase remarkables touch targets */
+            .remarkable-symbol, .rm-info-icon { min-height: 32px; display: inline-flex; align-items: center; }
         }
     </style>
 </head>
