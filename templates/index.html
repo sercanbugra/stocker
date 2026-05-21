@@ -3540,6 +3540,7 @@
             display: flex;
             flex-direction: column;
             height: 100%;
+            align-items: stretch;
         }
         .pattern-nav {
             flex-shrink: 0;
@@ -3589,6 +3590,7 @@
             display: flex;
             flex-direction: column;
             min-height: 0;
+            width: 100%;
         }
         .res-panel > .card .card-body {
             flex: 1; overflow-y: auto; min-height: 0;
@@ -6629,6 +6631,7 @@
                             c.style.display = '';
                             c.style.flex = '1';
                             c.style.minHeight = '0';
+                            c.style.width = '100%';
                         } else {
                             c.style.display = 'none';
                         }
