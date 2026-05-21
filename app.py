@@ -5494,9 +5494,11 @@ def _fetch_wl_news_for_symbol(symbol: str) -> list:
     if cached and now - cached[0] < _WL_NEWS_TTL:
         return cached[1]
     items = []
+    # Try yfinance first
     try:
         import yfinance as yf
-        raw = yf.Ticker(symbol).news or []
+        ticker = yf.Ticker(symbol)
+        raw = ticker.news or []
         for n in raw:
             item = _parse_yf_news_with_image(n)
             if item:
@@ -5504,9 +5506,16 @@ def _fetch_wl_news_for_symbol(symbol: str) -> list:
             if len(items) >= 3:
                 break
     except Exception as e:
-        logger.warning(f"wl news {symbol}: {e}")
-    _WL_NEWS_CACHE[symbol] = (now, items)
-    return items
+        logger.warning(f"wl news yf {symbol}: {e}")
+    # Fallback: Google News RSS — critical for small-caps with sparse yf news
+    if len(items) < 2:
+        try:
+            gn = _google_news_rss(f"{symbol} stock", limit=3 - len(items))
+            items.extend(gn)
+        except Exception as e:
+            logger.warning(f"wl news gn {symbol}: {e}")
+    _WL_NEWS_CACHE[symbol] = (now, items[:3])
+    return items[:3]
 
 
 @app.route("/api/watchlist-news")
@@ -5521,15 +5530,15 @@ def api_watchlist_news():
                 symbols = json.load(f)
         except Exception:
             pass
-    symbols = symbols[:8]
+    symbols = symbols[:10]
     if not symbols:
         return jsonify([])
     results = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
         futs = {pool.submit(_fetch_wl_news_for_symbol, s): s for s in symbols}
         for fut, sym in futs.items():
             try:
-                news = fut.result(timeout=6)
+                news = fut.result(timeout=10)
                 if news:
                     results.append({"symbol": sym, "news": news})
             except Exception:
