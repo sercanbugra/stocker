@@ -3525,12 +3525,13 @@
         .res-tab-lbl { display: inline; }
         /* Panels: no overall panel scroll; each card scrolls internally */
         .res-panel { display: none; overflow: hidden; min-height: 0; width: 100%; }
-        .res-panel.active { display: grid; gap: 8px; width: 100%; }
+        .res-panel.active { display: grid; gap: 8px; width: 100%; flex: 1; min-height: 0; }
 
         /* Panel 0: chart spans left column across all 3 rows, right column has 3 cards */
         #res-panel-0.active {
             grid-template-columns: 55% 1fr;
             grid-template-rows: 2fr 1.5fr 1.5fr;
+            height: 100%;
         }
         #res-panel-0 > *:first-child { grid-row: 1 / 4; }
 
@@ -3538,6 +3539,7 @@
         #res-panel-1.active {
             display: flex;
             flex-direction: column;
+            height: 100%;
         }
         .pattern-nav {
             flex-shrink: 0;
@@ -3566,6 +3568,7 @@
         #res-panel-2.active {
             grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr 1fr;
+            height: 100%;
         }
         #res-panel-2 > :nth-child(3) { grid-column: 1 / 3; }
 
@@ -3573,6 +3576,7 @@
         #res-panel-3.active {
             grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr 1fr;
+            height: 100%;
         }
         #res-panel-3 > :nth-child(2) { order: 3; grid-column: 1 / 3; }
         #res-panel-3 > :nth-child(3) { order: 2; }
