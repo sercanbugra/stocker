@@ -5322,6 +5322,11 @@
                 $('.theme-dot').removeClass('active');
                 $(`.theme-dot[data-theme="${theme}"]`).addClass('active');
                 try { localStorage.setItem(THEME_KEY, theme); } catch(_) {}
+                // Sync theme to trends iframe if open
+                var iframe = document.querySelector('#watchlist-card-body iframe');
+                if (iframe && iframe.contentWindow) {
+                    try { iframe.contentWindow.postMessage({type:'theme',theme:theme},'*'); } catch(_) {}
+                }
                 // Re-apply chart colors to all rendered Plotly charts
                 ['chart', 'pattern-chart', 'pattern-chart-48h', 'rsi-chart'].forEach(function(id) {
                     const el = document.getElementById(id);
@@ -5347,11 +5352,11 @@
                     });
                 });
             }
-            // Restore saved theme on load
+            // Restore saved theme on load — default to Ocean Blue for new visitors
             try {
-                const saved = localStorage.getItem(THEME_KEY) || '';
-                applyTheme(saved);
-            } catch(_) { applyTheme(''); }
+                const saved = localStorage.getItem(THEME_KEY);
+                applyTheme(saved !== null ? saved : 'ocean');
+            } catch(_) { applyTheme('ocean'); }
 
             $(document).on('click', '#profile-pane-profile .theme-dot', function() {
                 applyTheme($(this).data('theme') || '');
@@ -6317,18 +6322,25 @@
                     var btn = document.getElementById('wl-trends-btn');
                     if (!btn) return;
                     var cardBody = document.getElementById('watchlist-card-body');
+                    var wlCol = cardBody.closest('[class*="col-"]');
+                    var rmCol = wlCol ? wlCol.previousElementSibling : null;
                     var originalHTML = null;
                     btn.addEventListener('click', function() {
                         if (originalHTML === null) {
-                            // Enter trends view
+                            // Enter trends view — expand to full row width
                             originalHTML = cardBody.innerHTML;
                             btn.innerHTML = '<i class="fas fa-arrow-left me-1"></i>Back';
-                            cardBody.innerHTML = '<iframe src="/watchlist-trends" style="width:100%;height:100%;min-height:320px;border:none;border-radius:8px;" loading="lazy"></iframe>';
+                            if (rmCol) rmCol.style.display = 'none';
+                            if (wlCol) { wlCol.style.flex = '0 0 100%'; wlCol.style.maxWidth = '100%'; }
+                            var currentTheme = document.documentElement.getAttribute('data-theme') || 'ocean';
+                            cardBody.innerHTML = '<iframe src="/watchlist-trends?theme=' + encodeURIComponent(currentTheme) + '" style="width:100%;height:100%;min-height:480px;border:none;border-radius:8px;" loading="lazy"></iframe>';
                             cardBody.style.padding = '0';
                         } else {
                             // Return to watchlist
                             cardBody.innerHTML = originalHTML;
                             cardBody.style.padding = '';
+                            if (rmCol) rmCol.style.display = '';
+                            if (wlCol) { wlCol.style.flex = ''; wlCol.style.maxWidth = ''; }
                             originalHTML = null;
                             btn.innerHTML = '<i class="fas fa-chart-area me-1"></i>Show Trends';
                         }
