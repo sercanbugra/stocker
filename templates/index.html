@@ -3437,17 +3437,52 @@
             scroll-behavior: smooth;
         }
         .snap-section {
+            /* height set by JS syncSectionHeights() — CSS fallback only */
             height: calc(100vh - var(--ticker-h));
             scroll-snap-align: start;
             scroll-snap-stop: always;
-            overflow-y: auto;
+            overflow-y: hidden;
             overflow-x: hidden;
+            box-sizing: border-box;
         }
         .snap-inner {
             max-width: 1400px;
             margin: 0 auto;
             padding: 10px 16px 12px;
             box-sizing: border-box;
+        }
+
+        /* Section 2: make everything fill the available height */
+        #snap-market {
+            display: flex;
+            flex-direction: column;
+        }
+        #snap-market .snap-inner {
+            flex: 1; min-height: 0;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+        #snap-market .row {
+            flex: 1; min-height: 0;
+        }
+        #snap-market [class*="col-"] {
+            display: flex; flex-direction: column;
+            min-height: 0;
+        }
+        #snap-market .remarkable-card,
+        #snap-market .watchlist-card {
+            flex: 1; min-height: 0;
+            overflow: hidden;
+            display: flex; flex-direction: column;
+        }
+        #snap-market .remarkable-card .card-body {
+            flex: 1; min-height: 0;
+            overflow-y: auto;
+            max-height: none !important;
+        }
+        #snap-market .watchlist-card .card-body,
+        #snap-market .watchlist-card > [id*="watchlist"] {
+            flex: 1; min-height: 0; overflow-y: auto;
         }
         /* Hero: vertically centred */
         #snap-hero { display: flex; align-items: center; }
@@ -4388,7 +4423,7 @@
                     <button class="rm2-mkt-btn" data-market="tr">🇹🇷 TR</button>
                 </div>
             </div>
-            <div class="card-body p-0" style="overflow-y:auto; max-height:540px;">
+            <div class="card-body p-0">
 
                 <!-- US Market section -->
                 <div id="rm-section-us">
@@ -6181,10 +6216,23 @@
                 });
             })();
 
-            // ── Auto-resize: charts + layout on any viewport change ──
+            // ── Auto-resize: section heights + charts on any viewport change ──
             (function() {
                 var CHART_IDS = ['chart','pattern-chart','pattern-chart-48h','rsi-chart'];
                 var resizeTimer;
+
+                // Sync every snap-section height to the actual snap-wrap client height
+                // This avoids 100vh / monitor DPI mismatches
+                function syncSectionHeights() {
+                    var wrap = document.getElementById('snap-wrap');
+                    if (!wrap) return;
+                    var h = wrap.clientHeight;
+                    if (h < 100) return;
+                    document.querySelectorAll('.snap-section').forEach(function(s) {
+                        s.style.height = h + 'px';
+                    });
+                }
+
                 function resizeCharts() {
                     if (!window.Plotly) return;
                     CHART_IDS.forEach(function(id) {
@@ -6194,10 +6242,14 @@
                 }
                 function scheduleResize(delay) {
                     clearTimeout(resizeTimer);
-                    resizeTimer = setTimeout(resizeCharts, delay || 120);
+                    resizeTimer = setTimeout(function() {
+                        syncSectionHeights();
+                        resizeCharts();
+                    }, delay || 120);
                 }
                 window.addEventListener('resize', function() { scheduleResize(120); });
                 window.addEventListener('orientationchange', function() { scheduleResize(300); });
+
                 // Keep --ticker-h in sync so snap-wrap always fills the gap correctly
                 var ticker = document.getElementById('mkt-ticker');
                 if (ticker && window.ResizeObserver) {
@@ -6207,11 +6259,17 @@
                         scheduleResize(80);
                     }).observe(ticker);
                 }
-                // Resize charts whenever the results section changes size (drawer open/close, etc.)
+                // Resize charts + sections whenever the snap-wrap itself changes size
+                var snapWrap = document.getElementById('snap-wrap');
+                if (snapWrap && window.ResizeObserver) {
+                    new ResizeObserver(function() { scheduleResize(60); }).observe(snapWrap);
+                }
                 var snapResults = document.getElementById('snap-results');
                 if (snapResults && window.ResizeObserver) {
                     new ResizeObserver(function() { scheduleResize(80); }).observe(snapResults);
                 }
+                // Initial sync on load
+                syncSectionHeights();
             })();
 
             // ── Pattern slideshow ──
