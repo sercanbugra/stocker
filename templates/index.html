@@ -1224,16 +1224,16 @@
             color: #9ec3ff !important;
             text-decoration: underline;
         }
-        .rm-chg-pos { color: #2dd4bf; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
-        .rm-chg-neg { color: #ff8a8a; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
-        .rm-chg-flat { color: var(--panel-muted); font-size: 0.78rem; white-space: nowrap; }
+        .rm-chg-pos { color: #2dd4bf; font-size: 0.88rem; font-weight: 600; white-space: nowrap; }
+        .rm-chg-neg { color: #ff8a8a; font-size: 0.88rem; font-weight: 600; white-space: nowrap; }
+        .rm-chg-flat { color: var(--panel-muted); font-size: 0.88rem; white-space: nowrap; }
         .rm-yield-badge {
-            font-size: 0.72rem;
+            font-size: 0.82rem;
             font-weight: 700;
             color: #f7c04f;
             background: rgba(247,192,79,0.12);
             border-radius: 5px;
-            padding: 1px 6px;
+            padding: 2px 8px;
             white-space: nowrap;
         }
         .remarkables-meta {
@@ -1824,23 +1824,23 @@
         :root:not([data-theme="ocean"]) .rm2-mkt-btn.active {
             background: rgba(99,102,241,0.12); border-color: rgba(99,102,241,0.45); color: #6366f1;
         }
-        .rm2-section-wrap { padding: 7px 11px 6px; }
+        .rm2-section-wrap { padding: 10px 16px 10px; display:flex; flex-direction:column; }
         .rm2-section-wrap + .rm2-section-wrap { border-top: 1px solid var(--panel-border); }
-        .rm2-section-hdr { display:flex; align-items:center; gap:7px; margin-bottom:5px; }
+        .rm2-section-hdr { display:flex; align-items:center; gap:8px; margin-bottom:7px; }
         .rm2-icon {
-            width:20px; height:20px; border-radius:5px; display:flex;
-            align-items:center; justify-content:center; font-size:0.6rem; flex-shrink:0;
+            width:26px; height:26px; border-radius:6px; display:flex;
+            align-items:center; justify-content:center; font-size:0.75rem; flex-shrink:0;
         }
-        .rm2-title { font-size:0.73rem; font-weight:700; color:var(--panel-text); }
-        .rm2-sub { font-size:0.72rem; color:var(--panel-muted); margin-left:auto; }
-        .rm2-list { list-style:none; padding:0; margin:0; }
+        .rm2-title { font-size:0.88rem; font-weight:700; color:var(--panel-text); }
+        .rm2-sub { font-size:0.8rem; color:var(--panel-muted); margin-left:auto; }
+        .rm2-list { list-style:none; padding:0; margin:0; flex:1; display:flex; flex-direction:column; justify-content:space-evenly; }
         .rm2-list li {
-            display:flex; align-items:center; gap:5px;
-            padding: 2px 0; font-size:0.74rem;
+            display:flex; align-items:center; gap:7px;
+            padding: 4px 2px; font-size:0.88rem;
         }
-        .rm2-list .rm-rank { min-width:13px; color:var(--panel-muted); font-size:0.63rem; }
+        .rm2-list .rm-rank { min-width:16px; color:var(--panel-muted); font-size:0.75rem; }
         .rm2-list .remarkable-symbol,
-        .rm2-list .nl-symbol-link { font-weight:700; font-size:0.74rem; flex:1; min-width:0; }
+        .rm2-list .nl-symbol-link { font-weight:700; font-size:0.88rem; flex:1; min-width:0; }
         /* ── */
         .rm-mkt-chip.active {
             border-color: #4f8ef7;
@@ -3309,18 +3309,37 @@
             position: fixed;
             top: 14px; left: 14px;
             z-index: 1300;
-            background: var(--parliament-blue-soft);
-            border: 1px solid var(--panel-border);
-            border-radius: 10px;
-            padding: 9px 14px;
+            width: 42px; height: 42px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0;
+            background: rgba(12, 18, 52, 0.62);
+            backdrop-filter: blur(18px) saturate(1.6);
+            -webkit-backdrop-filter: blur(18px) saturate(1.6);
+            border: 1px solid rgba(255,255,255,0.13);
+            border-radius: 13px;
             cursor: pointer;
-            color: var(--panel-text);
+            color: rgba(210,225,255,0.92);
             font-size: 1rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.28);
-            transition: background .15s;
+            box-shadow: 0 2px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+            transition: background .15s, transform .12s, box-shadow .15s;
             line-height: 1;
         }
-        #menu-toggle:hover { background: rgba(255,255,255,0.08); }
+        #menu-toggle:hover {
+            background: rgba(22, 36, 88, 0.78);
+            box-shadow: 0 4px 26px rgba(79,142,247,0.22), 0 2px 18px rgba(0,0,0,0.45);
+            transform: translateY(-1px);
+        }
+        #menu-toggle:active { transform: scale(0.93) !important; }
+        [data-theme="sand"] #menu-toggle {
+            background: rgba(255,252,240,0.78);
+            border-color: rgba(0,0,0,0.1);
+            color: #1e293b;
+            box-shadow: 0 2px 14px rgba(0,0,0,0.12);
+        }
+        [data-theme="sand"] #menu-toggle:hover {
+            background: rgba(248,244,230,0.92);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.14);
+        }
 
         /* ── Drawer overlay ── */
         #drawer-overlay {
@@ -3458,26 +3477,27 @@
             box-sizing: border-box;
         }
 
-        /* Section 2: make everything fill the available height */
+        /* Section 2: full-width edge-to-edge flex row */
         #snap-market {
             display: flex;
             flex-direction: column;
         }
         #snap-market .snap-inner {
+            max-width: none;
+            width: 100%;
             flex: 1; min-height: 0;
-            display: flex; flex-direction: column;
+            display: flex; flex-direction: row;
             overflow: hidden;
+            gap: 12px;
+            padding: 8px 12px 8px;
         }
-        #snap-market .row {
-            flex: 1; min-height: 0;
-        }
-        #snap-market [class*="col-"] {
+        #snap-market .remarkable-card {
+            flex: 7; min-height: 0; min-width: 0;
+            overflow: hidden;
             display: flex; flex-direction: column;
-            min-height: 0;
         }
-        #snap-market .remarkable-card,
         #snap-market .watchlist-card {
-            flex: 1; min-height: 0;
+            flex: 5; min-height: 0; min-width: 0;
             overflow: hidden;
             display: flex; flex-direction: column;
         }
@@ -3485,6 +3505,25 @@
             flex: 1; min-height: 0;
             overflow-y: auto;
             max-height: none !important;
+        }
+        /* Remarkables: 2-column grid so all 4 sections fit without scrolling */
+        #rm-section-us, #rm-section-tr {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            height: 100%;
+        }
+        #rm-section-us .rm2-section-wrap + .rm2-section-wrap,
+        #rm-section-tr .rm2-section-wrap + .rm2-section-wrap {
+            border-top: none;
+        }
+        #rm-section-us .rm2-section-wrap:nth-child(-n+2),
+        #rm-section-tr .rm2-section-wrap:nth-child(-n+2) {
+            border-bottom: 1px solid var(--panel-border);
+        }
+        #rm-section-us .rm2-section-wrap:nth-child(odd),
+        #rm-section-tr .rm2-section-wrap:nth-child(odd) {
+            border-right: 1px solid var(--panel-border);
         }
         #snap-market .watchlist-card .card-body,
         #snap-market .watchlist-card > [id*="watchlist"] {
@@ -3497,6 +3536,8 @@
         /* Results: flex column — tabs fixed, panel scrolls */
         #snap-results { display: flex; flex-direction: column; overflow: hidden; }
         #snap-results .snap-inner {
+            max-width: none;
+            width: 100%;
             flex: 1; display: flex; flex-direction: column;
             overflow: hidden; padding-bottom: 4px;
         }
@@ -3527,27 +3568,53 @@
         .res-panel { display: none; overflow: hidden; min-height: 0; width: 100%; }
         .res-panel.active { display: grid; gap: 8px; width: 100%; flex: 1; min-height: 0; }
 
-        /* Panel 0: chart spans left column across all 3 rows, right column has 3 cards */
+        /* Panel 0: Overview — OHLC chart left (full-height), About + News stacked right */
         #res-panel-0.active {
+            grid-template-columns: 62% 1fr;
+            grid-template-rows: 1fr 1fr;
+            height: 100%;
+        }
+        #res-panel-0 > *:first-child { grid-row: 1 / 3; }
+        /* Panel 1: Predictions — chart spans left column across all 3 rows */
+        #res-panel-1.active {
             grid-template-columns: 55% 1fr;
             grid-template-rows: 2fr 1.5fr 1.5fr;
             height: 100%;
         }
-        #res-panel-0 > *:first-child { grid-row: 1 / 4; }
+        #res-panel-1 > *:first-child { grid-row: 1 / 4; }
+        /* OHLC timeframe buttons */
+        .ohlc-tf-btn {
+            font-size: 0.7rem; padding: 2px 9px; border-radius: 6px !important;
+            border-color: var(--panel-border); color: var(--panel-muted);
+            background: transparent;
+        }
+        .ohlc-tf-btn.active, .ohlc-tf-btn:focus {
+            background: rgba(79,142,247,0.18) !important;
+            color: #4f8ef7 !important;
+            border-color: #4f8ef7 !important;
+            box-shadow: none !important;
+        }
+        .ohlc-price-badge {
+            font-size: 0.8rem; font-weight: 700; color: var(--panel-text);
+        }
+        .ohlc-chg-badge {
+            font-size: 0.72rem; font-weight: 600; padding: 1px 6px;
+            border-radius: 5px;
+        }
+        .ohlc-chg-badge.up   { color: #26a69a; background: rgba(38,166,154,0.12); }
+        .ohlc-chg-badge.down { color: #ef5350; background: rgba(239,83,80,0.12);  }
 
-        /* Panel 1: slideshow — single card visible at a time */
-        #res-panel-1.active {
-            display: flex;
-            flex-direction: column;
+        /* Panel 2: slideshow — nav in auto row, visible card in 1fr row */
+        #res-panel-2.active {
+            display: grid;
+            grid-template-rows: auto 1fr;
             height: 100%;
-            align-items: stretch;
         }
         .pattern-nav {
-            flex-shrink: 0;
             display: flex; align-items: center; justify-content: space-between;
             background: var(--parliament-blue-soft);
             border: 1px solid var(--panel-border);
-            border-radius: 10px; padding: 6px 12px; margin-bottom: 8px; gap: 8px;
+            border-radius: 10px; padding: 6px 12px; margin-bottom: 0; gap: 8px;
         }
         .pnav-btn {
             background: var(--parliament-blue-deep); border: 1px solid var(--panel-border);
@@ -3565,22 +3632,19 @@
         }
         .pnav-dot.active { background:#4f8ef7; }
 
-        /* Panel 2: Top Analysts + Analyst Reco side-by-side, Portfolio Advisor full-width below */
-        #res-panel-2.active {
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-            height: 100%;
-        }
-        #res-panel-2 > :nth-child(3) { grid-column: 1 / 3; }
-
-        /* Panel 3: AI Trade Thesis + Earnings side-by-side (top), Latest News full-width (bottom) */
+        /* Panel 3: Top Analysts + Analyst Reco side-by-side, Portfolio Advisor full-width below */
         #res-panel-3.active {
             grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr 1fr;
             height: 100%;
         }
-        #res-panel-3 > :nth-child(2) { order: 3; grid-column: 1 / 3; }
-        #res-panel-3 > :nth-child(3) { order: 2; }
+        #res-panel-3 > :nth-child(3) { grid-column: 1 / 3; }
+
+        /* Panel 4: AI Trade Thesis + Earnings side-by-side */
+        #res-panel-4.active {
+            grid-template-columns: 1fr 1fr;
+            height: 100%;
+        }
 
         /* All cards in panels fill their grid cell and scroll inside */
         .res-panel > .card,
@@ -3599,6 +3663,7 @@
             flex: 1; overflow-y: auto; min-height: 0; padding: 10px 12px;
         }
         /* Charts fill their card body */
+        #snap-results #overview-chart,
         #snap-results #chart,
         #snap-results #pattern-chart,
         #snap-results #pattern-chart-48h,
@@ -3615,6 +3680,11 @@
             height: 100%;
         }
         .hero-content { max-width: 700px; width: 100%; }
+        .hero-logo {
+            display: block; margin: 0 auto 28px;
+            height: clamp(64px, 10vw, 110px); width: auto;
+            filter: drop-shadow(0 4px 24px rgba(79,142,247,0.35));
+        }
         .hero-badge {
             display: inline-flex; align-items: center; gap: 7px;
             background: rgba(45,212,191,0.08); border: 1px solid rgba(45,212,191,0.22);
@@ -3766,19 +3836,25 @@
                 flex: unset !important;
                 overflow: visible !important;
                 height: auto !important;
-                display: block !important;
-            }
-            #snap-market .row {
-                display: flex; flex-direction: column;
-                flex: unset !important;
-            }
-            #snap-market [class*="col-"] {
-                width: 100%; max-width: 100%;
-                display: block !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 12px;
+                width: 100% !important;
             }
             #snap-market .remarkable-card,
             #snap-market .watchlist-card {
-                flex: unset !important; height: auto;
+                flex: unset !important; height: auto; width: 100%;
+            }
+            #rm-section-us, #rm-section-tr {
+                grid-template-columns: 1fr;
+            }
+            #rm-section-us .rm2-section-wrap:nth-child(odd),
+            #rm-section-tr .rm2-section-wrap:nth-child(odd) {
+                border-right: none;
+            }
+            #rm-section-us .rm2-section-wrap + .rm2-section-wrap,
+            #rm-section-tr .rm2-section-wrap + .rm2-section-wrap {
+                border-top: 1px solid var(--panel-border);
             }
             #snap-market .remarkable-card .card-body {
                 max-height: 52vh; overflow-y: auto;
@@ -3804,18 +3880,23 @@
                 height: auto !important; max-height: none !important;
             }
             .res-panel > .card .card-body {
-                overflow-y: auto; max-height: 360px; height: auto;
+                overflow-y: auto; max-height: none; height: auto;
             }
+            /* Fix chart heights — override the desktop height:100%!important */
+            #snap-results #overview-chart     { height: 340px !important; }
+            #snap-results #chart              { height: 300px !important; }
+            #snap-results #pattern-chart,
+            #snap-results #pattern-chart-48h  { height: 280px !important; }
+            #snap-results #rsi-chart          { height: 200px !important; }
             .res-panel > .pro-card > [id] {
                 overflow-y: auto; max-height: 360px;
             }
             /* Clear grid order/span overrides */
-            #res-panel-2 > :nth-child(3),
-            #res-panel-3 > :nth-child(2),
+            #res-panel-0 > *:first-child { grid-row: auto !important; }
             #res-panel-3 > :nth-child(3) {
                 grid-column: auto !important; order: unset !important;
             }
-            #res-panel-0 > *:first-child { grid-row: auto !important; }
+            #res-panel-1 > *:first-child { grid-row: auto !important; }
 
             /* ── Tabs: scrollable row so all 4 are always reachable ── */
             .res-tab-lbl { display: none; }
@@ -3847,8 +3928,8 @@
         .wl-news-wrap {
             border-bottom: 1px solid var(--panel-border);
             padding-bottom: 6px;
-            display: flex; flex-direction: column; flex-shrink: 0;
-            min-height: 0; max-height: 210px; overflow: hidden;
+            display: flex; flex-direction: column;
+            flex: 2; min-height: 0; overflow: hidden;
         }
         .wl-news-header {
             display: flex; align-items: center; gap: 5px;
@@ -3885,15 +3966,15 @@
         }
         .wl-news-item:last-child { border-bottom: none; }
         .wl-news-img {
-            width: 52px; height: 40px; object-fit: cover;
-            border-radius: 5px; flex-shrink: 0;
+            width: 148px; height: 116px; object-fit: cover;
+            border-radius: 6px; flex-shrink: 0;
             background: var(--parliament-blue-soft);
         }
         .wl-news-img-placeholder {
-            width: 52px; height: 40px; border-radius: 5px; flex-shrink: 0;
+            width: 148px; height: 116px; border-radius: 6px; flex-shrink: 0;
             background: var(--parliament-blue-soft);
             display: flex; align-items: center; justify-content: center;
-            color: var(--panel-muted); font-size: 1.1rem;
+            color: var(--panel-muted); font-size: 2.2rem;
         }
         .wl-news-text { flex: 1; min-width: 0; }
         .wl-news-title {
@@ -3915,6 +3996,8 @@
         :root:not([data-theme="ocean"]) .wl-news-progress-bar { background: #6366f1; }
         :root:not([data-theme="ocean"]) .wl-news-dot.active { background: #6366f1; }
         :root:not([data-theme="ocean"]) .wl-news-title a:hover { color: #6366f1; }
+        /* Ticker chips take 1/3, news takes 2/3 of the card body */
+        #watchlist-card-body #watchlist-body { flex: 1; min-height: 0; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -3999,18 +4082,30 @@
 
     <div class="auth-modal" id="auth-modal" aria-hidden="true">
         <div class="auth-modal-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="mb-0" id="auth-modal-title">Welcome</h6>
+            <div class="d-flex justify-content-end mb-2">
+                <span id="auth-modal-title" class="me-auto small fw-semibold" style="line-height:2;"></span>
                 <button type="button" class="auth-modal-close" id="auth-close" aria-label="Close">
                     <i class="fas fa-times"></i>
                 </button>
+            </div>
+            <div class="text-center mb-3">
+                <picture>
+                    <source srcset="{{ url_for('static', filename='stocker_logo.webp') }}" type="image/webp">
+                    <img src="{{ url_for('static', filename='stocker_logo_sm.png') }}" alt="Stocker" style="height:48px;width:auto;" width="72" height="48">
+                </picture>
             </div>
 
             <!-- Provider selection view -->
             <div id="auth-view-providers">
                 <div class="d-grid gap-2">
-                    <a class="btn btn-outline-light" href="/login/google?prompt=consent&select_account=1">
-                        <i class="fab fa-google me-1"></i> Continue with Google
+                    <a class="btn btn-outline-light d-flex align-items-center justify-content-center gap-2" href="/login/google?prompt=consent&select_account=1">
+                        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" style="flex-shrink:0;">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        Continue with Google
                     </a>
                     <button class="btn btn-outline-light" type="button" id="auth-email-toggle">
                         <i class="fas fa-envelope me-1"></i> Continue with Email
@@ -4562,6 +4657,7 @@
     <section class="snap-section" id="snap-hero">
     <div class="snap-inner">
         <div class="hero-content">
+            <img src="{{ url_for('static', filename='stocker_logo.png') }}" alt="Stocker" class="hero-logo">
             <div class="hero-badge">
                 <span class="hero-live-dot"></span>
                 AI-Powered &middot; Live Markets &middot; Real-time Analysis
@@ -4570,10 +4666,6 @@
                 Predict. Analyse.<br>
                 <span class="hero-grad">Outperform.</span>
             </h1>
-            <p class="hero-desc">
-                ML ensemble forecasts, technical pattern detection, AI trade thesis
-                and live news sentiment &mdash; professional-grade tools for every investor.
-            </p>
             <div class="hero-feats">
                 <span class="hero-feat"><i class="fas fa-brain"></i> ML Forecasts</span>
                 <span class="hero-feat"><i class="fas fa-wave-square"></i> Pattern Detection</span>
@@ -4592,11 +4684,8 @@
     <section class="snap-section" id="snap-market">
     <div class="snap-inner">
 
-        <div class="row g-3">
-
         <!-- LEFT: Remarkables stacked lists -->
-        <div class="col-lg-5 col-xl-4">
-        <div class="card remarkable-card h-100">
+        <div class="card remarkable-card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="fas fa-bolt"></i> Remarkables
                     <small class="text-muted ms-2" id="remarkables-updated" style="font-size:0.67rem;">
@@ -4836,11 +4925,9 @@
                 </div>
             </div>
         </div>
-        </div><!-- /col-lg-5 col-xl-4 -->
 
         <!-- RIGHT: Watchlist -->
-        <div class="col-lg-7 col-xl-8">
-        <div class="card watchlist-card h-100">
+        <div class="card watchlist-card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="fas fa-star"></i> Watchlist</span>
                 <div class="d-flex align-items-center gap-2">
@@ -4879,9 +4966,6 @@
                 <div class="text-muted small flex-shrink-0" id="watchlist-notice"></div>
             </div>
         </div>
-        </div><!-- /col-lg-7 col-xl-8 -->
-
-        </div><!-- /row g-3 -->
 
     </div><!-- /snap-inner snap-market -->
     </section><!-- /snap-market -->
@@ -4892,14 +4976,51 @@
 
         <!-- Tab navigation -->
         <div class="res-tabs" id="res-tabs">
-            <button class="res-tab active" data-panel="0"><i class="fas fa-chart-area"></i><span class="res-tab-lbl"> Overview</span></button>
-            <button class="res-tab" data-panel="1"><i class="fas fa-wave-square"></i><span class="res-tab-lbl"> Patterns</span></button>
-            <button class="res-tab" data-panel="2"><i class="fas fa-user-tie"></i><span class="res-tab-lbl"> Analysts</span></button>
-            <button class="res-tab" data-panel="3"><i class="fas fa-robot"></i><span class="res-tab-lbl"> AI &amp; News</span></button>
+            <button class="res-tab active" data-panel="0"><i class="fas fa-chart-line"></i><span class="res-tab-lbl"> Overview</span></button>
+            <button class="res-tab" data-panel="1"><i class="fas fa-calculator"></i><span class="res-tab-lbl"> Predictions</span></button>
+            <button class="res-tab" data-panel="2"><i class="fas fa-wave-square"></i><span class="res-tab-lbl"> Patterns</span></button>
+            <button class="res-tab" data-panel="3"><i class="fas fa-user-tie"></i><span class="res-tab-lbl"> Analysts</span></button>
+            <button class="res-tab" data-panel="4"><i class="fas fa-robot"></i><span class="res-tab-lbl"> Summary</span></button>
         </div>
 
-        <!-- ── Panel 0: Overview ── Stock Price Chart · Prediction Results · Peer Comparison · About -->
+        <!-- ── Panel 0: Overview ── OHLC Chart · About · Latest News -->
         <div class="res-panel active" id="res-panel-0">
+            <!-- OHLC Chart — spans full height of left column -->
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="fas fa-chart-line me-1"></i>
+                        <span id="ohlc-symbol-lbl" style="font-weight:700;"></span>
+                        <span id="ohlc-price-lbl" class="ohlc-price-badge ms-2"></span>
+                        <span id="ohlc-chg-lbl" class="ohlc-chg-badge ms-1"></span>
+                    </span>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="btn-group btn-group-sm" id="ohlc-tf-group" role="group" aria-label="Timeframe">
+                            <button type="button" class="ohlc-tf-btn" data-tf="yearly">1Y</button>
+                            <button type="button" class="ohlc-tf-btn" data-tf="6month">6M</button>
+                            <button type="button" class="ohlc-tf-btn" data-tf="monthly">1M</button>
+                            <button type="button" class="ohlc-tf-btn active" data-tf="daily">1D</button>
+                            <button type="button" class="ohlc-tf-btn" data-tf="hourly">1H</button>
+                        </div>
+                        <span id="ohlc-refresh-lbl" class="text-muted" style="font-size:0.62rem;"></span>
+                    </div>
+                </div>
+                <div class="card-body"><div id="overview-chart"></div></div>
+            </div>
+            <!-- About — right column top -->
+            <div class="card about-card mb-3">
+                <div class="card-header"><i class="fas fa-info-circle"></i> About</div>
+                <div class="card-body" id="about-container"><div class="text-muted">Load a symbol to see company information.</div></div>
+            </div>
+            <!-- Latest News — right column bottom -->
+            <div class="card news-card mb-3">
+                <div class="card-header"><i class="fas fa-newspaper"></i> Latest News</div>
+                <div class="card-body" id="news-container"></div>
+            </div>
+        </div><!-- /res-panel-0 -->
+
+        <!-- ── Panel 1: Predictions ── Stock Price Chart · Prediction Results · Peer Comparison -->
+        <div class="res-panel" id="res-panel-1">
             <div class="card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-chart-area"></i> Stock Price Chart</span>
@@ -4944,14 +5065,10 @@
                     {% endif %}
                 </div>
             </div>
-            <div class="card about-card mb-3">
-                <div class="card-header"><i class="fas fa-info-circle"></i> About</div>
-                <div class="card-body" id="about-container"><div class="text-muted">Load a symbol to see company information.</div></div>
-            </div>
-        </div><!-- /res-panel-0 -->
+        </div><!-- /res-panel-1 -->
 
-        <!-- ── Panel 1: Patterns ── Pattern 1M · Pattern 48H · RSI -->
-        <div class="res-panel" id="res-panel-1">
+        <!-- ── Panel 2: Patterns ── Pattern 1M · Pattern 48H · RSI -->
+        <div class="res-panel" id="res-panel-2">
             <div class="card mb-3">
                 <div class="card-header"><i class="fas fa-wave-square"></i> Pattern Detection (Last 1 Month)</div>
                 <div class="card-body"><div id="pattern-chart"></div></div>
@@ -4964,10 +5081,10 @@
                 <div class="card-header"><i class="fas fa-chart-line"></i> RSI Analysis (Last 1 Month)</div>
                 <div class="card-body"><div id="rsi-chart"></div></div>
             </div>
-        </div><!-- /res-panel-1 -->
+        </div><!-- /res-panel-2 -->
 
-        <!-- ── Panel 2: Analysts ── Top Analysts · Analyst Reco · AI Portfolio Advisor -->
-        <div class="res-panel" id="res-panel-2">
+        <!-- ── Panel 3: Analysts ── Top Analysts · Analyst Reco · AI Portfolio Advisor -->
+        <div class="res-panel" id="res-panel-3">
             <div class="card mb-3">
                 <div class="card-header"><i class="fas fa-user-tie"></i> Top Analysts</div>
                 <div class="card-body">
@@ -5005,10 +5122,10 @@
                     {% endif %}
                 </div>
             </div>
-        </div><!-- /res-panel-2 -->
+        </div><!-- /res-panel-3 -->
 
-        <!-- ── Panel 3: AI & News ── AI Trade Thesis · Latest News · Earnings Summarizer -->
-        <div class="res-panel" id="res-panel-3">
+        <!-- ── Panel 4: Summary ── AI Trade Thesis · Earnings Summarizer -->
+        <div class="res-panel" id="res-panel-4">
             <div class="pro-card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-robot"></i> AI Trade Thesis</span>
@@ -5026,10 +5143,6 @@
                     </div>
                     {% endif %}
                 </div>
-            </div>
-            <div class="card news-card mb-3">
-                <div class="card-header"><i class="fas fa-newspaper"></i> Latest News</div>
-                <div class="card-body" id="news-container"></div>
             </div>
             <div class="pro-card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -5049,7 +5162,7 @@
                     {% endif %}
                 </div>
             </div>
-        </div><!-- /res-panel-3 -->
+        </div><!-- /res-panel-4 -->
 
     </div><!-- /snap-inner snap-results -->
     </section><!-- /snap-results -->
@@ -6605,7 +6718,7 @@
 
             // ── Pattern slideshow ──
             (function() {
-                var panel = document.getElementById('res-panel-1');
+                var panel = document.getElementById('res-panel-2');
                 if (!panel) return;
                 var cards = Array.from(panel.querySelectorAll(':scope > .card, :scope > .pro-card'));
                 var chartIds = ['pattern-chart', 'pattern-chart-48h', 'rsi-chart'];
@@ -6629,9 +6742,9 @@
                     cards.forEach(function(c, i) {
                         if (i === current) {
                             c.style.display = '';
-                            c.style.flex = '1';
-                            c.style.minHeight = '0';
-                            c.style.width = '100%';
+                            c.style.flex = '';
+                            c.style.minHeight = '';
+                            c.style.width = '';
                         } else {
                             c.style.display = 'none';
                         }
@@ -6640,9 +6753,16 @@
                         d.classList.toggle('active', i === current);
                     });
                     nav.querySelector('.pnav-indicator').textContent = (current + 1) + ' / ' + cards.length;
-                    // Resize the now-visible Plotly chart
-                    var el = document.getElementById(chartIds[current]);
-                    if (el && el._fullLayout && window.Plotly) setTimeout(function() { Plotly.Plots.resize(el); }, 40);
+                    // Resize chart after two animation frames so grid layout is computed
+                    var chartEl = document.getElementById(chartIds[current]);
+                    if (chartEl && window.Plotly) {
+                        requestAnimationFrame(function() {
+                            requestAnimationFrame(function() {
+                                if (chartEl._fullLayout) Plotly.Plots.resize(chartEl);
+                                setTimeout(function() { if (chartEl._fullLayout) Plotly.Plots.resize(chartEl); }, 200);
+                            });
+                        });
+                    }
                 }
 
                 nav.querySelector('.pnav-prev').addEventListener('click', function() { show(current - 1); });
@@ -6655,9 +6775,63 @@
 
                 // Re-init when Patterns tab becomes active
                 document.addEventListener('click', function(e) {
-                    if (e.target.closest('.res-tab[data-panel="1"]')) setTimeout(function() { show(current); }, 50);
+                    if (e.target.closest('.res-tab[data-panel="2"]')) {
+                        requestAnimationFrame(function() { requestAnimationFrame(function() { show(current); }); });
+                    }
                 });
             })();
+
+            // ── OHLC Overview Chart ──
+            var _ohlcCurrentSymbol = null;
+            var _ohlcCurrentTf = 'daily';
+
+            function loadOhlcChart(sym, tf) {
+                _ohlcCurrentSymbol = sym;
+                _ohlcCurrentTf = tf;
+                // Update active button
+                document.querySelectorAll('.ohlc-tf-btn').forEach(function(b) { b.classList.remove('active'); });
+                var activeBtn = document.querySelector('.ohlc-tf-btn[data-tf="' + tf + '"]');
+                if (activeBtn) activeBtn.classList.add('active');
+                $('#ohlc-refresh-lbl').text('loading…');
+                $('#ohlc-symbol-lbl').text(sym);
+                fetch('/api/ohlc?symbol=' + encodeURIComponent(sym) + '&tf=' + encodeURIComponent(tf))
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) {
+                        if (d.error) {
+                            $('#overview-chart').html('<div class="text-muted p-3">' + d.error + '</div>');
+                            $('#ohlc-refresh-lbl').text('');
+                            return;
+                        }
+                        loadPlotly().then(function() {
+                            Plotly.newPlot('overview-chart', d.data, applyChartTheme(d.layout, d.data.length), {responsive: true});
+                        });
+                        if (d.last_close !== undefined) {
+                            $('#ohlc-price-lbl').text(currencySymbol(sym) + d.last_close.toFixed(2));
+                        }
+                        var chgEl = document.getElementById('ohlc-chg-lbl');
+                        if (chgEl && d.chg !== undefined) {
+                            chgEl.textContent = (d.chg >= 0 ? '+' : '') + d.chg + '%';
+                            chgEl.className = 'ohlc-chg-badge ms-1 ' + (d.chg >= 0 ? 'up' : 'down');
+                        }
+                        $('#ohlc-refresh-lbl').text('');
+                    })
+                    .catch(function() {
+                        $('#overview-chart').html('<div class="text-muted p-3">Failed to load chart.</div>');
+                        $('#ohlc-refresh-lbl').text('');
+                    });
+            }
+
+            // Expose for tab-switch re-trigger
+            window._ohlcLoadFn = function() {
+                if (_ohlcCurrentSymbol) loadOhlcChart(_ohlcCurrentSymbol, _ohlcCurrentTf);
+            };
+
+            // Wire timeframe buttons
+            document.getElementById('ohlc-tf-group').addEventListener('click', function(e) {
+                var btn = e.target.closest('.ohlc-tf-btn');
+                if (!btn || !_ohlcCurrentSymbol) return;
+                loadOhlcChart(_ohlcCurrentSymbol, btn.dataset.tf);
+            });
 
             // ── Result tab switching ──
             document.addEventListener('click', function(e) {
@@ -6669,13 +6843,21 @@
                 btn.classList.add('active');
                 var el = document.getElementById('res-panel-' + panel);
                 if (el) el.classList.add('active');
-                // Resize Plotly charts so they fill their new grid cell
-                setTimeout(function() {
-                    ['chart','pattern-chart','pattern-chart-48h','rsi-chart'].forEach(function(id) {
-                        var el = document.getElementById(id);
-                        if (el && el._fullLayout && window.Plotly) Plotly.Plots.resize(el);
+                // Re-load overview chart when switching to panel 0
+                if (panel === '0' && window._ohlcLoadFn) window._ohlcLoadFn();
+                // Resize Plotly charts — double-RAF ensures grid layout is computed before reading dimensions
+                function resizeAllCharts() {
+                    ['overview-chart','chart','pattern-chart','pattern-chart-48h','rsi-chart'].forEach(function(id) {
+                        var ce = document.getElementById(id);
+                        if (ce && ce._fullLayout && window.Plotly) Plotly.Plots.resize(ce);
                     });
-                }, 30);
+                }
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        resizeAllCharts();
+                        setTimeout(resizeAllCharts, 300);
+                    });
+                });
             });
 
             function closeAuthModal() {
@@ -6685,7 +6867,7 @@
                 $('#auth-view-email').hide();
                 $('#auth-email-input, #auth-password-input').val('');
                 $('#auth-email-error').hide().text('');
-                $('#auth-modal-title').text('Welcome');
+                $('#auth-modal-title').text('');
             }
 
             // Sign out via fetch to avoid caching issues
@@ -6733,7 +6915,7 @@
             $('#auth-back').on('click', function() {
                 $('#auth-view-email').hide();
                 $('#auth-view-providers').show();
-                $('#auth-modal-title').text('Welcome');
+                $('#auth-modal-title').text('');
                 $('#auth-email-error').hide().text('');
             });
             $('#auth-mode-toggle').on('click', function(e) {
@@ -6807,32 +6989,42 @@
             }
 
             function applyChartTheme(layout, traceCount) {
-                const base    = layout || {};
-                const isLight = document.documentElement.getAttribute('data-theme') !== 'ocean';
+                const base     = layout || {};
+                const isMobile = window.innerWidth < 768;
+                const isLight  = document.documentElement.getAttribute('data-theme') !== 'ocean';
                 const legendRows = Math.ceil((traceCount || 1) / 3);
                 const chartText  = getCssVar('--panel-text') || '#e7ecff';
                 const paperBg    = getCssVar('--parliament-blue-soft') || '#24346a';
                 const plotBg     = getCssVar('--parliament-blue') || '#1b2a57';
                 const gridColor  = isLight ? 'rgba(0,0,0,0.1)'  : 'rgba(255,255,255,0.1)';
                 const zeroColor  = isLight ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.2)';
-                const axisTheme  = b => ({ ...(b || {}), gridcolor: gridColor, zerolinecolor: zeroColor, color: chartText });
+                const tickFont   = isMobile ? { size: 9, color: chartText } : { color: chartText };
+                const axisTheme  = b => ({
+                    ...(b || {}),
+                    gridcolor: gridColor, zerolinecolor: zeroColor, color: chartText,
+                    tickfont: tickFont,
+                    automargin: true
+                });
+                const margin = isMobile
+                    ? { l: 44, r: 8, t: 22, b: 24 + legendRows * 16 }
+                    : { ...(base.margin || {}), b: 40 + legendRows * 20 };
                 return {
                     ...base,
                     paper_bgcolor: paperBg,
                     plot_bgcolor: plotBg,
-                    font:   { ...(base.font  || {}), color: chartText },
+                    font:   { ...(base.font || {}), color: chartText, ...(isMobile ? { size: 10 } : {}) },
                     xaxis:  axisTheme(base.xaxis),
                     yaxis:  axisTheme(base.yaxis),
                     legend: {
                         ...(base.legend || {}),
                         orientation: 'h',
                         yanchor: 'top',
-                        y: -0.15,
+                        y: isMobile ? -0.22 : -0.15,
                         xanchor: 'center',
                         x: 0.5,
-                        font: { color: chartText }
+                        font: { color: chartText, ...(isMobile ? { size: 9 } : {}) }
                     },
-                    margin: { ...(base.margin || {}), b: 40 + legendRows * 20 }
+                    margin
                 };
             }
 
@@ -7086,13 +7278,15 @@
                         document.querySelectorAll('.res-panel').forEach(function(p){ p.classList.remove('active'); });
                         document.querySelector('.res-tab[data-panel="0"]').classList.add('active');
                         document.getElementById('res-panel-0').classList.add('active');
+                        // Load OHLC chart for Overview panel
+                        loadOhlcChart(symbol, 'daily');
                         // Snap to results section (3rd section = 2 × viewport)
                         setTimeout(function() {
                             var wrap = document.getElementById('snap-wrap');
                             if (wrap) wrap.scrollTo({ top: wrap.clientHeight * 2, behavior: 'smooth' });
                             // Resize charts to fill their new grid cells
                             setTimeout(function() {
-                                ['chart','pattern-chart','pattern-chart-48h','rsi-chart'].forEach(function(id) {
+                                ['overview-chart','chart','pattern-chart','pattern-chart-48h','rsi-chart'].forEach(function(id) {
                                     var el = document.getElementById(id);
                                     if (el && el._fullLayout && window.Plotly) Plotly.Plots.resize(el);
                                 });

@@ -3755,6 +3755,52 @@ def market_ticker_api():
     _TICKER_CACHE.update({"data": data, "ts": now})
     return jsonify(data)
 
+@app.route('/api/ohlc')
+def api_ohlc():
+    symbol = request.args.get('symbol', '').strip().upper()
+    tf     = request.args.get('tf', 'daily')
+    if not _is_valid_symbol(symbol):
+        return jsonify({'error': 'Invalid symbol'}), 400
+    tf_map = {
+        'hourly':  ('5d',  '1h'),
+        'daily':   ('1mo', '1d'),
+        'monthly': ('3mo', '1d'),
+        '6month':  ('6mo', '1d'),
+        'yearly':  ('1y',  '1d'),
+    }
+    period, interval = tf_map.get(tf, ('6mo', '1d'))
+    try:
+        df = yf.Ticker(symbol).history(period=period, interval=interval)
+        if df.empty:
+            return jsonify({'error': 'No data'}), 404
+        fmt = '%Y-%m-%d %H:%M' if interval == '1h' else '%Y-%m-%d'
+        df.index = df.index.strftime(fmt)
+        last_close = float(df['Close'].iloc[-1])
+        prev_close = float(df['Close'].iloc[-2]) if len(df) > 1 else last_close
+        chg = (last_close - prev_close) / prev_close * 100 if prev_close else 0
+        trace = {
+            'type': 'candlestick',
+            'x': df.index.tolist(),
+            'open':  [round(v, 4) for v in df['Open'].tolist()],
+            'high':  [round(v, 4) for v in df['High'].tolist()],
+            'low':   [round(v, 4) for v in df['Low'].tolist()],
+            'close': [round(v, 4) for v in df['Close'].tolist()],
+            'name': symbol,
+            'increasing': {'line': {'color': '#26a69a'}, 'fillcolor': '#26a69a'},
+            'decreasing': {'line': {'color': '#ef5350'}, 'fillcolor': '#ef5350'},
+        }
+        layout = {
+            'xaxis': {'rangeslider': {'visible': False}, 'type': 'date'},
+            'yaxis': {'title': 'Price', 'side': 'right'},
+            'margin': {'l': 10, 'r': 60, 't': 10, 'b': 40},
+        }
+        return jsonify({'data': [trace], 'layout': layout,
+                        'last_close': last_close, 'chg': round(chg, 2)})
+    except Exception as e:
+        logger.warning(f"OHLC {symbol}: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/privacy')
 def privacy():
     last_updated = "14 April 2026"
