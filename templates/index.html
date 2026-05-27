@@ -3651,8 +3651,43 @@
         #snap-results #overview-chart,
         #snap-results #chart,
         #snap-results #pattern-chart,
-        #snap-results #pattern-chart-48h,
-        #snap-results #rsi-chart { height: 100% !important; min-height: 80px; }
+        #snap-results #pattern-chart-48h { height: 100% !important; min-height: 80px; }
+
+        /* ── All result-panel tables: theme-aware text ── */
+        .res-panel .table,
+        .res-panel table {
+            color: var(--panel-text);
+            --bs-table-color: var(--panel-text);
+            --bs-table-bg: transparent;
+            --bs-table-striped-color: var(--panel-text);
+            --bs-table-hover-color: var(--panel-text);
+        }
+        .res-panel .table thead th,
+        .res-panel table thead th {
+            color: var(--panel-muted);
+            border-bottom-color: var(--panel-border);
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .res-panel .table td,
+        .res-panel table td {
+            border-bottom-color: var(--panel-border);
+            vertical-align: middle;
+        }
+        .res-panel .table-hover tbody tr:hover td {
+            background: rgba(255,255,255,0.04);
+            color: var(--panel-text);
+        }
+        [data-theme="sand"] .res-panel .table-hover tbody tr:hover td {
+            background: rgba(0,0,0,0.04);
+        }
+        /* Performance panel specific */
+        #perf-rev-container, #perf-eps-container,
+        #perf-trend-container, #perf-growth-container {
+            overflow-y: auto;
+        }
 
         /* Hero full-screen layout */
         #snap-hero { display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
@@ -4964,8 +4999,8 @@
             <button class="res-tab" data-panel="1"><i class="fas fa-calculator"></i><span class="res-tab-lbl"> Predictions</span></button>
             <button class="res-tab" data-panel="2"><i class="fas fa-wave-square"></i><span class="res-tab-lbl"> Patterns</span></button>
             <button class="res-tab" data-panel="3"><i class="fas fa-user-tie"></i><span class="res-tab-lbl"> Analysts</span></button>
-            <button class="res-tab" data-panel="4"><i class="fas fa-robot"></i><span class="res-tab-lbl"> Summary</span></button>
             <button class="res-tab" data-panel="5"><i class="fas fa-chart-bar"></i><span class="res-tab-lbl"> Performance</span></button>
+            <button class="res-tab" data-panel="4"><i class="fas fa-robot"></i><span class="res-tab-lbl"> Summary</span></button>
         </div>
 
         <!-- ── Panel 0: Overview ── OHLC Chart · About · Latest News -->
@@ -5550,7 +5585,7 @@
                     try { iframe.contentWindow.postMessage({type:'theme',theme:theme},'*'); } catch(_) {}
                 }
                 // Re-apply chart colors to all rendered Plotly charts
-                ['chart', 'pattern-chart', 'pattern-chart-48h', 'rsi-chart'].forEach(function(id) {
+                ['chart', 'pattern-chart', 'pattern-chart-48h'].forEach(function(id) {
                     const el = document.getElementById(id);
                     if (!el || !el._fullLayout) return;
                     if (!window.Plotly) return;
@@ -6670,7 +6705,7 @@
 
             // ── Auto-resize: section heights + charts on any viewport change ──
             (function() {
-                var CHART_IDS = ['chart','pattern-chart','pattern-chart-48h','rsi-chart'];
+                var CHART_IDS = ['chart','pattern-chart','pattern-chart-48h'];
                 var resizeTimer;
 
                 // Sync every snap-section height to the actual snap-wrap client height
@@ -7372,7 +7407,7 @@
                             if (wrap) wrap.scrollTo({ top: wrap.clientHeight * 2, behavior: 'smooth' });
                             // Resize charts to fill their new grid cells
                             setTimeout(function() {
-                                ['overview-chart','chart','pattern-chart','pattern-chart-48h','rsi-chart'].forEach(function(id) {
+                                ['overview-chart','chart','pattern-chart','pattern-chart-48h'].forEach(function(id) {
                                     var el = document.getElementById(id);
                                     if (el && el._fullLayout && window.Plotly) Plotly.Plots.resize(el);
                                 });
@@ -7409,14 +7444,10 @@
                             } else {
                                 $('#pattern-chart-48h').html('<div class="text-muted">48h pattern chart unavailable for this response.</div>');
                             }
-                            if (response.rsi_chart) {
-                                const rsiData = typeof response.rsi_chart === 'string' ? JSON.parse(response.rsi_chart) : response.rsi_chart;
-                                Plotly.newPlot('rsi-chart', rsiData.data, applyChartTheme(rsiData.layout, rsiData.data.length), {responsive:true});
-                            } else {
-                                $('#rsi-chart').html('<div class="text-muted">RSI chart unavailable for this response.</div>');
-                            }
-                        }).catch(() => {
-                            $('#chart').html('<div class="text-muted">Charts unavailable (failed to load Plotly).</div>');
+                            // RSI panel removed — no longer rendered
+                        }).catch((err) => {
+                            console.error('Plotly load/render error:', err);
+                            $('#chart').html('<div class="text-muted p-3">Chart render error. Please retry.</div>');
                         });
                         const insights = response.analyst_insights || {};
                         renderAnalystTable(insights.top_analysts || []);
