@@ -3801,6 +3801,96 @@ def api_ohlc():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/performance')
+def api_performance():
+    symbol = request.args.get('symbol', '').strip().upper()
+    if not _is_valid_symbol(symbol):
+        return jsonify({'error': 'Invalid symbol'}), 400
+    result = {}
+    try:
+        ticker = yf.Ticker(symbol)
+
+        # ── Quarterly Revenue & Net Income (last 4 quarters) ──
+        try:
+            q_inc = ticker.quarterly_income_stmt
+            if q_inc is not None and not q_inc.empty:
+                cols = list(q_inc.columns[:4])  # newest 4 quarters
+                quarters = [str(c.date()) if hasattr(c, 'date') else str(c) for c in reversed(cols)]
+                def _row(q_inc, *keys):
+                    for k in keys:
+                        if k in q_inc.index:
+                            return q_inc.loc[k]
+                    return None
+                rev_row = _row(q_inc, 'Total Revenue', 'Revenue')
+                net_row = _row(q_inc, 'Net Income', 'Net Income Common Stockholders')
+                def _vals(row, cols):
+                    if row is None:
+                        return [None] * len(cols)
+                    return [round(float(row[c]) / 1e9, 3) if (c in row.index and pd.notna(row[c])) else None for c in reversed(cols)]
+                result['quarterly_revenue_earnings'] = {
+                    'quarters': quarters,
+                    'revenue': _vals(rev_row, cols),
+                    'net_income': _vals(net_row, cols),
+                }
+        except Exception as exc:
+            logger.warning("performance: quarterly_income_stmt %s: %s", symbol, exc)
+
+        # ── Quarterly EPS (actual vs estimate) ──
+        try:
+            q_earn = ticker.quarterly_earnings
+            if q_earn is not None and not q_earn.empty:
+                q_earn = q_earn.tail(4)
+                earn_col = next((c for c in ['Earnings', 'EPS Actual'] if c in q_earn.columns), None)
+                est_col  = next((c for c in ['Estimate', 'EPS Estimate'] if c in q_earn.columns), None)
+                result['quarterly_eps'] = {
+                    'quarters':     [str(idx) for idx in q_earn.index],
+                    'eps_actual':   [float(v) if pd.notna(v) else None for v in (q_earn[earn_col] if earn_col else [])],
+                    'eps_estimate': [float(v) if pd.notna(v) else None for v in (q_earn[est_col] if est_col else [None]*len(q_earn))],
+                }
+        except Exception as exc:
+            logger.warning("performance: quarterly_earnings %s: %s", symbol, exc)
+
+        # ── EPS Trend (from info) ──
+        try:
+            info = ticker.info
+            result['eps_trend'] = {
+                'trailing_eps':    info.get('trailingEps'),
+                'forward_eps':     info.get('forwardEps'),
+                'earnings_growth': round(info['earningsGrowth'] * 100, 1) if info.get('earningsGrowth') is not None else None,
+                'revenue_growth':  round(info['revenueGrowth']  * 100, 1) if info.get('revenueGrowth')  is not None else None,
+                'pe_trailing':     info.get('trailingPE'),
+                'pe_forward':      info.get('forwardPE'),
+                'peg_ratio':       info.get('pegRatio'),
+            }
+        except Exception as exc:
+            logger.warning("performance: eps_trend %s: %s", symbol, exc)
+
+        # ── Earnings History / Growth Estimates (last 4 quarters) ──
+        try:
+            ed = ticker.earnings_dates
+            if ed is not None and not ed.empty:
+                recent = ed.head(8)
+                history = []
+                for idx, row in recent.iterrows():
+                    est = row.get('EPS Estimate')
+                    act = row.get('Reported EPS')
+                    sur = row.get('Surprise(%)')
+                    history.append({
+                        'date':         str(idx.date()) if hasattr(idx, 'date') else str(idx),
+                        'eps_estimate': float(est) if est is not None and pd.notna(est) else None,
+                        'eps_actual':   float(act) if act is not None and pd.notna(act) else None,
+                        'surprise_pct': round(float(sur), 2) if sur is not None and pd.notna(sur) else None,
+                    })
+                result['earnings_history'] = history
+        except Exception as exc:
+            logger.warning("performance: earnings_dates %s: %s", symbol, exc)
+
+        return jsonify(result)
+    except Exception as exc:
+        logger.warning("performance API %s: %s", symbol, exc)
+        return jsonify({'error': str(exc)}), 500
+
+
 @app.route('/privacy')
 def privacy():
     last_updated = "14 April 2026"

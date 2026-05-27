@@ -3575,13 +3575,13 @@
             height: 100%;
         }
         #res-panel-0 > *:first-child { grid-row: 1 / 3; }
-        /* Panel 1: Predictions — chart spans left column across all 3 rows */
+        /* Panel 1: Predictions — chart spans full left height, Prediction Results + Peer fill right equally */
         #res-panel-1.active {
             grid-template-columns: 55% 1fr;
-            grid-template-rows: 2fr 1.5fr 1.5fr;
+            grid-template-rows: 1fr 1fr;
             height: 100%;
         }
-        #res-panel-1 > *:first-child { grid-row: 1 / 4; }
+        #res-panel-1 > *:first-child { grid-row: 1 / 3; }
         /* OHLC timeframe buttons */
         .ohlc-tf-btn {
             font-size: 0.7rem; padding: 2px 9px; border-radius: 6px !important;
@@ -3604,45 +3604,30 @@
         .ohlc-chg-badge.up   { color: #26a69a; background: rgba(38,166,154,0.12); }
         .ohlc-chg-badge.down { color: #ef5350; background: rgba(239,83,80,0.12);  }
 
-        /* Panel 2: slideshow — nav in auto row, visible card in 1fr row */
+        /* Panel 2: Patterns — two charts side by side, no slideshow */
         #res-panel-2.active {
-            display: grid;
-            grid-template-rows: auto 1fr;
+            grid-template-columns: 1fr 1fr;
             height: 100%;
         }
-        .pattern-nav {
-            display: flex; align-items: center; justify-content: space-between;
-            background: var(--parliament-blue-soft);
-            border: 1px solid var(--panel-border);
-            border-radius: 10px; padding: 6px 12px; margin-bottom: 0; gap: 8px;
-        }
-        .pnav-btn {
-            background: var(--parliament-blue-deep); border: 1px solid var(--panel-border);
-            color: var(--panel-muted); cursor: pointer;
-            font-size: 0.85rem; padding: 6px 16px; border-radius: 7px;
-            transition: color .15s, background .15s;
-            min-height: 44px; min-width: 44px;
-        }
-        .pnav-btn:hover { color: var(--panel-text); background: rgba(255,255,255,0.07); }
-        .pnav-indicator { font-size: 0.76rem; color: var(--panel-text); font-weight: 600; text-align:center; flex:1; }
-        .pnav-dots { display:flex; gap:5px; align-items:center; }
-        .pnav-dot {
-            width:7px; height:7px; border-radius:50%; background:var(--panel-border);
-            cursor:pointer; transition:background .18s;
-        }
-        .pnav-dot.active { background:#4f8ef7; }
 
-        /* Panel 3: Top Analysts + Analyst Reco side-by-side, Portfolio Advisor full-width below */
+        /* Panel 3: Top Analysts + Analyst Reco side-by-side */
         #res-panel-3.active {
+            grid-template-columns: 1fr 1fr;
+            height: 100%;
+        }
+
+        /* Panel 4: Summary — Thesis + Earnings top, Advisor full-width bottom */
+        #res-panel-4.active {
             grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr 1fr;
             height: 100%;
         }
-        #res-panel-3 > :nth-child(3) { grid-column: 1 / 3; }
+        #res-panel-4 > :nth-child(3) { grid-column: 1 / 3; }
 
-        /* Panel 4: AI Trade Thesis + Earnings side-by-side */
-        #res-panel-4.active {
+        /* Panel 5: Performance — 2×2 grid */
+        #res-panel-5.active {
             grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
             height: 100%;
         }
 
@@ -3887,16 +3872,15 @@
             #snap-results #chart              { height: 300px !important; }
             #snap-results #pattern-chart,
             #snap-results #pattern-chart-48h  { height: 280px !important; }
-            #snap-results #rsi-chart          { height: 200px !important; }
             .res-panel > .pro-card > [id] {
                 overflow-y: auto; max-height: 360px;
             }
             /* Clear grid order/span overrides */
-            #res-panel-0 > *:first-child { grid-row: auto !important; }
-            #res-panel-3 > :nth-child(3) {
-                grid-column: auto !important; order: unset !important;
-            }
+            #res-panel-0 > *:first-child,
             #res-panel-1 > *:first-child { grid-row: auto !important; }
+            #res-panel-4 > :nth-child(3) {
+                grid-column: auto !important;
+            }
 
             /* ── Tabs: scrollable row so all 4 are always reachable ── */
             .res-tab-lbl { display: none; }
@@ -4981,6 +4965,7 @@
             <button class="res-tab" data-panel="2"><i class="fas fa-wave-square"></i><span class="res-tab-lbl"> Patterns</span></button>
             <button class="res-tab" data-panel="3"><i class="fas fa-user-tie"></i><span class="res-tab-lbl"> Analysts</span></button>
             <button class="res-tab" data-panel="4"><i class="fas fa-robot"></i><span class="res-tab-lbl"> Summary</span></button>
+            <button class="res-tab" data-panel="5"><i class="fas fa-chart-bar"></i><span class="res-tab-lbl"> Performance</span></button>
         </div>
 
         <!-- ── Panel 0: Overview ── OHLC Chart · About · Latest News -->
@@ -5067,23 +5052,19 @@
             </div>
         </div><!-- /res-panel-1 -->
 
-        <!-- ── Panel 2: Patterns ── Pattern 1M · Pattern 48H · RSI -->
+        <!-- ── Panel 2: Patterns ── Pattern 1M · Pattern 48H (side-by-side) -->
         <div class="res-panel" id="res-panel-2">
             <div class="card mb-3">
-                <div class="card-header"><i class="fas fa-wave-square"></i> Pattern Detection (Last 1 Month)</div>
+                <div class="card-header"><i class="fas fa-wave-square"></i> Pattern Detection — Last 1 Month</div>
                 <div class="card-body"><div id="pattern-chart"></div></div>
             </div>
             <div class="card mb-3">
-                <div class="card-header"><i class="fas fa-wave-square"></i> Pattern Detection (Last 48 Hours)</div>
+                <div class="card-header"><i class="fas fa-wave-square"></i> Pattern Detection — Last 48 Hours</div>
                 <div class="card-body"><div id="pattern-chart-48h"></div></div>
-            </div>
-            <div class="card mb-3">
-                <div class="card-header"><i class="fas fa-chart-line"></i> RSI Analysis (Last 1 Month)</div>
-                <div class="card-body"><div id="rsi-chart"></div></div>
             </div>
         </div><!-- /res-panel-2 -->
 
-        <!-- ── Panel 3: Analysts ── Top Analysts · Analyst Reco · AI Portfolio Advisor -->
+        <!-- ── Panel 3: Analysts ── Top Analysts · Analyst Reco -->
         <div class="res-panel" id="res-panel-3">
             <div class="card mb-3">
                 <div class="card-header"><i class="fas fa-user-tie"></i> Top Analysts</div>
@@ -5104,28 +5085,11 @@
                     <div class="analyst-reco" id="analyst-reco"></div>
                 </div>
             </div>
-            <div class="pro-card mb-3">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-briefcase"></i> AI Portfolio Advisor</span>
-                    <span class="tier-badge tier-badge-pro">Pro</span>
-                </div>
-                <div id="advisor-container">
-                    {% if user_tier in ('pro', 'premium', 'admin') %}
-                    <div class="pro-lock text-muted small" id="advisor-placeholder">Run a prediction to get portfolio advice.</div>
-                    {% else %}
-                    <div class="pro-lock">
-                        <i class="fas fa-lock"></i>
-                        <span>Available on Pro</span>
-                        <button class="btn btn-primary btn-sm" id="advisor-upgrade-btn">Upgrade to Pro</button>
-                        <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='AI_Portfolio_Adviser.png') }}', 'AI Portfolio Advisor')">see sample</button>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
         </div><!-- /res-panel-3 -->
 
-        <!-- ── Panel 4: Summary ── AI Trade Thesis · Earnings Summarizer -->
+        <!-- ── Panel 4: Summary ── AI Trade Thesis · Earnings Summarizer · AI Portfolio Advisor -->
         <div class="res-panel" id="res-panel-4">
+            <!-- top-left -->
             <div class="pro-card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-robot"></i> AI Trade Thesis</span>
@@ -5144,6 +5108,7 @@
                     {% endif %}
                 </div>
             </div>
+            <!-- top-right -->
             <div class="pro-card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-calendar-check"></i> Earnings Summarizer</span>
@@ -5162,7 +5127,58 @@
                     {% endif %}
                 </div>
             </div>
+            <!-- bottom full-width -->
+            <div class="pro-card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-briefcase"></i> AI Portfolio Advisor</span>
+                    <span class="tier-badge tier-badge-pro">Pro</span>
+                </div>
+                <div id="advisor-container">
+                    {% if user_tier in ('pro', 'premium', 'admin') %}
+                    <div class="pro-lock text-muted small" id="advisor-placeholder">Run a prediction to get portfolio advice.</div>
+                    {% else %}
+                    <div class="pro-lock">
+                        <i class="fas fa-lock"></i>
+                        <span>Available on Pro</span>
+                        <button class="btn btn-primary btn-sm" id="advisor-upgrade-btn">Upgrade to Pro</button>
+                        <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='AI_Portfolio_Adviser.png') }}', 'AI Portfolio Advisor')">see sample</button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
         </div><!-- /res-panel-4 -->
+
+        <!-- ── Panel 5: Performance ── Revenue/Earnings · EPS · EPS Trend · Growth Estimates -->
+        <div class="res-panel" id="res-panel-5">
+            <!-- top-left -->
+            <div class="card mb-3">
+                <div class="card-header"><i class="fas fa-chart-bar"></i> Revenue vs Earnings</div>
+                <div class="card-body p-2" id="perf-rev-container">
+                    <div class="text-muted small p-2">Run a prediction to load revenue & earnings data.</div>
+                </div>
+            </div>
+            <!-- top-right -->
+            <div class="card mb-3">
+                <div class="card-header"><i class="fas fa-dollar-sign"></i> Earnings Per Share (EPS)</div>
+                <div class="card-body p-2" id="perf-eps-container">
+                    <div class="text-muted small p-2">Run a prediction to load EPS data.</div>
+                </div>
+            </div>
+            <!-- bottom-left -->
+            <div class="card mb-3">
+                <div class="card-header"><i class="fas fa-chart-line"></i> EPS Trend</div>
+                <div class="card-body p-2" id="perf-trend-container">
+                    <div class="text-muted small p-2">Run a prediction to load EPS trend.</div>
+                </div>
+            </div>
+            <!-- bottom-right -->
+            <div class="card mb-3">
+                <div class="card-header"><i class="fas fa-seedling"></i> Growth Estimates (Last 4 Quarters)</div>
+                <div class="card-body p-2" id="perf-growth-container">
+                    <div class="text-muted small p-2">Run a prediction to load growth estimates.</div>
+                </div>
+            </div>
+        </div><!-- /res-panel-5 -->
 
     </div><!-- /snap-inner snap-results -->
     </section><!-- /snap-results -->
@@ -6716,70 +6732,17 @@
                 syncSectionHeights();
             })();
 
-            // ── Pattern slideshow ──
-            (function() {
-                var panel = document.getElementById('res-panel-2');
-                if (!panel) return;
-                var cards = Array.from(panel.querySelectorAll(':scope > .card, :scope > .pro-card'));
-                var chartIds = ['pattern-chart', 'pattern-chart-48h', 'rsi-chart'];
-                var titles   = ['Pattern Detection — Last 1 Month', 'Pattern Detection — Last 48 Hours', 'RSI Analysis — Last 1 Month'];
-                var current  = 0;
-
-                // Build nav bar
-                var nav = document.createElement('div');
-                nav.className = 'pattern-nav';
-                nav.innerHTML =
-                    '<button class="pnav-btn pnav-prev"><i class="fas fa-chevron-left"></i> Prev</button>' +
-                    '<div class="pnav-dots">' +
-                        titles.map(function(_, i) { return '<span class="pnav-dot' + (i===0?' active':'') + '" data-idx="'+i+'"></span>'; }).join('') +
-                    '</div>' +
-                    '<span class="pnav-indicator"></span>' +
-                    '<button class="pnav-btn pnav-next">Next <i class="fas fa-chevron-right"></i></button>';
-                panel.insertBefore(nav, panel.firstChild);
-
-                function show(idx) {
-                    current = (idx + cards.length) % cards.length;
-                    cards.forEach(function(c, i) {
-                        if (i === current) {
-                            c.style.display = '';
-                            c.style.flex = '';
-                            c.style.minHeight = '';
-                            c.style.width = '';
-                        } else {
-                            c.style.display = 'none';
-                        }
-                    });
-                    nav.querySelectorAll('.pnav-dot').forEach(function(d, i) {
-                        d.classList.toggle('active', i === current);
-                    });
-                    nav.querySelector('.pnav-indicator').textContent = (current + 1) + ' / ' + cards.length;
-                    // Resize chart after two animation frames so grid layout is computed
-                    var chartEl = document.getElementById(chartIds[current]);
-                    if (chartEl && window.Plotly) {
-                        requestAnimationFrame(function() {
-                            requestAnimationFrame(function() {
-                                if (chartEl._fullLayout) Plotly.Plots.resize(chartEl);
-                                setTimeout(function() { if (chartEl._fullLayout) Plotly.Plots.resize(chartEl); }, 200);
-                            });
+            // ── Patterns tab: resize both side-by-side charts when tab becomes active ──
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.res-tab[data-panel="2"]')) {
+                    requestAnimationFrame(function() { requestAnimationFrame(function() {
+                        ['pattern-chart', 'pattern-chart-48h'].forEach(function(id) {
+                            var el = document.getElementById(id);
+                            if (el && el._fullLayout && window.Plotly) Plotly.Plots.resize(el);
                         });
-                    }
+                    }); });
                 }
-
-                nav.querySelector('.pnav-prev').addEventListener('click', function() { show(current - 1); });
-                nav.querySelector('.pnav-next').addEventListener('click', function() { show(current + 1); });
-                nav.querySelectorAll('.pnav-dot').forEach(function(d) {
-                    d.addEventListener('click', function() { show(+d.dataset.idx); });
-                });
-
-                show(0);
-
-                // Re-init when Patterns tab becomes active
-                document.addEventListener('click', function(e) {
-                    if (e.target.closest('.res-tab[data-panel="2"]')) {
-                        requestAnimationFrame(function() { requestAnimationFrame(function() { show(current); }); });
-                    }
-                });
-            })();
+            });
 
             // ── OHLC Overview Chart ──
             var _ohlcCurrentSymbol = null;
@@ -6833,6 +6796,125 @@
                 loadOhlcChart(_ohlcCurrentSymbol, btn.dataset.tf);
             });
 
+            // ── Performance Tab ──
+            var _perfLoadedFor = null;
+
+            function fmtB(v) {
+                if (v === null || v === undefined) return '—';
+                var abs = Math.abs(v);
+                if (abs >= 1)   return (v >= 0 ? '' : '-') + '$' + Math.abs(v).toFixed(2) + 'B';
+                return (v >= 0 ? '' : '-') + '$' + (Math.abs(v) * 1000).toFixed(0) + 'M';
+            }
+            function fmtPct(v) { return (v === null || v === undefined) ? '—' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%'; }
+            function fmtNum(v, dp) { return (v === null || v === undefined) ? '—' : Number(v).toFixed(dp !== undefined ? dp : 2); }
+            function perfSpinner(id) { document.getElementById(id).innerHTML = '<div class="text-muted small p-2"><i class="fas fa-spinner fa-spin me-1"></i> Loading…</div>'; }
+
+            function renderRevEarnings(data) {
+                var d = data.quarterly_revenue_earnings;
+                if (!d || !d.quarters || !d.quarters.length) {
+                    document.getElementById('perf-rev-container').innerHTML = '<div class="text-muted small p-2">No quarterly revenue data available.</div>';
+                    return;
+                }
+                var rows = d.quarters.map(function(q, i) {
+                    var rev = d.revenue[i]; var net = d.net_income[i];
+                    var netCls = net === null ? '' : (net >= 0 ? 'text-success' : 'text-danger');
+                    return '<tr><td class="fw-semibold">' + escHtml(q) + '</td>' +
+                           '<td>' + fmtB(rev) + '</td>' +
+                           '<td class="' + netCls + '">' + fmtB(net) + '</td></tr>';
+                }).join('');
+                document.getElementById('perf-rev-container').innerHTML =
+                    '<div class="table-responsive"><table class="table table-sm table-hover mb-0">' +
+                    '<thead><tr><th>Quarter</th><th>Revenue</th><th>Net Income</th></tr></thead>' +
+                    '<tbody>' + rows + '</tbody></table></div>';
+            }
+
+            function renderEps(data) {
+                var d = data.quarterly_eps;
+                if (!d || !d.quarters || !d.quarters.length) {
+                    document.getElementById('perf-eps-container').innerHTML = '<div class="text-muted small p-2">No EPS data available.</div>';
+                    return;
+                }
+                var rows = d.quarters.map(function(q, i) {
+                    var act = d.eps_actual[i]; var est = d.eps_estimate ? d.eps_estimate[i] : null;
+                    var beat = (act !== null && est !== null) ? (act >= est ? 'text-success' : 'text-danger') : '';
+                    return '<tr><td class="fw-semibold">' + escHtml(String(q)) + '</td>' +
+                           '<td class="' + beat + '">' + fmtNum(act) + '</td>' +
+                           '<td>' + fmtNum(est) + '</td></tr>';
+                }).join('');
+                document.getElementById('perf-eps-container').innerHTML =
+                    '<div class="table-responsive"><table class="table table-sm table-hover mb-0">' +
+                    '<thead><tr><th>Quarter</th><th>Actual EPS</th><th>Est. EPS</th></tr></thead>' +
+                    '<tbody>' + rows + '</tbody></table></div>';
+            }
+
+            function renderEpsTrend(data) {
+                var d = data.eps_trend;
+                if (!d) {
+                    document.getElementById('perf-trend-container').innerHTML = '<div class="text-muted small p-2">No EPS trend data available.</div>';
+                    return;
+                }
+                var rows = [
+                    ['Trailing EPS', d.trailing_eps !== null ? '$' + fmtNum(d.trailing_eps) : '—'],
+                    ['Forward EPS', d.forward_eps !== null ? '$' + fmtNum(d.forward_eps) : '—'],
+                    ['Earnings Growth (YoY)', fmtPct(d.earnings_growth)],
+                    ['Revenue Growth (YoY)', fmtPct(d.revenue_growth)],
+                    ['P/E (Trailing)', fmtNum(d.pe_trailing, 1)],
+                    ['P/E (Forward)', fmtNum(d.pe_forward, 1)],
+                    ['PEG Ratio', fmtNum(d.peg_ratio, 2)],
+                ].map(function(r) {
+                    return '<tr><td class="text-muted">' + r[0] + '</td><td class="fw-semibold">' + r[1] + '</td></tr>';
+                }).join('');
+                document.getElementById('perf-trend-container').innerHTML =
+                    '<div class="table-responsive"><table class="table table-sm mb-0">' +
+                    '<tbody>' + rows + '</tbody></table></div>';
+            }
+
+            function renderGrowth(data) {
+                var d = data.earnings_history;
+                if (!d || !d.length) {
+                    document.getElementById('perf-growth-container').innerHTML = '<div class="text-muted small p-2">No earnings history available.</div>';
+                    return;
+                }
+                var shown = d.slice(0, 4);
+                var rows = shown.map(function(r) {
+                    var surpriseCls = r.surprise_pct === null ? '' : (r.surprise_pct >= 0 ? 'text-success' : 'text-danger');
+                    var surpStr = r.surprise_pct !== null ? (r.surprise_pct >= 0 ? '+' : '') + r.surprise_pct.toFixed(1) + '%' : '—';
+                    return '<tr><td class="fw-semibold">' + escHtml(r.date) + '</td>' +
+                           '<td>' + fmtNum(r.eps_estimate) + '</td>' +
+                           '<td>' + fmtNum(r.eps_actual) + '</td>' +
+                           '<td class="' + surpriseCls + '">' + surpStr + '</td></tr>';
+                }).join('');
+                document.getElementById('perf-growth-container').innerHTML =
+                    '<div class="table-responsive"><table class="table table-sm table-hover mb-0">' +
+                    '<thead><tr><th>Date</th><th>Est. EPS</th><th>Act. EPS</th><th>Surprise</th></tr></thead>' +
+                    '<tbody>' + rows + '</tbody></table></div>';
+            }
+
+            function loadPerformance(sym) {
+                if (_perfLoadedFor === sym) return;  // already loaded for this symbol
+                _perfLoadedFor = sym;
+                ['perf-rev-container','perf-eps-container','perf-trend-container','perf-growth-container'].forEach(perfSpinner);
+                fetch('/api/performance?symbol=' + encodeURIComponent(sym))
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.error) {
+                            ['perf-rev-container','perf-eps-container','perf-trend-container','perf-growth-container'].forEach(function(id) {
+                                document.getElementById(id).innerHTML = '<div class="text-muted small p-2">' + escHtml(data.error) + '</div>';
+                            });
+                            return;
+                        }
+                        renderRevEarnings(data);
+                        renderEps(data);
+                        renderEpsTrend(data);
+                        renderGrowth(data);
+                    })
+                    .catch(function() {
+                        ['perf-rev-container','perf-eps-container','perf-trend-container','perf-growth-container'].forEach(function(id) {
+                            document.getElementById(id).innerHTML = '<div class="text-muted small p-2">Failed to load performance data.</div>';
+                        });
+                    });
+            }
+
             // ── Result tab switching ──
             document.addEventListener('click', function(e) {
                 var btn = e.target.closest('.res-tab');
@@ -6845,9 +6927,11 @@
                 if (el) el.classList.add('active');
                 // Re-load overview chart when switching to panel 0
                 if (panel === '0' && window._ohlcLoadFn) window._ohlcLoadFn();
+                // Load performance data when switching to panel 5
+                if (panel === '5' && _ohlcCurrentSymbol) loadPerformance(_ohlcCurrentSymbol);
                 // Resize Plotly charts — double-RAF ensures grid layout is computed before reading dimensions
                 function resizeAllCharts() {
-                    ['overview-chart','chart','pattern-chart','pattern-chart-48h','rsi-chart'].forEach(function(id) {
+                    ['overview-chart','chart','pattern-chart','pattern-chart-48h'].forEach(function(id) {
                         var ce = document.getElementById(id);
                         if (ce && ce._fullLayout && window.Plotly) Plotly.Plots.resize(ce);
                     });
@@ -7280,6 +7364,8 @@
                         document.getElementById('res-panel-0').classList.add('active');
                         // Load OHLC chart for Overview panel
                         loadOhlcChart(symbol, 'daily');
+                        // Reset performance cache so next visit to tab fetches fresh data
+                        _perfLoadedFor = null;
                         // Snap to results section (3rd section = 2 × viewport)
                         setTimeout(function() {
                             var wrap = document.getElementById('snap-wrap');
