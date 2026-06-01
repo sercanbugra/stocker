@@ -1892,7 +1892,7 @@ def _compute_remarkables():
             item.pop("_miss_points", None)
             risk_sorted.append(item)
             used.add(item["symbol"])
-            if len(risk_sorted) >= 5:
+            if len(risk_sorted) >= 10:
                 break
 
     # Fallback: if live NASDAQ-wide scan produced no candidates due API throttling,
@@ -2125,8 +2125,8 @@ def _compute_risk_trending_for_market(symbols: list) -> dict:
     risk_syms = {x["symbol"] for x in risk_sorted}
     steady_sorted = [x for x in steady_sorted if x["symbol"] not in risk_syms][:10]
 
-    # Fill with near-matches if strict list has fewer than 5 (including zero).
-    if len(risk_sorted) < 5:
+    # Fill with near-matches if strict list has fewer than 10 (including zero).
+    if len(risk_sorted) < 10:
         used = {x["symbol"] for x in risk_sorted}
         for item in risk_near_sorted:
             if item["symbol"] in used:
@@ -2134,7 +2134,7 @@ def _compute_risk_trending_for_market(symbols: list) -> dict:
             item.pop("_miss_points", None)
             risk_sorted.append(item)
             used.add(item["symbol"])
-            if len(risk_sorted) >= 5:
+            if len(risk_sorted) >= 10:
                 break
 
     return {
@@ -3256,7 +3256,7 @@ def fetch_top_dividend_stocks(max_results: int = 10) -> list:
     return _DIVIDEND_MEM or []
 
 
-def _start_dividend_refresh_if_needed(max_results: int = 5):
+def _start_dividend_refresh_if_needed(max_results: int = 10):
     global _DIVIDEND_REFRESH_IN_PROGRESS
     with _DIVIDEND_REFRESH_LOCK:
         if _DIVIDEND_REFRESH_IN_PROGRESS:
@@ -3266,7 +3266,7 @@ def _start_dividend_refresh_if_needed(max_results: int = 5):
     t.start()
 
 
-def _dividend_refresh_worker(max_results: int = 5):
+def _dividend_refresh_worker(max_results: int = 10):
     global _DIVIDEND_MEM, _DIVIDEND_MEM_DAY, _DIVIDEND_REFRESH_IN_PROGRESS
     try:
         today_key = datetime.now(timezone.utc).date().isoformat()
@@ -3310,7 +3310,7 @@ def _get_yahoo_crumb():
     return session_req, crumb_resp.text.strip()
 
 
-def _fetch_dividend_stocks_live(max_results: int = 5) -> list:
+def _fetch_dividend_stocks_live(max_results: int = 10) -> list:
     """Fetch summaryDetail for each candidate via quoteSummary (crumb-auth),
     sort by dividendYield DESC, return top max_results."""
     session_req, crumb = _get_yahoo_crumb()
@@ -3415,7 +3415,7 @@ def fetch_top_undervalued_stocks(max_results: int = 10) -> list:
     return _UNDERVALUED_MEM or []
 
 
-def _start_undervalued_refresh_if_needed(max_results: int = 5):
+def _start_undervalued_refresh_if_needed(max_results: int = 10):
     global _UNDERVALUED_REFRESH_IN_PROGRESS
     with _UNDERVALUED_REFRESH_LOCK:
         if _UNDERVALUED_REFRESH_IN_PROGRESS:
@@ -3425,7 +3425,7 @@ def _start_undervalued_refresh_if_needed(max_results: int = 5):
     t.start()
 
 
-def _undervalued_refresh_worker(max_results: int = 5):
+def _undervalued_refresh_worker(max_results: int = 10):
     global _UNDERVALUED_MEM, _UNDERVALUED_MEM_DAY, _UNDERVALUED_REFRESH_IN_PROGRESS
     try:
         today_key = datetime.now(timezone.utc).date().isoformat()
@@ -3446,7 +3446,7 @@ def _undervalued_refresh_worker(max_results: int = 5):
             _UNDERVALUED_REFRESH_IN_PROGRESS = False
 
 
-def _fetch_undervalued_stocks_live(max_results: int = 5) -> list:
+def _fetch_undervalued_stocks_live(max_results: int = 10) -> list:
     """Fetch financialData + price via quoteSummary for each candidate.
     Rank by FCF yield (freeCashflow / marketCap) DESC — positive FCF only."""
     session_req, crumb = _get_yahoo_crumb()
@@ -3507,7 +3507,7 @@ def _fetch_undervalued_stocks_live(max_results: int = 5) -> list:
     return results[:max_results]
 
 
-def _fetch_dividend_for_symbols(symbols: list, max_results: int = 5) -> list:
+def _fetch_dividend_for_symbols(symbols: list, max_results: int = 10) -> list:
     """Same as _fetch_dividend_stocks_live but accepts any symbol list."""
     session_req, crumb = _get_yahoo_crumb()
     if not crumb:
@@ -3547,7 +3547,7 @@ def _fetch_dividend_for_symbols(symbols: list, max_results: int = 5) -> list:
     return results[:max_results]
 
 
-def _fetch_undervalued_for_symbols(symbols: list, max_results: int = 5) -> list:
+def _fetch_undervalued_for_symbols(symbols: list, max_results: int = 10) -> list:
     """Same as _fetch_undervalued_stocks_live but accepts any symbol list."""
     session_req, crumb = _get_yahoo_crumb()
     if not crumb:
