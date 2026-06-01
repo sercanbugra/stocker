@@ -1849,7 +1849,7 @@
         }
         .rm2-title { font-size:0.8rem; font-weight:700; color:var(--panel-text); }
         .rm2-sub { font-size:0.66rem; color:var(--panel-muted); margin-left:auto; }
-        .rm2-list { list-style:none; padding:0; margin:0; flex:1; display:flex; flex-direction:column; justify-content:space-evenly; }
+        .rm2-list { list-style:none; padding:0; margin:0; flex:1; display:flex; flex-direction:column; gap:1px; }
         .rm2-list li {
             display:flex; align-items:center; gap:6px;
             padding: 1px 2px; font-size:0.85rem;
@@ -3526,17 +3526,16 @@
             overflow-y: auto;
             max-height: none !important;
         }
-        /* Remarkables: 2-column grid, rows size to content and each cell scrolls */
+        /* Remarkables: 2-column grid, rows shrink to content — card body scrolls as one unit */
         #rm-section-us, #rm-section-tr {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-            height: 100%;
+            grid-template-rows: auto auto;
+            height: auto;
         }
         #rm-section-us .rm2-section-wrap,
         #rm-section-tr .rm2-section-wrap {
-            overflow-y: auto;
-            min-height: 0;
+            overflow: hidden;
         }
         #rm-section-us .rm2-section-wrap + .rm2-section-wrap,
         #rm-section-tr .rm2-section-wrap + .rm2-section-wrap {
