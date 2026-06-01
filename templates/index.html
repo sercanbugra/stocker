@@ -4129,9 +4129,9 @@
 
             <!-- Promo -->
             <div class="promo-box" id="wm-promo-box">
-                <div class="promo-box-label">🎟 Promo code <span>— 50% off your first month</span></div>
+                <div class="promo-box-label">🎟 Promo code <span>— 50% off your first month</span> <span style="opacity:.6;font-size:.85em;">· expires Jun 30, 2026</span></div>
                 <div class="promo-box-row">
-                    <input type="text" id="wm-promo-input" class="promo-box-field" placeholder="Enter code e.g. W3LCOM3" autocomplete="off" spellcheck="false" maxlength="32">
+                    <input type="text" id="wm-promo-input" class="promo-box-field" placeholder="Enter code e.g. FR13ND5" autocomplete="off" spellcheck="false" maxlength="32">
                     <button type="button" class="promo-box-apply" id="wm-promo-apply">Apply</button>
                 </div>
                 <div id="wm-promo-feedback" class="promo-box-feedback"></div>
@@ -4300,7 +4300,7 @@
                 </div>
             </div>
             <div class="promo-box mt-3">
-                <div class="promo-box-label">🎟 Promo code <span>— get 50% off your first month</span></div>
+                <div class="promo-box-label">🎟 Promo code <span>— get 50% off your first month</span> <span style="opacity:.6;font-size:.85em;">· expires Jun 30, 2026</span></div>
                 <div class="promo-box-row">
                     <input type="text" id="upgrade-promo-input" class="promo-box-field" placeholder="Enter your code" autocomplete="off" spellcheck="false" maxlength="32">
                     <button type="button" class="promo-box-apply" id="upgrade-promo-apply">Apply</button>
@@ -4510,7 +4510,7 @@
                         </div>
                     </div>
                     <div class="promo-box mt-3">
-                        <div class="promo-box-label">🎟 Promo code <span>— get 50% off your first month</span></div>
+                        <div class="promo-box-label">🎟 Promo code <span>— get 50% off your first month</span> <span style="opacity:.6;font-size:.85em;">· expires Jun 30, 2026</span></div>
                         <div class="promo-box-row">
                             <input type="text" id="profile-promo-input" class="promo-box-field" placeholder="Enter your code" autocomplete="off" spellcheck="false" maxlength="32">
                             <button type="button" class="promo-box-apply" id="profile-promo-apply">Apply</button>
@@ -4710,7 +4710,7 @@
                 color:#2dd4bf; font-size:0.78rem; font-weight:700; text-align:left;
                 display:flex; align-items:center; gap:8px; transition:background .15s;">
                 <i class="fas fa-ticket-alt"></i>
-                <span>50% off — apply code <strong>W3LCOM3</strong></span>
+                <span>50% off — code <strong>FR13ND5</strong> · expires Jun 30, 2026</span>
                 <i class="fas fa-arrow-right" style="margin-left:auto;font-size:0.65rem;opacity:0.7;"></i>
             </button>
             <div id="drawer-promo-feedback" style="font-size:0.7rem;margin-top:5px;min-height:14px;"></div>
@@ -6729,11 +6729,11 @@
                 // Auth trigger: close drawer first so auth-modal appears cleanly on top
                 var at = document.getElementById('auth-trigger');
                 if (at) at.addEventListener('click', closeDrawer);
-                // Drawer promo button: apply W3LCOM3 and show feedback
+                // Drawer promo button: apply FR13ND5 and show feedback
                 var dpBtn = document.getElementById('drawer-promo-btn');
                 var dpFb  = document.getElementById('drawer-promo-feedback');
                 if (dpBtn) dpBtn.addEventListener('click', function() {
-                    var code = 'W3LCOM3';
+                    var code = 'FR13ND5';
                     if (window.setPromoCode) setPromoCode(code);
                     ['wm-promo-input','upgrade-promo-input','profile-promo-input'].forEach(function(id) {
                         var el = document.getElementById(id); if (el) el.value = code;
