@@ -1935,9 +1935,14 @@ def _compute_remarkables_from_local_cache():
     for fname in os.listdir(cache_dir):
         if not fname.endswith(".json"):
             continue
-        if fname == "remarkables_nasdaq.json":
+        if fname in ("remarkables_nasdaq.json", "remarkables_lse.json",
+                     "remarkables_bist.json", "dividend_stocks.json",
+                     "undervalued_stocks.json", "industry_db.json"):
             continue
         symbol = os.path.splitext(fname)[0].upper()
+        # Skip non-US symbols (Turkish .IS, London .L, etc.)
+        if "." in symbol:
+            continue
         try:
             with open(os.path.join(cache_dir, fname), "r", encoding="utf-8") as fh:
                 payload = json.load(fh)
