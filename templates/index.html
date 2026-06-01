@@ -3326,8 +3326,7 @@
         /* ── Hamburger button (FAB circle) ── */
         #menu-toggle {
             position: fixed;
-            top: 50%; left: 16px;
-            transform: translateY(-50%);
+            top: calc(50vh - 27px); left: 16px;
             z-index: 1300;
             width: 54px; height: 54px;
             display: flex; align-items: center; justify-content: center;
@@ -3337,19 +3336,21 @@
             -webkit-backdrop-filter: blur(20px) saturate(1.8);
             border: 1px solid rgba(255,255,255,0.18);
             border-radius: 50%;
-            cursor: pointer;
+            cursor: grab;
             color: rgba(210,225,255,0.95);
             font-size: 1.15rem;
             box-shadow: 0 4px 24px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.08) inset;
             transition: background .18s, transform .14s, box-shadow .18s;
             line-height: 1;
+            touch-action: none;
+            user-select: none;
         }
         #menu-toggle:hover {
             background: linear-gradient(145deg, rgba(46,78,160,0.90), rgba(18,28,76,0.95));
             box-shadow: 0 6px 32px rgba(0,0,0,0.5), 0 0 18px rgba(79,142,247,0.35), 0 1px 0 rgba(255,255,255,0.1) inset;
-            transform: translateY(-50%) scale(1.08);
+            transform: scale(1.08);
         }
-        #menu-toggle:active { transform: translateY(-50%) scale(0.91) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
+        #menu-toggle:active { transform: scale(0.91) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
         [data-theme="sand"] #menu-toggle {
             background: linear-gradient(145deg, rgba(255,255,255,0.90), rgba(240,236,220,0.85));
             border-color: rgba(0,0,0,0.10);
@@ -3359,7 +3360,7 @@
         [data-theme="sand"] #menu-toggle:hover {
             background: linear-gradient(145deg, rgba(255,255,255,0.98), rgba(245,240,225,0.95));
             box-shadow: 0 6px 28px rgba(0,0,0,0.18), 0 1px 0 rgba(255,255,255,0.9) inset;
-            transform: translateY(-50%) scale(1.08);
+            transform: scale(1.08);
         }
 
         /* ── Drawer overlay ── */
@@ -6632,7 +6633,7 @@
                 };
             })();
 
-            // ── Side drawer toggle ──
+            // ── Side drawer toggle + draggable button ──
             (function() {
                 var toggle  = document.getElementById('menu-toggle');
                 var drawer  = document.getElementById('side-drawer');
@@ -6640,6 +6641,83 @@
                 var closeBtn= document.getElementById('drawer-close');
                 function openDrawer()  { drawer.classList.add('open');  overlay.classList.add('show'); }
                 function closeDrawer() { drawer.classList.remove('open'); overlay.classList.remove('show'); }
+
+                // ── Drag logic ──
+                if (toggle) (function() {
+                    var LS_KEY = 'stocker_menu_pos';
+                    var BW = 54; // button width/height
+                    var dragged = false;
+
+                    function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+                    function applyPos(top, left) {
+                        toggle.style.top  = top  + 'px';
+                        toggle.style.left = left + 'px';
+                    }
+
+                    function savePos(top, left) {
+                        try { localStorage.setItem(LS_KEY, JSON.stringify({t: Math.round(top), l: Math.round(left)})); } catch(e) {}
+                    }
+
+                    // Restore saved position or default to vertical center
+                    (function() {
+                        try {
+                            var s = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
+                            if (s && typeof s.t === 'number') {
+                                applyPos(
+                                    clamp(s.t, 0, window.innerHeight - BW),
+                                    clamp(s.l, 0, window.innerWidth  - BW)
+                                );
+                                return;
+                            }
+                        } catch(e) {}
+                        applyPos(window.innerHeight / 2 - BW / 2, 16);
+                    })();
+
+                    var sx, sy, st, sl;
+
+                    toggle.addEventListener('pointerdown', function(e) {
+                        if (e.button !== 0) return;
+                        dragged = false;
+                        sx = e.clientX; sy = e.clientY;
+                        var r = toggle.getBoundingClientRect();
+                        st = r.top; sl = r.left;
+                        toggle.setPointerCapture(e.pointerId);
+                        toggle.style.transition = 'box-shadow .18s';
+                        toggle.style.cursor = 'grabbing';
+                    });
+
+                    toggle.addEventListener('pointermove', function(e) {
+                        if (!(e.buttons & 1)) return;
+                        var dx = e.clientX - sx, dy = e.clientY - sy;
+                        if (!dragged && dx * dx + dy * dy > 16) dragged = true;
+                        if (!dragged) return;
+                        applyPos(
+                            clamp(st + dy, 0, window.innerHeight - BW),
+                            clamp(sl + dx, 0, window.innerWidth  - BW)
+                        );
+                    });
+
+                    toggle.addEventListener('pointerup', function(e) {
+                        toggle.style.cursor = 'grab';
+                        toggle.style.transition = 'background .18s, transform .14s, box-shadow .18s';
+                        if (dragged) {
+                            var r = toggle.getBoundingClientRect();
+                            savePos(r.top, r.left);
+                        }
+                    });
+
+                    toggle.addEventListener('pointercancel', function() {
+                        toggle.style.cursor = 'grab';
+                        toggle.style.transition = 'background .18s, transform .14s, box-shadow .18s';
+                    });
+
+                    // Block the click event when it was a drag, not a tap
+                    toggle.addEventListener('click', function(e) {
+                        if (dragged) { e.stopImmediatePropagation(); dragged = false; }
+                    }, true);
+                })();
+
                 if (toggle)   toggle.addEventListener('click', openDrawer);
                 if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
                 if (overlay)  overlay.addEventListener('click', closeDrawer);
