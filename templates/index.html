@@ -3326,9 +3326,9 @@
             position: fixed;
             top: calc(50vh - 27px); left: 16px;
             z-index: 1300;
-            width: 54px; height: 54px;
+            width: 58px; height: 58px;
             display: flex; align-items: center; justify-content: center;
-            padding: 3px;
+            padding: 0;
             background: #ffffff;
             border: 2px solid rgba(255,255,255,0.35);
             border-radius: 50%;
@@ -3339,7 +3339,6 @@
             user-select: none;
             overflow: hidden;
         }
-        #menu-toggle img { width: 100%; height: 100%; object-fit: contain; display: block; border-radius: 50%; }
         #menu-toggle:hover {
             box-shadow: 0 6px 32px rgba(0,0,0,0.5), 0 0 18px rgba(79,142,247,0.4);
             border-color: rgba(79,142,247,0.6);
@@ -4586,7 +4585,7 @@
     </div>
 
     <!-- ── Hamburger button ── -->
-    <button id="menu-toggle" aria-label="Open menu"><img src="{{ url_for('static', filename='favicon-192.png') }}" alt="Stocker"></button>
+    <button id="menu-toggle" aria-label="Open menu"><img src="{{ url_for('static', filename='favicon-192.png') }}" alt="" draggable="false" style="pointer-events:none;width:100%;height:100%;object-fit:contain;display:block;"></button>
 
     <!-- ── Drawer overlay ── -->
     <div id="drawer-overlay"></div>
@@ -6654,7 +6653,7 @@
                 // ── Drag logic ──
                 if (toggle) (function() {
                     var LS_KEY = 'stocker_menu_pos';
-                    var BW = 54; // button width/height
+                    var BW = 58; // button width/height
                     var dragged = false;
 
                     function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
@@ -6680,7 +6679,7 @@
                                 return;
                             }
                         } catch(e) {}
-                        applyPos(window.innerHeight / 2 - BW / 2, 16);
+                        applyPos(Math.round(window.innerHeight / 2 - BW / 2), 12);
                     })();
 
                     var sx, sy, st, sl;
@@ -6699,7 +6698,7 @@
                     toggle.addEventListener('pointermove', function(e) {
                         if (!(e.buttons & 1)) return;
                         var dx = e.clientX - sx, dy = e.clientY - sy;
-                        if (!dragged && dx * dx + dy * dy > 16) dragged = true;
+                        if (!dragged && dx * dx + dy * dy > 4) dragged = true;
                         if (!dragged) return;
                         applyPos(
                             clamp(st + dy, 0, window.innerHeight - BW),
