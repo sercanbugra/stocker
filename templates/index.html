@@ -1610,29 +1610,45 @@
         }
         .ticker-search-icon {
             position: absolute;
-            left: 10px;
+            left: 12px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--panel-muted);
-            font-size: 0.78rem;
+            color: rgba(158,195,255,0.7);
+            font-size: 0.9rem;
             pointer-events: none;
+            transition: color .2s;
         }
+        .ticker-input-wrap:focus-within .ticker-search-icon { color: #9ec3ff; }
         .ticker-input {
             width: 100%;
-            padding: 7px 10px 7px 30px;
-            background: var(--parliament-blue-deep);
-            border: 1px solid var(--panel-border);
-            border-radius: 8px;
+            padding: 12px 12px 12px 36px;
+            background: rgba(255,255,255,0.06);
+            border: 1.5px solid rgba(158,195,255,0.35);
+            border-radius: 10px;
             color: var(--panel-text);
             font-size: 1rem; /* ≥16px prevents iOS auto-zoom on focus */
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color .2s, box-shadow .2s, background .2s;
         }
-        .ticker-input::placeholder { color: var(--panel-muted); }
+        .ticker-input::placeholder { color: rgba(158,195,255,0.45); font-style: italic; }
+        .ticker-input:hover { border-color: rgba(158,195,255,0.55); background: rgba(255,255,255,0.09); }
         .ticker-input:focus {
             border-color: #9ec3ff;
-            box-shadow: 0 0 0 2px rgba(158,195,255,0.15);
+            background: rgba(255,255,255,0.10);
+            box-shadow: 0 0 0 3px rgba(158,195,255,0.18), 0 2px 12px rgba(0,0,0,0.2);
         }
+        [data-theme="sand"] .ticker-input {
+            background: rgba(0,0,0,0.04);
+            border-color: rgba(30,58,138,0.3);
+        }
+        [data-theme="sand"] .ticker-input::placeholder { color: rgba(30,58,138,0.45); }
+        [data-theme="sand"] .ticker-input:hover { border-color: rgba(30,58,138,0.5); background: rgba(0,0,0,0.06); }
+        [data-theme="sand"] .ticker-input:focus {
+            border-color: #3b6fd4;
+            box-shadow: 0 0 0 3px rgba(59,111,212,0.15);
+        }
+        [data-theme="sand"] .ticker-search-icon { color: rgba(30,58,138,0.55); }
+        [data-theme="sand"] .ticker-input-wrap:focus-within .ticker-search-icon { color: #3b6fd4; }
         .btn-predict {
             padding: 7px 18px;
             background: linear-gradient(135deg, var(--accent), rgba(var(--accent-rgb), 0.75));
@@ -1858,7 +1874,7 @@
         /* ── Mobile-only: touch targets + chart height ── */
         @media (max-width: 767px) {
             /* Hit ≥44px touch target on main input & buttons */
-            .ticker-input       { padding: 11px 10px 11px 32px; }
+            .ticker-input       { padding: 12px 12px 12px 36px; }
             .btn-predict        { padding: 11px 18px; }
             .tb-btn             { padding: 10px 13px; }
 
@@ -3304,41 +3320,43 @@
         :root { --ticker-h: 56px; }
         html, body { height: 100%; overflow: hidden; }
 
-        /* ── Hamburger button ── */
+        /* ── Hamburger button (FAB circle) ── */
         #menu-toggle {
             position: fixed;
-            top: 14px; left: 14px;
+            top: 50%; left: 16px;
+            transform: translateY(-50%);
             z-index: 1300;
-            width: 42px; height: 42px;
+            width: 54px; height: 54px;
             display: flex; align-items: center; justify-content: center;
             padding: 0;
-            background: rgba(12, 18, 52, 0.62);
-            backdrop-filter: blur(18px) saturate(1.6);
-            -webkit-backdrop-filter: blur(18px) saturate(1.6);
-            border: 1px solid rgba(255,255,255,0.13);
-            border-radius: 13px;
+            background: linear-gradient(145deg, rgba(30,54,120,0.82), rgba(12,18,52,0.90));
+            backdrop-filter: blur(20px) saturate(1.8);
+            -webkit-backdrop-filter: blur(20px) saturate(1.8);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 50%;
             cursor: pointer;
-            color: rgba(210,225,255,0.92);
-            font-size: 1rem;
-            box-shadow: 0 2px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
-            transition: background .15s, transform .12s, box-shadow .15s;
+            color: rgba(210,225,255,0.95);
+            font-size: 1.15rem;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.08) inset;
+            transition: background .18s, transform .14s, box-shadow .18s;
             line-height: 1;
         }
         #menu-toggle:hover {
-            background: rgba(22, 36, 88, 0.78);
-            box-shadow: 0 4px 26px rgba(79,142,247,0.22), 0 2px 18px rgba(0,0,0,0.45);
-            transform: translateY(-1px);
+            background: linear-gradient(145deg, rgba(46,78,160,0.90), rgba(18,28,76,0.95));
+            box-shadow: 0 6px 32px rgba(0,0,0,0.5), 0 0 18px rgba(79,142,247,0.35), 0 1px 0 rgba(255,255,255,0.1) inset;
+            transform: translateY(-50%) scale(1.08);
         }
-        #menu-toggle:active { transform: scale(0.93) !important; }
+        #menu-toggle:active { transform: translateY(-50%) scale(0.91) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
         [data-theme="sand"] #menu-toggle {
-            background: rgba(255,252,240,0.78);
-            border-color: rgba(0,0,0,0.1);
+            background: linear-gradient(145deg, rgba(255,255,255,0.90), rgba(240,236,220,0.85));
+            border-color: rgba(0,0,0,0.10);
             color: #1e293b;
-            box-shadow: 0 2px 14px rgba(0,0,0,0.12);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15), 0 1px 0 rgba(255,255,255,0.9) inset;
         }
         [data-theme="sand"] #menu-toggle:hover {
-            background: rgba(248,244,230,0.92);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.14);
+            background: linear-gradient(145deg, rgba(255,255,255,0.98), rgba(245,240,225,0.95));
+            box-shadow: 0 6px 28px rgba(0,0,0,0.18), 0 1px 0 rgba(255,255,255,0.9) inset;
+            transform: translateY(-50%) scale(1.08);
         }
 
         /* ── Drawer overlay ── */
@@ -6354,11 +6372,33 @@
 
             /* ── Ticker autocomplete ── */
             (function() {
-                const AC_DATA = {{ autocomplete_symbols | default([], true) | tojson }};
+                // Inline fallback (~700 symbols). Full 12K list loaded async below.
+                let AC_DATA = {{ autocomplete_symbols | default([], true) | tojson }};
                 const input   = document.getElementById('stock-input');
                 const ac      = document.getElementById('ticker-ac');
                 let selectedIdx = -1;
                 let currentItems = [];
+
+                // Load full autocomplete list async; cache in sessionStorage for 1 h
+                (function() {
+                    const CACHE_KEY = 'stocker_ac_v1';
+                    const TTL = 3600 * 1000;
+                    try {
+                        const raw = sessionStorage.getItem(CACHE_KEY);
+                        if (raw) {
+                            const obj = JSON.parse(raw);
+                            if (Date.now() - obj.ts < TTL) { AC_DATA = obj.data; return; }
+                        }
+                    } catch(e) {}
+                    fetch('/api/autocomplete').then(function(r) {
+                        return r.ok ? r.json() : null;
+                    }).then(function(data) {
+                        if (!data) return;
+                        AC_DATA = data;
+                        try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({data: data, ts: Date.now()})); }
+                        catch(e) {}
+                    }).catch(function() {});
+                })();
 
                 function highlight(text, query) {
                     const idx = text.toUpperCase().indexOf(query.toUpperCase());
@@ -6424,6 +6464,16 @@
                 });
 
                 input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (ac.style.display !== 'none' && selectedIdx >= 0) {
+                            pick(currentItems[selectedIdx]);
+                        } else {
+                            close();
+                            $('#predict-btn').click();
+                        }
+                        return;
+                    }
                     if (ac.style.display === 'none') return;
                     if (e.key === 'ArrowDown') {
                         e.preventDefault();
@@ -6432,9 +6482,6 @@
                         e.preventDefault();
                         setSelected(Math.max(selectedIdx - 1, -1));
                         if (selectedIdx === -1) input.value = input.dataset.origVal || input.value;
-                    } else if (e.key === 'Enter' && selectedIdx >= 0) {
-                        e.preventDefault();
-                        pick(currentItems[selectedIdx]);
                     } else if (e.key === 'Escape') {
                         close();
                     }

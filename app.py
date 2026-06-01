@@ -1376,6 +1376,37 @@ def _sym_meta(symbol: str) -> dict:
     """Return cached sector/industry/market meta for a symbol (or empty dict)."""
     return _load_industry_db().get(symbol, {})
 
+
+# ---------------------------------------------------------------------------
+# Autocomplete database  (data/autocomplete_db.json)
+# ---------------------------------------------------------------------------
+_autocomplete_db: list = []
+_autocomplete_db_lock = threading.Lock()
+
+def _load_autocomplete_db() -> list:
+    """Load autocomplete_db.json once into memory. Thread-safe."""
+    global _autocomplete_db
+    if _autocomplete_db:
+        return _autocomplete_db
+    with _autocomplete_db_lock:
+        if _autocomplete_db:
+            return _autocomplete_db
+        paths = [
+            os.path.join(_DATA_DIR, "autocomplete_db.json"),
+            os.path.join(os.path.dirname(__file__), "data", "autocomplete_db.json"),
+        ]
+        for p in paths:
+            if os.path.exists(p):
+                try:
+                    with open(p, "r", encoding="utf-8") as fh:
+                        _autocomplete_db = json.load(fh)
+                    logger.info(f"Autocomplete DB loaded: {len(_autocomplete_db)} symbols from {p}")
+                    return _autocomplete_db
+                except Exception as e:
+                    logger.warning(f"Failed to load autocomplete DB from {p}: {e}")
+        _autocomplete_db = []
+        return _autocomplete_db
+
 def _sanitize_watchlist_key(value: str) -> str:
     if not value:
         return "anonymous"
@@ -3699,6 +3730,22 @@ def assetlinks():
     return jsonify(data), 200, {"Content-Type": "application/json"}
 
 
+@app.route("/api/autocomplete")
+def autocomplete_api():
+    """Full symbol list for ticker search autocomplete. Cached in browser sessionStorage."""
+    data = _load_autocomplete_db()
+    if not data:
+        # Fall back to inline industry_db list
+        db = _load_industry_db()
+        data = [
+            {"s": sym, "n": meta.get("name") or sym, "m": meta.get("market", "US")}
+            for sym, meta in db.items() if meta.get("name")
+        ]
+    resp = jsonify(data)
+    resp.headers["Cache-Control"] = "public, max-age=3600"
+    return resp
+
+
 @app.route("/api/ticker")
 def market_ticker_api():
     import time as _time
@@ -3980,27 +4027,13 @@ def home():
     subscribed = request.args.get("subscribed") == "1"
     bist_data = get_full_market_data("bist")
 
-    # Build autocomplete list from industry DB (symbol + name + market)
+    # Small inline fallback for instant autocomplete (full list loaded async via /api/autocomplete)
     db = _load_industry_db()
     autocomplete_symbols = [
         {"s": sym, "n": meta.get("name") or sym, "m": meta.get("market", "US")}
         for sym, meta in db.items()
         if meta.get("name")
     ]
-    # Also include any S&P 500 symbols not in the DB
-    db_keys = set(db.keys())
-    for sym in stocks:
-        if sym not in db_keys:
-            autocomplete_symbols.append({"s": sym, "n": sym, "m": "US"})
-
-    # Fallback aliases for symbols not in the DB (e.g., NOK for Nokia)
-    fallback_syms = [
-        {"s": "NOK", "n": "Nokia Oyj", "m": "US"},
-    ]
-    existing_syms = {item["s"] for item in autocomplete_symbols}
-    for item in fallback_syms:
-        if item["s"] not in existing_syms:
-            autocomplete_symbols.append(item)
 
     anon_used = session.get("anon_analyses", 0) if not user_email else 0
 

@@ -19,6 +19,32 @@ flask run
 gunicorn app:app --bind 0.0.0.0:8080 --workers 1 --threads 8 --timeout 120 --preload
 ```
 
+## Testing
+
+```bash
+# Install test dependencies (not in requirements.txt)
+pip install pytest bcrypt
+
+# Run all tests
+pytest tests/
+
+# Run a single test file
+pytest tests/test_auth.py
+
+# Run a single test case
+pytest tests/test_auth.py::TestRegister::test_register_success -v
+```
+
+Tests use a temporary data directory via `PERSISTENT_DATA_DIR` monkeypatch — no real `users.json` is touched. Set `GOOGLE_OAUTH_CLIENT_ID=""` and `GOOGLE_OAUTH_CLIENT_SECRET=""` (the fixture does this automatically).
+
+## Utility Scripts
+
+```bash
+# Rebuild data/cache/industry_db.json (symbol metadata: name, sector, market)
+python build_industry_db.py            # full build, ~5-10 min
+python build_industry_db.py --update   # re-fetch only symbols missing sector/industry
+```
+
 ## Environment Variables
 
 | Variable | Purpose |
