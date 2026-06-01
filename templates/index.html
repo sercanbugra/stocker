@@ -3322,6 +3322,11 @@
         html, body { height: 100%; overflow: hidden; }
 
         /* ── Hamburger button (FAB circle) ── */
+        @keyframes menu-pulse {
+            0%   { box-shadow: 0 4px 24px rgba(0,0,0,0.45), 0 0 0 0 rgba(79,142,247,0.7); transform: scale(1); }
+            50%  { box-shadow: 0 4px 28px rgba(0,0,0,0.5), 0 0 0 10px rgba(79,142,247,0); transform: scale(1.06); }
+            100% { box-shadow: 0 4px 24px rgba(0,0,0,0.45), 0 0 0 0 rgba(79,142,247,0); transform: scale(1); }
+        }
         #menu-toggle {
             position: fixed;
             top: calc(50vh - 27px); left: 16px;
@@ -3338,12 +3343,14 @@
             touch-action: none;
             user-select: none;
             overflow: hidden;
+            animation: menu-pulse 2s ease-in-out infinite;
         }
-        #menu-toggle:hover {
+        #menu-toggle:hover, #menu-toggle:active, #menu-toggle.no-pulse {
+            animation: none;
             box-shadow: 0 6px 32px rgba(0,0,0,0.5), 0 0 18px rgba(79,142,247,0.4);
             border-color: rgba(79,142,247,0.6);
-            transform: scale(1.08);
         }
+        #menu-toggle:hover  { transform: scale(1.08); }
         #menu-toggle:active { transform: scale(0.91) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
 
         /* ── Drawer overlay ── */
@@ -6726,7 +6733,10 @@
                     }, true);
                 })();
 
-                if (toggle)   toggle.addEventListener('click', openDrawer);
+                if (toggle) toggle.addEventListener('click', function() {
+                    toggle.classList.add('no-pulse');
+                    openDrawer();
+                });
                 if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
                 if (overlay)  overlay.addEventListener('click', closeDrawer);
                 document.addEventListener('keydown', function(e) {
