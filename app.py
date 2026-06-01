@@ -1879,11 +1879,11 @@ def _compute_remarkables():
         risk_near_candidates,
         key=lambda x: (x.get("_miss_points", 9999), -x.get("trend_percent", 0.0), -(x.get("up_hits", 0) + x.get("down_hits", 0)))
     )
-    risk_sorted = risk_sorted[:5]
+    risk_sorted = risk_sorted[:10]
     # Disjoint rule: symbols in risk list cannot appear in steady list.
     risk_symbols = {x["symbol"] for x in risk_sorted}
-    steady_sorted = [x for x in steady_sorted if x["symbol"] not in risk_symbols][:5]
-    if len(risk_sorted) < 5 and risk_near_sorted:
+    steady_sorted = [x for x in steady_sorted if x["symbol"] not in risk_symbols][:10]
+    if len(risk_sorted) < 10 and risk_near_sorted:
         used = {x["symbol"] for x in risk_sorted}
         for item in risk_near_sorted:
             if item["symbol"] in used:
@@ -1897,22 +1897,22 @@ def _compute_remarkables():
 
     # Fallback: if live NASDAQ-wide scan produced no candidates due API throttling,
     # harvest candidates from existing local symbol caches.
-    if len(risk_sorted) < 5 or len(steady_sorted) < 5:
+    if len(risk_sorted) < 10 or len(steady_sorted) < 10:
         local_risk, local_steady, local_risk_near, local_steady_near = _compute_remarkables_from_local_cache()
-        if len(risk_sorted) < 5 and (local_risk or local_risk_near):
+        if len(risk_sorted) < 10 and (local_risk or local_risk_near):
             used = {x["symbol"] for x in risk_sorted}
             risk_sorted.extend([x for x in local_risk if x["symbol"] not in used])
             used = {x["symbol"] for x in risk_sorted}
-            if len(risk_sorted) < 5:
+            if len(risk_sorted) < 10:
                 risk_sorted.extend([x for x in local_risk_near if x["symbol"] not in used])
-            risk_sorted = risk_sorted[:5]
-        if len(steady_sorted) < 5 and (local_steady or local_steady_near):
+            risk_sorted = risk_sorted[:10]
+        if len(steady_sorted) < 10 and (local_steady or local_steady_near):
             used = {x["symbol"] for x in steady_sorted}
             steady_sorted.extend([x for x in local_steady if x["symbol"] not in used and x["symbol"] not in risk_symbols])
             used = {x["symbol"] for x in steady_sorted}
-            if len(steady_sorted) < 5:
+            if len(steady_sorted) < 10:
                 steady_sorted.extend([x for x in local_steady_near if x["symbol"] not in used and x["symbol"] not in risk_symbols])
-            steady_sorted = steady_sorted[:5]
+            steady_sorted = steady_sorted[:10]
 
     return {
         "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -2118,12 +2118,12 @@ def _compute_risk_trending_for_market(symbols: list) -> dict:
 
     yf_logger.setLevel(prev_level)
 
-    risk_sorted   = sorted(risk_candidates,  key=lambda x: x["score"], reverse=True)[:5]
+    risk_sorted   = sorted(risk_candidates,  key=lambda x: x["score"], reverse=True)[:10]
     steady_sorted = sorted(steady_candidates, key=lambda x: x["score"], reverse=True)
     risk_near_sorted = sorted(risk_near, key=lambda x: (x.get("_miss_points", 9999), -x.get("trend_percent", 0)))
 
     risk_syms = {x["symbol"] for x in risk_sorted}
-    steady_sorted = [x for x in steady_sorted if x["symbol"] not in risk_syms][:5]
+    steady_sorted = [x for x in steady_sorted if x["symbol"] not in risk_syms][:10]
 
     # Fill with near-matches if strict list has fewer than 5 (including zero).
     if len(risk_sorted) < 5:
@@ -2185,24 +2185,24 @@ def get_remarkables(force_refresh: bool = False):
         risk_symbols = {x.get("symbol") for x in risk_list if x.get("symbol")}
         if steady_list:
             steady_list = [x for x in steady_list if x.get("symbol") not in risk_symbols]
-            cached["no_pain_but_gain"] = steady_list[:5]
-        if len(risk_list) < 5 or len(steady_list) < 5:
+            cached["no_pain_but_gain"] = steady_list[:10]
+        if len(risk_list) < 10 or len(steady_list) < 10:
             local_risk, local_steady, local_risk_near, local_steady_near = _compute_remarkables_from_local_cache()
-            if len(risk_list) < 5 and (local_risk or local_risk_near):
+            if len(risk_list) < 10 and (local_risk or local_risk_near):
                 used = {x.get("symbol") for x in risk_list}
                 risk_list.extend([x for x in local_risk if x.get("symbol") not in used])
                 used = {x.get("symbol") for x in risk_list}
-                if len(risk_list) < 5:
+                if len(risk_list) < 10:
                     risk_list.extend([x for x in local_risk_near if x.get("symbol") not in used])
-                cached["for_risk_lovers"] = risk_list[:5]
+                cached["for_risk_lovers"] = risk_list[:10]
                 risk_symbols = {x.get("symbol") for x in cached["for_risk_lovers"] if x.get("symbol")}
-            if len(steady_list) < 5 and (local_steady or local_steady_near):
+            if len(steady_list) < 10 and (local_steady or local_steady_near):
                 used = {x.get("symbol") for x in steady_list}
                 steady_list.extend([x for x in local_steady if x.get("symbol") not in used and x.get("symbol") not in risk_symbols])
                 used = {x.get("symbol") for x in steady_list}
-                if len(steady_list) < 5:
+                if len(steady_list) < 10:
                     steady_list.extend([x for x in local_steady_near if x.get("symbol") not in used and x.get("symbol") not in risk_symbols])
-                cached["no_pain_but_gain"] = steady_list[:5]
+                cached["no_pain_but_gain"] = steady_list[:10]
             if (cached.get("for_risk_lovers") or []) or (cached.get("no_pain_but_gain") or []):
                 cached["source"] = "cache_recovered"
                 cached["updated_at"] = datetime.now(timezone.utc).isoformat()
@@ -2238,12 +2238,12 @@ def get_remarkables(force_refresh: bool = False):
         return cached
     payload = _default_remarkables_payload()
     local_risk, local_steady, local_risk_near, local_steady_near = _compute_remarkables_from_local_cache()
-    payload["for_risk_lovers"] = (local_risk + local_risk_near)[:5]
+    payload["for_risk_lovers"] = (local_risk + local_risk_near)[:10]
     risk_symbols = {x.get("symbol") for x in payload["for_risk_lovers"] if x.get("symbol")}
     payload["no_pain_but_gain"] = [
         x for x in (local_steady + local_steady_near)
         if x.get("symbol") not in risk_symbols
-    ][:5]
+    ][:10]
     payload["source"] = "warming_up_daily_refresh"
     return payload
 
@@ -3229,7 +3229,7 @@ def train_prediction_models(close_values, forecast_horizon=30, time_steps=30):
 _DIVIDEND_REFRESH_LOCK = threading.Lock()
 _DIVIDEND_REFRESH_IN_PROGRESS = False
 
-def fetch_top_dividend_stocks(max_results: int = 5) -> list:
+def fetch_top_dividend_stocks(max_results: int = 10) -> list:
     """Return top dividend stocks sorted by yield DESC, cached daily.
     On first load with no cache, triggers a background fetch and returns [].
     """
@@ -3391,7 +3391,7 @@ _BIST_UNDERVALUED_CANDIDATES = [
     "ASELS.IS","OTKAR.IS","KOZAL.IS","GUBRF.IS","YKBNK.IS","VAKBN.IS",
 ]
 
-def fetch_top_undervalued_stocks(max_results: int = 5) -> list:
+def fetch_top_undervalued_stocks(max_results: int = 10) -> list:
     """Return top undervalued stocks by FCF yield, cached daily."""
     global _UNDERVALUED_MEM, _UNDERVALUED_MEM_DAY
     today_key = datetime.now(timezone.utc).date().isoformat()
