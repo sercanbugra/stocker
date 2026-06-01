@@ -1840,23 +1840,26 @@
         :root:not([data-theme="ocean"]) .rm2-mkt-btn.active {
             background: rgba(99,102,241,0.12); border-color: rgba(99,102,241,0.45); color: #6366f1;
         }
-        .rm2-section-wrap { padding: 10px 16px 10px; display:flex; flex-direction:column; }
+        .rm2-section-wrap { padding: 5px 12px 6px; display:flex; flex-direction:column; }
         .rm2-section-wrap + .rm2-section-wrap { border-top: 1px solid var(--panel-border); }
-        .rm2-section-hdr { display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+        .rm2-section-hdr { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
         .rm2-icon {
-            width:26px; height:26px; border-radius:6px; display:flex;
-            align-items:center; justify-content:center; font-size:0.75rem; flex-shrink:0;
+            width:20px; height:20px; border-radius:4px; display:flex;
+            align-items:center; justify-content:center; font-size:0.65rem; flex-shrink:0;
         }
-        .rm2-title { font-size:0.88rem; font-weight:700; color:var(--panel-text); }
-        .rm2-sub { font-size:0.8rem; color:var(--panel-muted); margin-left:auto; }
-        .rm2-list { list-style:none; padding:0; margin:0; flex:1; display:flex; flex-direction:column; justify-content:space-evenly; }
+        .rm2-title { font-size:0.8rem; font-weight:700; color:var(--panel-text); }
+        .rm2-sub { font-size:0.66rem; color:var(--panel-muted); margin-left:auto; }
+        .rm2-list { list-style:none; padding:0; margin:0; flex:1; display:flex; flex-direction:column; }
         .rm2-list li {
-            display:flex; align-items:center; gap:7px;
-            padding: 4px 2px; font-size:0.88rem;
+            display:flex; align-items:center; gap:6px;
+            padding: 2px 2px; font-size:0.85rem;
+            border-bottom: 1px solid rgba(255,255,255,0.035);
         }
-        .rm2-list .rm-rank { min-width:16px; color:var(--panel-muted); font-size:0.75rem; }
+        .rm2-list li:last-child { border-bottom:none; }
+        .rm2-list li:hover { background:rgba(255,255,255,0.035); border-radius:4px; }
+        .rm2-list .rm-rank { min-width:13px; color:var(--panel-muted); font-size:0.65rem; text-align:right; }
         .rm2-list .remarkable-symbol,
-        .rm2-list .nl-symbol-link { font-weight:700; font-size:0.88rem; flex:1; min-width:0; }
+        .rm2-list .nl-symbol-link { font-weight:700; font-size:0.84rem; flex:1; min-width:0; }
         /* ── */
         .rm-mkt-chip.active {
             border-color: #4f8ef7;
@@ -3998,31 +4001,32 @@
         .wl-news-slide { display: none; }
         .wl-news-slide.active { display: block; }
         .wl-news-item {
-            display: flex; gap: 8px; align-items: flex-start;
-            padding: 4px 0; border-bottom: 1px solid var(--panel-border);
+            display: flex; gap: 9px; align-items: flex-start;
+            padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         .wl-news-item:last-child { border-bottom: none; }
+        .wl-news-item:hover .wl-news-title a { color: #4f8ef7; }
         .wl-news-img {
-            width: 148px; height: 116px; object-fit: cover;
-            border-radius: 6px; flex-shrink: 0;
+            width: 62px; height: 62px; object-fit: cover;
+            border-radius: 7px; flex-shrink: 0;
             background: var(--parliament-blue-soft);
         }
         .wl-news-img-placeholder {
-            width: 148px; height: 116px; border-radius: 6px; flex-shrink: 0;
+            width: 62px; height: 62px; border-radius: 7px; flex-shrink: 0;
             background: var(--parliament-blue-soft);
             display: flex; align-items: center; justify-content: center;
-            color: var(--panel-muted); font-size: 2.2rem;
+            color: var(--panel-muted); font-size: 1.4rem;
         }
-        .wl-news-text { flex: 1; min-width: 0; }
+        .wl-news-text { flex: 1; min-width: 0; display:flex; flex-direction:column; justify-content:center; }
         .wl-news-title {
-            font-size: 0.74rem; font-weight: 600; color: var(--panel-text);
-            line-height: 1.35; margin-bottom: 2px;
-            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+            font-size: 0.8rem; font-weight: 600; color: var(--panel-text);
+            line-height: 1.38; margin-bottom: 4px;
+            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
             overflow: hidden;
         }
         .wl-news-title a { color: inherit; text-decoration: none; }
         .wl-news-title a:hover { color: #4f8ef7; }
-        .wl-news-meta { font-size: 0.63rem; color: var(--panel-muted); }
+        .wl-news-meta { font-size: 0.62rem; color: var(--panel-muted); }
         .wl-news-dots { display: flex; gap: 4px; align-items: center; padding: 4px 0 0; flex-shrink: 0; }
         .wl-news-dot {
             width: 5px; height: 5px; border-radius: 50%;
@@ -4033,8 +4037,49 @@
         :root:not([data-theme="ocean"]) .wl-news-progress-bar { background: #6366f1; }
         :root:not([data-theme="ocean"]) .wl-news-dot.active { background: #6366f1; }
         :root:not([data-theme="ocean"]) .wl-news-title a:hover { color: #6366f1; }
-        /* Ticker chips take 1/3, news takes 2/3 of the card body */
+        /* Watchlist chips */
         #watchlist-card-body #watchlist-body { flex: 1; min-height: 0; overflow-y: auto; }
+        .wl-chips-wrap { display:flex; flex-wrap:wrap; gap:5px; align-content:flex-start; padding:4px 2px; }
+        .wl-chip {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 4px 6px 4px 9px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 7px; cursor: pointer;
+            transition: background .14s, border-color .14s, box-shadow .14s, transform .1s;
+            position: relative;
+        }
+        .wl-chip:hover {
+            background: rgba(79,142,247,0.1);
+            border-color: rgba(79,142,247,0.38);
+            box-shadow: 0 2px 8px rgba(79,142,247,0.12);
+            transform: translateY(-1px);
+        }
+        .wl-chip-sym {
+            font-size: 0.8rem; font-weight: 700;
+            color: var(--panel-text); letter-spacing: 0.2px;
+        }
+        .wl-chip-mkt {
+            font-size: 0.53rem; font-weight: 700;
+            padding: 1px 4px; border-radius: 3px;
+            letter-spacing: 0.4px; text-transform: uppercase; flex-shrink:0;
+        }
+        .wl-mkt-tr { background: rgba(251,146,60,0.14); color: #fb923c; }
+        .wl-mkt-uk { background: rgba(167,139,250,0.14); color: #a78bfa; }
+        .wl-chip-remove {
+            background: none; border: none; padding: 0 1px;
+            color: var(--panel-muted); cursor: pointer;
+            font-size: 0.9rem; line-height:1;
+            transition: color .12s, opacity .12s;
+            opacity: 0; margin-left: 1px;
+        }
+        .wl-chip:hover .wl-chip-remove { opacity: 1; }
+        .wl-chip-remove:hover { color: #ff8a8a; }
+        :root:not([data-theme="ocean"]) .wl-chip:hover {
+            background: rgba(99,102,241,0.1); border-color: rgba(99,102,241,0.35);
+            box-shadow: 0 2px 8px rgba(99,102,241,0.12);
+        }
+        .wl-notice { font-size:0.68rem; color:var(--panel-muted); padding:2px 2px 0; }
     </style>
 </head>
 <body>
@@ -4997,10 +5042,10 @@
                     <div class="wl-news-dots" id="wl-news-dots"></div>
                 </div>
                 {% endif %}
-                <div class="row row-cols-3 row-cols-md-5 row-cols-lg-6 g-2 flex-shrink-0" id="watchlist-body">
-                    <!-- watchlist items -->
+                <div class="wl-chips-wrap flex-shrink-0" id="watchlist-body">
+                    <!-- watchlist chips -->
                 </div>
-                <div class="text-muted small flex-shrink-0" id="watchlist-notice"></div>
+                <div class="wl-notice flex-shrink-0" id="watchlist-notice"></div>
             </div>
         </div>
 
@@ -6350,12 +6395,12 @@
                     $watchlistNotice.text('');
                     return;
                 }
-                const html = list.map(sym => `
-                    <div class="col-6 position-relative">
-                        <button class="btn-close position-absolute top-0 end-0 m-1 remove-watchlist small-close" aria-label="Remove" data-symbol="${sym}"></button>
-                        <button class="btn btn-outline-secondary w-100 watchlist-item" data-symbol="${sym}">${sym}</button>
-                    </div>
-                `).join('');
+                const html = list.map(sym => {
+                    const display = sym.replace(/\.(IS|L)$/, '');
+                    const mkt = sym.endsWith('.IS') ? '<span class="wl-chip-mkt wl-mkt-tr">TR</span>'
+                              : sym.endsWith('.L')  ? '<span class="wl-chip-mkt wl-mkt-uk">UK</span>' : '';
+                    return `<div class="wl-chip watchlist-item" data-symbol="${sym}"><span class="wl-chip-sym">${escHtml(display)}</span>${mkt}<button class="wl-chip-remove remove-watchlist" data-symbol="${sym}" aria-label="Remove">×</button></div>`;
+                }).join('');
                 $watchlistBody.html(html);
                 $watchlistNotice.text('Click a symbol to load its prediction.');
             }
@@ -7893,7 +7938,8 @@
                 }
             });
 
-            $watchlistBody.on('click', '.watchlist-item', function() {
+            $watchlistBody.on('click', '.watchlist-item', function(e) {
+                if ($(e.target).closest('.wl-chip-remove').length) return;
                 if (!hasWatchlistAccess) {
                     openUpgradeModal('Upgrade to Pro to use your watchlist.');
                     return;
