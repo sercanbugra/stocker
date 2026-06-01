@@ -4775,9 +4775,15 @@
                         {% if remarkables and remarkables.updated_at %}{{ remarkables.updated_at }}{% endif %}
                     </small>
                 </span>
-                <div class="rm2-picker">
+                <div class="rm2-picker" style="display:flex;align-items:center;gap:4px;">
                     <button class="rm2-mkt-btn active" data-market="us">🇺🇸 US</button>
                     <button class="rm2-mkt-btn" data-market="tr">🇹🇷 TR</button>
+                    <button id="rm-refresh-btn" title="Refresh Remarkables"
+                        style="background:none;border:1px solid var(--panel-border);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--panel-muted);font-size:0.7rem;transition:color .15s,border-color .15s;flex-shrink:0;"
+                        onmouseover="this.style.color='var(--panel-text)';this.style.borderColor='rgba(255,255,255,0.3)'"
+                        onmouseout="this.style.color='';this.style.borderColor=''">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                 </div>
             </div>
             <div class="card-body p-0">
@@ -6413,6 +6419,21 @@
 
             renderWatchlist();
             loadRemarkables(true);
+
+            // Remarkables refresh button
+            (function() {
+                var btn = document.getElementById('rm-refresh-btn');
+                if (!btn) return;
+                var icon = btn.querySelector('i');
+                btn.addEventListener('click', async function() {
+                    if (btn.disabled) return;
+                    btn.disabled = true;
+                    icon.classList.add('fa-spin');
+                    await loadRemarkables(true);
+                    icon.classList.remove('fa-spin');
+                    btn.disabled = false;
+                });
+            })();
 
 
 
