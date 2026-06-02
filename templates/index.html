@@ -7960,16 +7960,37 @@
             function _parseAdvisorForTrade(sectionMap) {
                 const entry = sectionMap['ENTRY STRATEGY'] || '';
                 const exit  = sectionMap['EXIT STRATEGY']  || '';
-                const pos   = sectionMap['POSITION SIZE']  || '';
+
+                // --- Buy Drop ---
                 const entryNums = _allPcts(entry);
-                const exitNums  = _allPcts(exit);
-                const posNums   = _allPcts(pos);
                 const buyDrop1 = entryNums[0] || 10;
+                // Value 2: next explicit % in entry text, or 1.5× Value 1 as a second-tranche estimate
                 const buyDrop2 = entryNums[1] || Math.round(buyDrop1 * 1.5 * 10) / 10;
-                const portion1 = posNums[0] || 5;
-                const portion2 = posNums[1] || Math.round(portion1 * 0.6 * 10) / 10 || 3;
-                const takeProfit = _extractPctNearKw(exit, ['take profit','profit at','gain of','target','sell at']) || exitNums[0] || 20;
-                const stopLoss   = _extractPctNearKw(exit, ['stop loss','stop-loss','stop at','loss','cut'])        || exitNums[1] || exitNums[0] || 8;
+
+                // --- Stop Loss: find % explicitly tied to stop/loss keywords ---
+                const stopLoss = _extractPctNearKw(exit, ['stop loss','stop-loss','stop at','% below','below current'])
+                               || _extractPctNearKw(exit, ['loss','cut','protect'])
+                               || _allPcts(exit)[0] || 8;
+
+                // --- Take Profit: separate search; do NOT fall back to exit numbers
+                //     (they likely belong to the stop loss, not the target) ---
+                const takeProfit = _extractPctNearKw(exit, ['take profit','taking profit','profit at','gain of','% gain','% up','target','rallies'])
+                                || _extractPctNearKw(exit, ['sell at','trim at','reduce at'])
+                                || 20;  // safe default — avoids reusing the stop loss %
+
+                // --- Portions: first / second tranche split that sums to 100 ---
+                // Try to detect explicit split hints in entry text
+                let portion1 = 60, portion2 = 40;  // default 60/40
+                const el = entry.toLowerCase();
+                if (/equal|half|50.50|evenly/.test(el))             { portion1 = 50; portion2 = 50; }
+                else if (/two.third|2\/3|70.30/.test(el))           { portion1 = 70; portion2 = 30; }
+                else if (/three.quart|75.25/.test(el))              { portion1 = 75; portion2 = 25; }
+                // If entry text has two %s summing to ~100, use them directly
+                if (entryNums.length >= 2) {
+                    const s = entryNums[0] + entryNums[1];
+                    if (s >= 95 && s <= 105) { portion1 = entryNums[0]; portion2 = entryNums[1]; }
+                }
+
                 return { buyDrop1, buyDrop2, portion1, portion2, takeProfit, stopLoss };
             }
 
