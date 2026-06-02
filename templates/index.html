@@ -5294,7 +5294,14 @@
             <div class="pro-card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-briefcase"></i> AI Portfolio Advisor</span>
-                    <span class="tier-badge tier-badge-pro">Pro</span>
+                    <div class="d-flex align-items-center gap-2">
+                        {% if user_tier == 'admin' %}
+                        <button id="advisor-trade-btn" class="tb-btn tb-btn-admin" style="display:none; padding:5px 12px; font-size:0.75rem;">
+                            <i class="fas fa-robot"></i><span> TRADE</span>
+                        </button>
+                        {% endif %}
+                        <span class="tier-badge tier-badge-pro">Pro</span>
+                    </div>
                 </div>
                 <div id="advisor-container">
                     {% if user_tier in ('pro', 'premium', 'admin') %}
@@ -8164,7 +8171,8 @@
                     // Store for TRADE button (include current price for $ → % conversion in bot)
                     window._advisorData = { symbol: sym, sections: parsedSections, currentPrice: window._lastCurrentPrice || null };
                     if (userTier === 'admin') {
-                        html += '<div style="padding:4px 0 8px;"><button id="advisor-trade-btn" class="btn btn-sm btn-success w-100" style="font-size:0.8rem;"><i class="fas fa-robot me-1"></i> TRADE</button></div>';
+                        const tradeBtn = document.getElementById('advisor-trade-btn');
+                        if (tradeBtn) tradeBtn.style.display = '';
                     }
                     html += '</div>';
                     $('#advisor-container').html(html);
@@ -8172,6 +8180,73 @@
                     $('#advisor-container').html('<div class="pro-lock text-muted small">Network error. Please try again.</div>');
                 }
             }
+
+            // ── Listen for messages from the embedded Trading212 Bot iframe ──
+            window.addEventListener('message', async function(evt) {
+                if (evt.origin !== 'https://trading212.fly.dev') return;
+                const d = evt.data;
+                if (!d || !d.type) return;
+                const iframe = document.querySelector('#snap-bot iframe');
+
+                // Add symbol to Stocker watchlist
+                if (d.type === 'addToWatchlist' && d.ticker) {
+                    try {
+                        const wl = await fetch('/api/watchlist').then(r => r.json());
+                        const current = Array.isArray(wl.symbols) ? wl.symbols : [];
+                        if (!current.includes(d.ticker)) {
+                            await fetch('/api/watchlist', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ symbols: [...current, d.ticker] })
+                            });
+                        }
+                    } catch(e) { console.warn('addToWatchlist failed', e); }
+                    return;
+                }
+
+                // Run Portfolio Advisor for the given ticker and send result back
+                if (d.type === 'portfolioAdvisorRefresh' && d.ticker && iframe) {
+                    try {
+                        const resp = await fetch('/api/portfolio-advisor', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ symbol: d.ticker })
+                        });
+                        const data = await resp.json();
+                        if (!resp.ok || data.error) {
+                            iframe.contentWindow.postMessage({ type: 'portfolioAdvisorResult', ticker: d.ticker, error: data.error || 'Failed' }, 'https://trading212.fly.dev');
+                            return;
+                        }
+                        // Parse sections
+                        const text = data.advice || '';
+                        const sectionDefs = ['POSITION SIZE', 'RISK PROFILE', 'ENTRY STRATEGY', 'EXIT STRATEGY'];
+                        const parsed = {};
+                        const lines = text.split('\n').filter(l => l.trim());
+                        let cur = null, body = [];
+                        function flush() {
+                            if (!cur) return;
+                            const k = sectionDefs.find(s => cur.toUpperCase().includes(s));
+                            if (k) parsed[k] = body.join(' ');
+                        }
+                        for (const line of lines) {
+                            const isHdr = sectionDefs.some(s => line.toUpperCase().includes(s));
+                            if (isHdr) { flush(); cur = line.replace(/^\d+\.\s*/, ''); body = []; }
+                            else body.push(line.trim());
+                        }
+                        flush();
+                        const params = _parseAdvisorForTrade(parsed);
+                        iframe.contentWindow.postMessage({
+                            type: 'portfolioAdvisorResult',
+                            ticker: d.ticker,
+                            params,
+                            currentPrice: window._lastCurrentPrice || null
+                        }, 'https://trading212.fly.dev');
+                    } catch(e) {
+                        if (iframe) iframe.contentWindow.postMessage({ type: 'portfolioAdvisorResult', ticker: d.ticker, error: 'Network error' }, 'https://trading212.fly.dev');
+                    }
+                    return;
+                }
+            });
 
             $(document).on('click', '#advisor-trade-btn', function() {
                 const ad = window._advisorData;
