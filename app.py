@@ -5458,6 +5458,37 @@ def api_ensemble_backtest():
                     "max_drawdown": round(dd * 100, 1),
                     "cumulative_return": round(cr * 100, 1)}
 
+        # ── Current signals from latest indicator values ──
+        cur_macd     = float(macd.iloc[-1])
+        cur_sig      = float(macd_sig.iloc[-1])
+        cur_rsi      = float(rsi.iloc[-1])
+        cur_cci      = float(cci.iloc[-1])
+        cur_close    = float(close.iloc[-1])
+        cur_ma20     = float(ma20.iloc[-1]) if not np.isnan(ma20.iloc[-1]) else cur_close
+
+        def _ppo_sig():
+            if cur_macd > cur_sig and cur_rsi < 72:   return "BUY"
+            if cur_rsi > 80 or cur_macd < cur_sig:    return "SELL"
+            return "HOLD"
+
+        def _a2c_sig():
+            if cur_rsi < 35:   return "BUY"
+            if cur_rsi > 68:   return "SELL"
+            return "HOLD"
+
+        def _ddpg_sig():
+            if cur_close > cur_ma20 and cur_cci > -50:   return "BUY"
+            if cur_close < cur_ma20 or cur_cci < -100:   return "SELL"
+            return "HOLD"
+
+        agent_signals = {"PPO": _ppo_sig(), "A2C": _a2c_sig(), "DDPG": _ddpg_sig()}
+
+        # Active agent for next period = highest Sharpe over last Q days
+        last_sharpes = [sharpe_of(ppo_ret.iloc[-Q:]),
+                        sharpe_of(a2c_ret.iloc[-Q:]),
+                        sharpe_of(ddpg_ret.iloc[-Q:])]
+        active_agent = ["PPO", "A2C", "DDPG"][int(np.argmax(last_sharpes))]
+
         return jsonify({
             "dates":    dates,
             "ppo":      cumret(ppo_ret),
@@ -5471,6 +5502,17 @@ def api_ensemble_backtest():
                 "ddpg":     perf(ddpg_ret),
                 "ensemble": perf(ens_ret),
                 "buy_hold": perf(bh_ret),
+            },
+            "signal": {
+                "active_agent":  active_agent,
+                "action":        agent_signals[active_agent],
+                "all":           agent_signals,
+                "indicators": {
+                    "rsi":   round(cur_rsi, 1),
+                    "macd":  round(cur_macd - cur_sig, 4),   # MACD histogram
+                    "cci":   round(cur_cci, 1),
+                    "ma20_vs_price": round((cur_close / cur_ma20 - 1) * 100, 2),
+                }
             }
         })
     except Exception as e:
