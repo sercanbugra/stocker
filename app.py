@@ -110,8 +110,8 @@ _CSP = "; ".join([
     "img-src 'self' data: https://s.yimg.com https://media.zenfs.com https://finance.yahoo.com",
     # XHR/fetch: all API calls are same-origin
     "connect-src 'self'",
-    # Same-origin iframes allowed (e.g. watchlist-trends embedded in main page)
-    "frame-src 'self'",
+    # Same-origin iframes + trading212 bot (admin-only embed)
+    "frame-src 'self' https://trading212.fly.dev",
     # Block Flash/plugins entirely
     "object-src 'none'",
     # Prevent base-tag injection attacks
