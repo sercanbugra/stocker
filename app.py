@@ -1298,11 +1298,14 @@ MARKET_TICKER_DEFS = [
     {"label": "S&P 500",   "sym": "^GSPC",    "invert": False, "fmt": ",.0f"},
     {"label": "Nasdaq",    "sym": "^IXIC",    "invert": False, "fmt": ",.0f"},
     {"label": "BIST 100",  "sym": "XU100.IS", "invert": False, "fmt": ",.0f"},
+    {"label": "FTSE 100",  "sym": "^FTSE",    "invert": False, "fmt": ",.0f"},
     {"label": "Gold",      "sym": "GC=F",     "invert": False, "fmt": ",.1f"},
+    {"label": "Silver",    "sym": "SI=F",     "invert": False, "fmt": ",.2f"},
     {"label": "Bitcoin",   "sym": "BTC-USD",  "invert": False, "fmt": ",.0f"},
     {"label": "Crude Oil", "sym": "CL=F",     "invert": False, "fmt": ",.2f"},
     {"label": "USD/EUR",   "sym": "EURUSD=X", "invert": True,  "fmt": ".4f"},
     {"label": "USD/TRY",   "sym": "USDTRY=X", "invert": False, "fmt": ".4f"},
+    {"label": "EUR/TRY",   "sym": "EURTRY=X", "invert": False, "fmt": ".4f"},
 ]
 _TICKER_CACHE: dict = {"data": None, "ts": 0.0}
 _TICKER_TTL = 300  # 5-minute cache
