@@ -7942,6 +7942,37 @@
                 }
             }
 
+            // Parse % numbers near a keyword within text
+            function _extractPctNearKw(text, keywords) {
+                const lower = text.toLowerCase();
+                for (const kw of keywords) {
+                    const idx = lower.indexOf(kw);
+                    if (idx < 0) continue;
+                    const slice = text.slice(Math.max(0, idx - 30), idx + 60);
+                    const m = slice.match(/(\d+(?:\.\d+)?)\s*%/);
+                    if (m) return parseFloat(m[1]);
+                }
+                return null;
+            }
+            function _allPcts(text) {
+                return [...text.matchAll(/(\d+(?:\.\d+)?)\s*%/g)].map(m => parseFloat(m[1]));
+            }
+            function _parseAdvisorForTrade(sectionMap) {
+                const entry = sectionMap['ENTRY STRATEGY'] || '';
+                const exit  = sectionMap['EXIT STRATEGY']  || '';
+                const pos   = sectionMap['POSITION SIZE']  || '';
+                const entryNums = _allPcts(entry);
+                const exitNums  = _allPcts(exit);
+                const posNums   = _allPcts(pos);
+                const buyDrop1 = entryNums[0] || 10;
+                const buyDrop2 = entryNums[1] || Math.round(buyDrop1 * 1.5 * 10) / 10;
+                const portion1 = posNums[0] || 5;
+                const portion2 = posNums[1] || Math.round(portion1 * 0.6 * 10) / 10 || 3;
+                const takeProfit = _extractPctNearKw(exit, ['take profit','profit at','gain of','target','sell at']) || exitNums[0] || 20;
+                const stopLoss   = _extractPctNearKw(exit, ['stop loss','stop-loss','stop at','loss','cut'])        || exitNums[1] || exitNums[0] || 8;
+                return { buyDrop1, buyDrop2, portion1, portion2, takeProfit, stopLoss };
+            }
+
             async function loadPortfolioAdvice(sym) {
                 $('#advisor-container').html('<div class="pro-lock text-muted small"><i class="fas fa-spinner fa-spin me-1"></i> Generating portfolio advice…</div>');
                 try {
@@ -7956,7 +7987,7 @@
                         return;
                     }
                     const text = data.advice || '';
-                    const sections = [
+                    const sectionDefs = [
                         { key: 'POSITION SIZE',   cls: 'thesis-bull',    icon: 'fa-chart-pie' },
                         { key: 'RISK PROFILE',    cls: 'thesis-bear',    icon: 'fa-exclamation-triangle' },
                         { key: 'ENTRY STRATEGY',  cls: 'thesis-verdict', icon: 'fa-sign-in-alt' },
@@ -7965,28 +7996,53 @@
                     let html = '<div class="p-3">';
                     const lines = text.split('\n').filter(l => l.trim());
                     let current = null, body = [];
+                    const parsedSections = {};
                     function flushSection() {
                         if (!current) return;
-                        const sec = sections.find(s => current.toUpperCase().includes(s.key));
+                        const sec = sectionDefs.find(s => current.toUpperCase().includes(s.key));
                         const cls = sec ? sec.cls : 'thesis-verdict';
                         const icon = sec ? sec.icon : 'fa-info-circle';
                         html += `<div class="thesis-section ${cls}">`;
                         html += `<div class="thesis-label"><i class="fas ${icon} me-1"></i>${escHtml(current)}</div>`;
                         html += `<div class="thesis-body">${escHtml(body.join(' '))}</div>`;
                         html += `</div>`;
+                        if (sec) parsedSections[sec.key] = body.join(' ');
                     }
                     for (const line of lines) {
-                        const isHeader = sections.some(s => line.toUpperCase().includes(s.key));
+                        const isHeader = sectionDefs.some(s => line.toUpperCase().includes(s.key));
                         if (isHeader) { flushSection(); current = line.replace(/^\d+\.\s*/, ''); body = []; }
                         else { body.push(line.trim()); }
                     }
                     flushSection();
+                    // Store for TRADE button
+                    window._advisorData = { symbol: sym, sections: parsedSections };
+                    if (userTier === 'admin') {
+                        html += '<div style="padding:4px 0 8px;"><button id="advisor-trade-btn" class="btn btn-sm btn-success w-100" style="font-size:0.8rem;"><i class="fas fa-robot me-1"></i> TRADE</button></div>';
+                    }
                     html += '</div>';
                     $('#advisor-container').html(html);
                 } catch (e) {
                     $('#advisor-container').html('<div class="pro-lock text-muted small">Network error. Please try again.</div>');
                 }
             }
+
+            $(document).on('click', '#advisor-trade-btn', function() {
+                const ad = window._advisorData;
+                if (!ad) return;
+                const params = _parseAdvisorForTrade(ad.sections);
+                const wrap = document.getElementById('snap-wrap');
+                const snapBot = document.getElementById('snap-bot');
+                if (wrap && snapBot) wrap.scrollTo({ top: snapBot.offsetTop, behavior: 'smooth' });
+                setTimeout(function() {
+                    const iframe = document.querySelector('#snap-bot iframe');
+                    if (iframe && iframe.contentWindow) {
+                        iframe.contentWindow.postMessage(
+                            Object.assign({ type: 'openAITrade', ticker: ad.symbol, t212Ticker: ad.symbol + '_US_EQ' }, params),
+                            'https://trading212.fly.dev'
+                        );
+                    }
+                }, 700);
+            });
 
             $('#advisor-upgrade-btn, #earnings-upgrade-btn').on('click', function() {
                 openUpgradeModal('Upgrade to Premium to unlock AI Portfolio Advisor and Earnings Summarizer.');
