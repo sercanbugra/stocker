@@ -5347,6 +5347,137 @@ def api_peers():
     return jsonify(result)
 
 
+@app.route("/api/ensemble-backtest", methods=["POST"])
+def api_ensemble_backtest():
+    """Simulate the Columbia DRL Ensemble paper (Yang et al. 2020):
+    3 agent proxies (PPO/trend, A2C/mean-reversion, DDPG/momentum) selected
+    quarterly by Sharpe ratio. Returns cumulative return series for chart."""
+    data = request.get_json(silent=True) or {}
+    symbol = (data.get("symbol") or "").strip().upper()
+    if not _is_valid_symbol(symbol):
+        return jsonify({"error": "symbol required"}), 400
+
+    try:
+        ticker = yf.Ticker(symbol)
+        hist = ticker.history(period="2y")
+        if len(hist) < 120:
+            return jsonify({"error": "Insufficient history (need ~2 years)"}), 400
+
+        close  = hist["Close"].dropna()
+        high   = hist["High"].reindex(close.index)
+        low    = hist["Low"].reindex(close.index)
+
+        # ── Technical indicators (state features from paper Section 4.1) ──
+        # MACD
+        ema12 = close.ewm(span=12, adjust=False).mean()
+        ema26 = close.ewm(span=26, adjust=False).mean()
+        macd  = ema12 - ema26
+        macd_sig = macd.ewm(span=9, adjust=False).mean()
+
+        # RSI (14)
+        delta = close.diff()
+        gain  = delta.clip(lower=0).rolling(14).mean()
+        loss  = (-delta.clip(upper=0)).rolling(14).mean()
+        rsi   = 100 - 100 / (1 + gain / loss.replace(0, np.nan))
+        rsi   = rsi.fillna(50)
+
+        # CCI (20)
+        tp  = (high + low + close) / 3
+        cci = (tp - tp.rolling(20).mean()) / (0.015 * tp.rolling(20).std().replace(0, np.nan))
+        cci = cci.fillna(0)
+
+        # MA20 for DDPG trend proxy
+        ma20 = close.rolling(20).mean()
+
+        # ── Agent signals (position: 1 = invested, 0 = cash) ──
+        # PPO proxy — trend-following via MACD crossover + RSI filter
+        ppo_pos = ((macd > macd_sig) & (rsi < 75)).astype(float)
+
+        # A2C proxy — mean-reversion via RSI oversold/overbought
+        a2c_pos = pd.Series(0.0, index=close.index)
+        in_pos  = False
+        for i in range(len(rsi)):
+            r = rsi.iloc[i]
+            if not in_pos and r < 35:
+                in_pos = True
+            elif in_pos and r > 68:
+                in_pos = False
+            a2c_pos.iloc[i] = 1.0 if in_pos else 0.0
+
+        # DDPG proxy — momentum via price vs MA20 + CCI confirmation
+        ddpg_pos = ((close > ma20) & (cci > -50)).astype(float)
+
+        daily_ret = close.pct_change().fillna(0)
+        TC = 0.001  # 0.1% transaction cost per trade (paper Section 3.2)
+
+        def pos_to_returns(pos):
+            pos = pos.fillna(0)
+            trades = pos.diff().abs().fillna(0)
+            return pos.shift(1).fillna(0) * daily_ret - trades * TC
+
+        ppo_ret  = pos_to_returns(ppo_pos)
+        a2c_ret  = pos_to_returns(a2c_pos)
+        ddpg_ret = pos_to_returns(ddpg_pos)
+        bh_ret   = daily_ret  # buy-and-hold baseline
+
+        # ── Ensemble: pick best agent per quarter by trailing Sharpe ──
+        # Paper Step 2: 3-month validation rolling window (≈63 trading days)
+        Q = 63
+        def sharpe_of(s):
+            std = s.std()
+            return (s.mean() / std * np.sqrt(252)) if std > 1e-9 else 0.0
+
+        ens_ret = pd.Series(0.0, index=close.index)
+        n = len(close)
+        for i in range(n):
+            if i < Q * 2:
+                ens_ret.iloc[i] = ppo_ret.iloc[i]
+            else:
+                window = slice(i - Q, i)
+                sp = [sharpe_of(ppo_ret.iloc[window]),
+                      sharpe_of(a2c_ret.iloc[window]),
+                      sharpe_of(ddpg_ret.iloc[window])]
+                best = int(np.argmax(sp))
+                ens_ret.iloc[i] = [ppo_ret, a2c_ret, ddpg_ret][best].iloc[i]
+
+        def cumret(r):
+            c = (1 + r).cumprod() - 1
+            return [round(float(v), 6) for v in c]
+
+        dates = [d.strftime("%Y-%m-%d") for d in close.index]
+
+        # Performance summary
+        def perf(r):
+            ann = float((1 + r.mean()) ** 252 - 1)
+            vol = float(r.std() * np.sqrt(252))
+            sh  = round(ann / vol, 2) if vol > 1e-9 else 0.0
+            cr  = float((1 + r).prod() - 1)
+            dd  = float(((1 + r).cumprod() / (1 + r).cumprod().cummax() - 1).min())
+            return {"annual_return": round(ann * 100, 1),
+                    "sharpe": sh,
+                    "max_drawdown": round(dd * 100, 1),
+                    "cumulative_return": round(cr * 100, 1)}
+
+        return jsonify({
+            "dates":    dates,
+            "ppo":      cumret(ppo_ret),
+            "a2c":      cumret(a2c_ret),
+            "ddpg":     cumret(ddpg_ret),
+            "ensemble": cumret(ens_ret),
+            "buy_hold": cumret(bh_ret),
+            "stats": {
+                "ppo":      perf(ppo_ret),
+                "a2c":      perf(a2c_ret),
+                "ddpg":     perf(ddpg_ret),
+                "ensemble": perf(ens_ret),
+                "buy_hold": perf(bh_ret),
+            }
+        })
+    except Exception as e:
+        logger.warning(f"ensemble-backtest error for {symbol}: {e}")
+        return jsonify({"error": "Could not compute ensemble backtest."}), 500
+
+
 @app.route("/api/me")
 def api_me():
     email = _get_current_user_email()

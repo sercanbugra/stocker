@@ -3644,11 +3644,13 @@
             height: 100%;
         }
 
-        /* Panel 3: Top Analysts + Analyst Reco side-by-side */
+        /* Panel 3: Top Analysts + Analyst Reco side-by-side, Peer Comparison full-width below */
         #res-panel-3.active {
             grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr auto;
             height: 100%;
         }
+        #res-panel-3 > :nth-child(3) { grid-column: 1 / 3; overflow: auto; }
 
         /* Panel 4: Summary — Thesis + Earnings top, Advisor full-width bottom */
         #res-panel-4.active {
@@ -5139,7 +5141,7 @@
             </div>
         </div><!-- /res-panel-0 -->
 
-        <!-- ── Panel 1: Predictions ── Stock Price Chart · Prediction Results · Peer Comparison -->
+        <!-- ── Panel 1: Predictions ── Stock Price Chart · Prediction Results · Ensemble DRL -->
         <div class="res-panel" id="res-panel-1">
             <div class="card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -5167,22 +5169,22 @@
                     </div>
                 </div>
             </div>
-            <div class="pro-card mb-3">
+            <!-- Ensemble DRL Strategy (Yang et al. 2020 — Columbia/AI4Finance) -->
+            <div class="card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-chart-bar"></i> Peer Comparison</span>
-                    <span class="tier-badge tier-badge-pro">Pro</span>
+                    <span><i class="fas fa-layer-group"></i> Ensemble DRL Strategy
+                        <small class="text-muted ms-2" style="font-size:0.65rem;">PPO · A2C · DDPG</small>
+                    </span>
+                    <span id="ensemble-loading" class="text-muted" style="font-size:0.68rem;display:none;">
+                        <i class="fas fa-spinner fa-spin me-1"></i>computing…
+                    </span>
                 </div>
-                <div id="peers-container">
-                    {% if user_tier in ('pro', 'premium', 'admin') %}
-                    <div class="pro-lock text-muted small" id="peers-placeholder">Run a prediction to load peer data.</div>
-                    {% else %}
-                    <div class="pro-lock">
-                        <i class="fas fa-lock"></i>
-                        <span>Available on Pro &amp; Premium</span>
-                        <button class="btn btn-primary btn-sm" id="peers-upgrade-btn">Upgrade to Pro</button>
-                        <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='Peer_Comparison.png') }}', 'Peer Comparison')">see sample</button>
+                <div class="card-body p-1">
+                    <div id="ensemble-chart" style="width:100%;height:100%;min-height:60px;"></div>
+                    <div id="ensemble-stats" style="font-size:0.68rem;padding:4px 6px 2px;display:none;">
+                        <div class="d-flex flex-wrap gap-2" id="ensemble-stats-row"></div>
                     </div>
-                    {% endif %}
+                    <div id="ensemble-placeholder" class="text-muted small p-2">Run a prediction to see ensemble strategy backtest.</div>
                 </div>
             </div>
         </div><!-- /res-panel-1 -->
@@ -5199,7 +5201,7 @@
             </div>
         </div><!-- /res-panel-2 -->
 
-        <!-- ── Panel 3: Analysts ── Top Analysts · Analyst Reco -->
+        <!-- ── Panel 3: Analysts + Peer Comparison ── -->
         <div class="res-panel" id="res-panel-3">
             <div class="card mb-3">
                 <div class="card-header"><i class="fas fa-user-tie"></i> Top Analysts</div>
@@ -5218,6 +5220,25 @@
                 <div class="card-body">
                     <div class="text-muted mb-2" id="analyst-reco-source">Source: N/A</div>
                     <div class="analyst-reco" id="analyst-reco"></div>
+                </div>
+            </div>
+            <!-- Peer Comparison moved here from Predictions panel -->
+            <div class="pro-card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-chart-bar"></i> Peer Comparison</span>
+                    <span class="tier-badge tier-badge-pro">Pro</span>
+                </div>
+                <div id="peers-container">
+                    {% if user_tier in ('pro', 'premium', 'admin') %}
+                    <div class="pro-lock text-muted small" id="peers-placeholder">Run a prediction to load peer data.</div>
+                    {% else %}
+                    <div class="pro-lock">
+                        <i class="fas fa-lock"></i>
+                        <span>Available on Pro &amp; Premium</span>
+                        <button class="btn btn-primary btn-sm" id="peers-upgrade-btn">Upgrade to Pro</button>
+                        <button class="sample-link" onclick="openSampleModal('{{ url_for('static', filename='Peer_Comparison.png') }}', 'Peer Comparison')">see sample</button>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div><!-- /res-panel-3 -->
@@ -7765,6 +7786,7 @@
 
                         // Pro features — fire after prediction succeeds
                         const currentSymbol = symbol;
+                        loadEnsemble(currentSymbol);
                         if (hasProAccess) {
                             loadTradeThesis(currentSymbol);
                             loadPeers(currentSymbol);
@@ -7901,6 +7923,75 @@
                     + '<td>' + fmtVal(p.revenue_growth !== null && p.revenue_growth !== undefined ? p.revenue_growth.toFixed(1) : null, '%') + '</td>'
                     + '<td>' + fmtVal(p.profit_margin !== null && p.profit_margin !== undefined ? p.profit_margin.toFixed(1) : null, '%') + '</td>'
                     + '</tr>';
+            }
+
+            async function loadEnsemble(sym) {
+                $('#ensemble-placeholder').hide();
+                $('#ensemble-loading').show();
+                $('#ensemble-stats').hide();
+                try {
+                    const resp = await fetch('/api/ensemble-backtest', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ symbol: sym })
+                    });
+                    const d = await resp.json();
+                    $('#ensemble-loading').hide();
+                    if (!resp.ok || d.error) {
+                        $('#ensemble-placeholder').text(d.error || 'Could not compute.').show();
+                        return;
+                    }
+
+                    const isDark = !document.documentElement.dataset.theme || document.documentElement.dataset.theme === 'ocean';
+                    const bg   = isDark ? 'rgba(0,0,0,0)'  : 'rgba(0,0,0,0)';
+                    const grid = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.08)';
+                    const txt  = isDark ? '#c8cdd6' : '#333';
+
+                    const pct = arr => arr.map(v => +(v * 100).toFixed(2));
+
+                    const traces = [
+                        { name: 'Ensemble',   y: pct(d.ensemble), line: { color: '#f7c04f', width: 2.5 } },
+                        { name: 'PPO',        y: pct(d.ppo),      line: { color: '#4f8ef7', width: 1.5, dash: 'dot' } },
+                        { name: 'A2C',        y: pct(d.a2c),      line: { color: '#3fb950', width: 1.5, dash: 'dot' } },
+                        { name: 'DDPG',       y: pct(d.ddpg),     line: { color: '#f85149', width: 1.5, dash: 'dot' } },
+                        { name: 'Buy & Hold', y: pct(d.buy_hold), line: { color: '#8b949e', width: 1.5, dash: 'dash' } },
+                    ].map(t => Object.assign({ x: d.dates, type: 'scatter', mode: 'lines', hovertemplate: '%{y:.1f}%<extra>' + t.name + '</extra>' }, t));
+
+                    const layout = {
+                        paper_bgcolor: bg, plot_bgcolor: bg,
+                        margin: { t: 8, b: 36, l: 44, r: 10 },
+                        xaxis: { gridcolor: grid, color: txt, tickfont: { size: 9 }, type: 'date' },
+                        yaxis: { gridcolor: grid, color: txt, tickfont: { size: 9 }, ticksuffix: '%', zeroline: true, zerolinecolor: grid },
+                        legend: { orientation: 'h', y: -0.18, font: { size: 9, color: txt } },
+                        font: { color: txt },
+                        hovermode: 'x unified',
+                    };
+                    Plotly.newPlot('ensemble-chart', traces, layout, { responsive: true, displayModeBar: false });
+
+                    // Stats table
+                    if (d.stats) {
+                        const cols = [
+                            ['Ensemble', d.stats.ensemble, '#f7c04f'],
+                            ['PPO',      d.stats.ppo,      '#4f8ef7'],
+                            ['A2C',      d.stats.a2c,      '#3fb950'],
+                            ['DDPG',     d.stats.ddpg,     '#f85149'],
+                            ['Buy&Hold', d.stats.buy_hold, '#8b949e'],
+                        ];
+                        const html = cols.map(([label, s, col]) =>
+                            `<span style="border:1px solid ${col};border-radius:4px;padding:2px 6px;color:${col};">
+                                <strong>${label}</strong>&nbsp;
+                                CR: ${s.cumulative_return}%&nbsp;
+                                Sharpe: ${s.sharpe}&nbsp;
+                                DD: ${s.max_drawdown}%
+                            </span>`
+                        ).join('');
+                        $('#ensemble-stats-row').html(html);
+                        $('#ensemble-stats').show();
+                    }
+                } catch(e) {
+                    $('#ensemble-loading').hide();
+                    $('#ensemble-placeholder').text('Network error.').show();
+                }
             }
 
             async function loadPeers(sym) {
