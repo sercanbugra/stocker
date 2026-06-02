@@ -7682,6 +7682,7 @@
                         let predictionsHtml = '';
                         const cs = currencySymbol(symbol);
                         const currentPrice = response.current_price;
+                        window._lastCurrentPrice = currentPrice; // used by TRADE button
                         const confidences = {
                             'XGBoost': 0.82,
                             'ExtraTrees': 0.78,
@@ -7942,56 +7943,51 @@
                 }
             }
 
-            // Parse % numbers near a keyword within text
-            function _extractPctNearKw(text, keywords) {
+            // Extract the nearest $price to a keyword in text
+            function _extractPriceNearKw(text, keywords) {
                 const lower = text.toLowerCase();
                 for (const kw of keywords) {
                     const idx = lower.indexOf(kw);
                     if (idx < 0) continue;
-                    const slice = text.slice(Math.max(0, idx - 30), idx + 60);
-                    const m = slice.match(/(\d+(?:\.\d+)?)\s*%/);
+                    const slice = text.slice(Math.max(0, idx - 60), idx + 80);
+                    const m = slice.match(/\$(\d+(?:\.\d+)?)/);
                     if (m) return parseFloat(m[1]);
                 }
                 return null;
             }
-            function _allPcts(text) {
-                return [...text.matchAll(/(\d+(?:\.\d+)?)\s*%/g)].map(m => parseFloat(m[1]));
+            function _allDollarPrices(text) {
+                return [...text.matchAll(/\$(\d+(?:\.\d+)?)/g)].map(m => parseFloat(m[1]));
             }
             function _parseAdvisorForTrade(sectionMap) {
                 const entry = sectionMap['ENTRY STRATEGY'] || '';
                 const exit  = sectionMap['EXIT STRATEGY']  || '';
 
-                // --- Buy Drop ---
-                const entryNums = _allPcts(entry);
-                const buyDrop1 = entryNums[0] || 10;
-                // Value 2: next explicit % in entry text, or 1.5× Value 1 as a second-tranche estimate
-                const buyDrop2 = entryNums[1] || Math.round(buyDrop1 * 1.5 * 10) / 10;
+                // --- Buy price(s): look for $ amounts in entry text ---
+                const entryPrices = _allDollarPrices(entry);
+                const buyAt  = _extractPriceNearKw(entry, ['below','weakness','at','around','near','entry','buy'])
+                             || entryPrices[0] || null;
+                // Second tranche: next $ price or 5% below first
+                const buyAt2 = entryPrices.find(p => buyAt && p < buyAt)
+                             || (buyAt ? Math.round(buyAt * 0.95 * 100) / 100 : null);
 
-                // --- Stop Loss: find % explicitly tied to stop/loss keywords ---
-                const stopLoss = _extractPctNearKw(exit, ['stop loss','stop-loss','stop at','% below','below current'])
-                               || _extractPctNearKw(exit, ['loss','cut','protect'])
-                               || _allPcts(exit)[0] || 8;
+                // --- Stop Loss: look for $ amount near stop/loss keywords ---
+                const stopPrice = _extractPriceNearKw(exit, ['stop-loss','stop loss','stop at','hard stop','protect','cut'])
+                                || _extractPriceNearKw(exit, ['loss','below'])
+                                || _allDollarPrices(exit)[0] || null;
 
-                // --- Take Profit: separate search; do NOT fall back to exit numbers
-                //     (they likely belong to the stop loss, not the target) ---
-                const takeProfit = _extractPctNearKw(exit, ['take profit','taking profit','profit at','gain of','% gain','% up','target','rallies'])
-                                || _extractPctNearKw(exit, ['sell at','trim at','reduce at'])
-                                || 20;  // safe default — avoids reusing the stop loss %
+                // --- Take Profit: look for $ amount near profit/target keywords ---
+                const takePrice = _extractPriceNearKw(exit, ['take profit','taking profit','profit','above','rallies','target','sell'])
+                                || _allDollarPrices(exit).find(p => stopPrice && p > stopPrice)
+                                || null;
 
-                // --- Portions: first / second tranche split that sums to 100 ---
-                // Try to detect explicit split hints in entry text
-                let portion1 = 60, portion2 = 40;  // default 60/40
+                // --- Portions: first/second tranche split summing to 100 ---
+                let portion1 = 60, portion2 = 40;
                 const el = entry.toLowerCase();
-                if (/equal|half|50.50|evenly/.test(el))             { portion1 = 50; portion2 = 50; }
-                else if (/two.third|2\/3|70.30/.test(el))           { portion1 = 70; portion2 = 30; }
-                else if (/three.quart|75.25/.test(el))              { portion1 = 75; portion2 = 25; }
-                // If entry text has two %s summing to ~100, use them directly
-                if (entryNums.length >= 2) {
-                    const s = entryNums[0] + entryNums[1];
-                    if (s >= 95 && s <= 105) { portion1 = entryNums[0]; portion2 = entryNums[1]; }
-                }
+                if (/equal|half|50.50|evenly/.test(el))    { portion1 = 50; portion2 = 50; }
+                else if (/two.third|2\/3|70.30/.test(el))  { portion1 = 70; portion2 = 30; }
+                else if (/three.quart|75.25/.test(el))     { portion1 = 75; portion2 = 25; }
 
-                return { buyDrop1, buyDrop2, portion1, portion2, takeProfit, stopLoss };
+                return { buyAt, buyAt2, portion1, portion2, takePrice, stopPrice };
             }
 
             async function loadPortfolioAdvice(sym) {
@@ -8035,8 +8031,8 @@
                         else { body.push(line.trim()); }
                     }
                     flushSection();
-                    // Store for TRADE button
-                    window._advisorData = { symbol: sym, sections: parsedSections };
+                    // Store for TRADE button (include current price for $ → % conversion in bot)
+                    window._advisorData = { symbol: sym, sections: parsedSections, currentPrice: window._lastCurrentPrice || null };
                     if (userTier === 'admin') {
                         html += '<div style="padding:4px 0 8px;"><button id="advisor-trade-btn" class="btn btn-sm btn-success w-100" style="font-size:0.8rem;"><i class="fas fa-robot me-1"></i> TRADE</button></div>';
                     }
@@ -8058,7 +8054,7 @@
                     const iframe = document.querySelector('#snap-bot iframe');
                     if (iframe && iframe.contentWindow) {
                         iframe.contentWindow.postMessage(
-                            Object.assign({ type: 'openAITrade', ticker: ad.symbol, t212Ticker: ad.symbol + '_US_EQ' }, params),
+                            Object.assign({ type: 'openAITrade', ticker: ad.symbol, t212Ticker: ad.symbol + '_US_EQ', currentPrice: ad.currentPrice }, params),
                             'https://trading212.fly.dev'
                         );
                     }
