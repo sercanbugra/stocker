@@ -4467,6 +4467,23 @@
                     <div id="admin-members-list" class="small" style="max-height:220px; overflow-y:auto; border:1px solid var(--panel-border); border-radius:10px; padding:10px; background:rgba(255,255,255,0.02);">
                         <div class="text-muted">Loading members…</div>
                     </div>
+                    <!-- AI Provider toggle -->
+                    <div class="mt-3 p-2" style="background:rgba(255,255,255,0.03); border:1px solid var(--panel-border); border-radius:10px;">
+                        <div class="small fw-semibold mb-2" style="color:var(--panel-muted);">
+                            <i class="fas fa-robot me-1"></i> AI Provider
+                            <span id="admin-ai-provider-status" class="ms-2" style="font-weight:400;"></span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm px-3 admin-ai-provider-btn" data-provider="nvidia"
+                                style="border:1px solid rgba(118,185,0,0.5); color:#76b900; background:transparent;">
+                                <i class="fas fa-microchip me-1"></i> Llama 3.3
+                            </button>
+                            <button class="btn btn-sm px-3 admin-ai-provider-btn" data-provider="anthropic"
+                                style="border:1px solid rgba(200,160,80,0.5); color:#c8a050; background:transparent;">
+                                <i class="fas fa-brain me-1"></i> Claude Haiku
+                            </button>
+                        </div>
+                    </div>
                     <div class="mt-3 d-flex justify-content-end gap-2">
                         <button class="btn btn-sm btn-outline-info px-3" id="admin-watchlist-mail-btn">
                             <i class="fas fa-star me-1"></i> Watchlist Mails
@@ -5942,6 +5959,48 @@
                 });
             }
 
+            // Admin: AI provider toggle
+            function loadAiProviderState() {
+                fetch('/api/admin/ai-provider').then(r => r.json()).then(d => {
+                    setAiProviderUI(d.provider, d.nvidia_configured, d.anthropic_configured);
+                }).catch(() => {});
+            }
+
+            function setAiProviderUI(provider, nvidiaOk, anthropicOk) {
+                const $status = $('#admin-ai-provider-status');
+                const label = provider === 'nvidia'
+                    ? '<span style="color:#76b900;">● Llama 3.3 (NVIDIA)</span>'
+                    : '<span style="color:#c8a050;">● Claude Haiku</span>';
+                $status.html(label);
+                $('.admin-ai-provider-btn').each(function() {
+                    const p = $(this).data('provider');
+                    const isActive = p === provider;
+                    $(this).css({
+                        'opacity': isActive ? '1' : '0.45',
+                        'font-weight': isActive ? '700' : '400',
+                        'box-shadow': isActive ? (p === 'nvidia' ? '0 0 0 2px #76b900' : '0 0 0 2px #c8a050') : 'none'
+                    });
+                    if (p === 'nvidia' && !nvidiaOk) $(this).attr('title', 'NVIDIA_API_KEY not set');
+                    if (p === 'anthropic' && !anthropicOk) $(this).attr('title', 'ANTHROPIC_API_KEY not set');
+                });
+            }
+
+            $(document).on('click', '.admin-ai-provider-btn', async function() {
+                const provider = $(this).data('provider');
+                const label = provider === 'nvidia' ? 'Llama 3.3 (NVIDIA NIM)' : 'Claude Haiku (Anthropic)';
+                if (!confirm(`Switch AI provider to ${label}?\n\nAll AI features (Trade Thesis, Earnings, Portfolio) will use this provider immediately.`)) return;
+                try {
+                    const r = await fetch('/api/admin/ai-provider', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({provider})
+                    });
+                    const d = await r.json();
+                    if (d.ok) setAiProviderUI(d.provider, !!d.nvidia_configured, !!d.anthropic_configured);
+                    else alert(d.error || 'Switch failed');
+                } catch(e) { alert('Request failed'); }
+            });
+
             // Admin change tier
             $(document).on('change', '.admin-tier-select', async function() {
                 const $sel    = $(this);
@@ -6289,8 +6348,11 @@
                         localStorage.setItem(THEME_KEY, serverTheme);
                     } catch(_) {}
 
-                    // Admin: load members list on init
-                    if (userTier === 'admin') loadAdminMembers();
+                    // Admin: load members list and AI provider state on init
+                    if (userTier === 'admin') {
+                        loadAdminMembers();
+                        loadAiProviderState();
+                    }
                 }).catch(() => {});
             }
 

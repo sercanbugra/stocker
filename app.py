@@ -4366,13 +4366,70 @@ def _send_watchlist_news_email(to_email: str, news_by_symbol: list) -> None:
 # AI Trade Thesis
 # ---------------------------------------------------------------------------
 _ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+_NVIDIA_API_KEY    = os.getenv("NVIDIA_API_KEY", "")
+_NVIDIA_API_URL    = "https://integrate.api.nvidia.com/v1/chat/completions"
+_NVIDIA_MODEL      = "meta/llama-3.3-70b-instruct"
+
+_AI_CONFIG_PATH = os.path.join(PERSISTENT_DATA_DIR, "ai_config.json")
+
+def _load_ai_provider() -> str:
+    try:
+        with open(_AI_CONFIG_PATH, "r", encoding="utf-8") as f:
+            return json.load(f).get("provider", "nvidia")
+    except Exception:
+        return "nvidia"
+
+def _save_ai_provider(provider: str) -> None:
+    try:
+        with open(_AI_CONFIG_PATH, "w", encoding="utf-8") as f:
+            json.dump({"provider": provider}, f)
+    except Exception as exc:
+        logger.warning("Could not save ai_config: %s", exc)
+
+_AI_PROVIDER = _load_ai_provider()
+
+def _call_llm(prompt: str, max_tokens: int = 400) -> str:
+    """Call the active AI provider (nvidia or anthropic) and return text."""
+    global _AI_PROVIDER
+    provider = _AI_PROVIDER
+
+    if provider == "nvidia" and _NVIDIA_API_KEY:
+        resp = requests.post(
+            _NVIDIA_API_URL,
+            headers={"Authorization": f"Bearer {_NVIDIA_API_KEY}",
+                     "Content-Type": "application/json"},
+            json={"model": _NVIDIA_MODEL,
+                  "messages": [{"role": "user", "content": prompt}],
+                  "temperature": 0.2,
+                  "top_p": 0.7,
+                  "max_tokens": max_tokens},
+            timeout=30,
+        )
+        resp.raise_for_status()
+        return resp.json()["choices"][0]["message"]["content"].strip()
+
+    if _ANTHROPIC_API_KEY:
+        resp = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={"x-api-key": _ANTHROPIC_API_KEY,
+                     "anthropic-version": "2023-06-01",
+                     "content-type": "application/json"},
+            json={"model": "claude-haiku-4-5-20251001",
+                  "max_tokens": max_tokens,
+                  "messages": [{"role": "user", "content": prompt}]},
+            timeout=20,
+        )
+        resp.raise_for_status()
+        return resp.json()["content"][0]["text"].strip()
+
+    raise RuntimeError("No AI provider configured (set NVIDIA_API_KEY or ANTHROPIC_API_KEY)")
 
 def generate_trade_thesis(symbol: str, company_info: dict, current_price: float,
                           predictions: dict, analyst_payload: dict, news: list,
                           sentiment_avg: float | None) -> dict:
-    """Call Claude Haiku to generate a bull/bear/verdict trade thesis."""
-    if not _ANTHROPIC_API_KEY:
-        return {"error": "AI thesis not configured (missing ANTHROPIC_API_KEY)"}
+    """Generate a bull/bear/verdict trade thesis via NVIDIA NIM or Claude Haiku."""
+    if not _NVIDIA_API_KEY and not _ANTHROPIC_API_KEY:
+        return {"error": "AI thesis not configured (missing NVIDIA_API_KEY or ANTHROPIC_API_KEY)"}
 
     # Build a compact context string — keep tokens low
     avg_pred = None
@@ -4418,24 +4475,7 @@ def generate_trade_thesis(symbol: str, company_info: dict, current_price: float,
     )
 
     try:
-        resp = requests.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={
-                "x-api-key": _ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            json={
-                "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 300,
-                "messages": [{"role": "user", "content": prompt}],
-            },
-            timeout=20,
-        )
-        if not resp.ok:
-            logger.warning(f"Trade thesis API error for {symbol}: {resp.status_code} {resp.text}")
-            return {"error": "Could not generate thesis. Please try again."}
-        text = resp.json()["content"][0]["text"].strip()
+        text = _call_llm(prompt, max_tokens=300)
         return {"thesis": text}
     except Exception as e:
         logger.warning(f"Trade thesis API error for {symbol}: {e}")
@@ -5113,9 +5153,9 @@ def api_earnings_summary():
 
 
 def generate_earnings_summary(symbol: str) -> dict:
-    """Fetch earnings data via yfinance and summarise with Claude Haiku."""
-    if not _ANTHROPIC_API_KEY:
-        return {"error": "AI features not configured (missing ANTHROPIC_API_KEY)"}
+    """Fetch earnings data via yfinance and summarise via the active LLM provider."""
+    if not _NVIDIA_API_KEY and not _ANTHROPIC_API_KEY:
+        return {"error": "AI features not configured (missing NVIDIA_API_KEY or ANTHROPIC_API_KEY)"}
 
     try:
         ticker = yf.Ticker(symbol)
@@ -5205,24 +5245,7 @@ def generate_earnings_summary(symbol: str) -> dict:
     )
 
     try:
-        resp = requests.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={
-                "x-api-key": _ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            json={
-                "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 350,
-                "messages": [{"role": "user", "content": prompt}],
-            },
-            timeout=20,
-        )
-        if not resp.ok:
-            logger.warning(f"Earnings summary API error for {symbol}: {resp.status_code} {resp.text}")
-            return {"error": "Could not generate summary. Please try again."}
-        text = resp.json()["content"][0]["text"].strip()
+        text = _call_llm(prompt, max_tokens=350)
         return {"summary": text}
     except Exception as e:
         logger.warning(f"Earnings summary error for {symbol}: {e}")
@@ -5257,9 +5280,9 @@ def api_portfolio_advisor():
 def generate_portfolio_advice(symbol: str, company_info: dict, current_price: float,
                                predictions: dict, analyst_payload: dict, news: list,
                                sentiment_avg: float | None) -> dict:
-    """Call Claude Haiku to generate portfolio sizing and risk advice."""
-    if not _ANTHROPIC_API_KEY:
-        return {"error": "AI advisor not configured (missing ANTHROPIC_API_KEY)"}
+    """Generate portfolio sizing and risk advice via the active LLM provider."""
+    if not _NVIDIA_API_KEY and not _ANTHROPIC_API_KEY:
+        return {"error": "AI advisor not configured (missing NVIDIA_API_KEY or ANTHROPIC_API_KEY)"}
 
     pred_changes = []
     for preds in predictions.values():
@@ -5311,24 +5334,7 @@ def generate_portfolio_advice(symbol: str, company_info: dict, current_price: fl
     )
 
     try:
-        resp = requests.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={
-                "x-api-key": _ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            json={
-                "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 400,
-                "messages": [{"role": "user", "content": prompt}],
-            },
-            timeout=20,
-        )
-        if not resp.ok:
-            logger.warning(f"Portfolio advisor API error for {symbol}: {resp.status_code} {resp.text}")
-            return {"error": "Could not generate advice. Please try again."}
-        text = resp.json()["content"][0]["text"].strip()
+        text = _call_llm(prompt, max_tokens=400)
         return {"advice": text}
     except Exception as e:
         logger.warning(f"Portfolio advisor error for {symbol}: {e}")
@@ -5934,6 +5940,26 @@ def api_admin_users():
         )
         out.append({"email": em, "tier": tier, "registered_at": registered_at, "online": online, "last_seen": last_seen})
     return jsonify(out)
+
+@app.route("/api/admin/ai-provider", methods=["GET", "POST"])
+def api_admin_ai_provider():
+    _, error = _require_admin()
+    if error:
+        return error
+    global _AI_PROVIDER
+    if request.method == "GET":
+        return jsonify({"provider": _AI_PROVIDER,
+                        "nvidia_configured": bool(_NVIDIA_API_KEY),
+                        "anthropic_configured": bool(_ANTHROPIC_API_KEY)})
+    data = request.get_json(silent=True) or {}
+    provider = data.get("provider", "")
+    if provider not in ("nvidia", "anthropic"):
+        return jsonify({"error": "provider must be 'nvidia' or 'anthropic'"}), 400
+    _AI_PROVIDER = provider
+    _save_ai_provider(provider)
+    logger.info("AI provider switched to %s by admin", provider)
+    return jsonify({"ok": True, "provider": provider})
+
 
 @app.route("/api/admin/delete-user", methods=["POST"])
 def api_admin_delete_user():
