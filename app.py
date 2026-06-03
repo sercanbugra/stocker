@@ -4370,7 +4370,7 @@ _NVIDIA_API_KEY    = os.getenv("NVIDIA_API_KEY", "")
 _NVIDIA_API_URL    = "https://integrate.api.nvidia.com/v1/chat/completions"
 _NVIDIA_MODEL      = "meta/llama-3.3-70b-instruct"
 
-_AI_CONFIG_PATH = os.path.join(PERSISTENT_DATA_DIR, "ai_config.json")
+_AI_CONFIG_PATH = os.path.join(_DATA_DIR, "ai_config.json")
 
 def _load_ai_provider() -> str:
     try:
@@ -4388,7 +4388,40 @@ def _save_ai_provider(provider: str) -> None:
 
 _AI_PROVIDER = _load_ai_provider()
 
-def _call_llm(prompt: str, max_tokens: int = 400) -> str:
+# ---------------------------------------------------------------------------
+# AI usage tracking
+# ---------------------------------------------------------------------------
+_AI_USAGE_PATH = os.path.join(_DATA_DIR, "ai_usage.json")
+_ai_usage_lock = threading.Lock()
+
+def _load_ai_usage() -> dict:
+    try:
+        with open(_AI_USAGE_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def _record_ai_call(provider: str, feature: str) -> None:
+    today = datetime.now(timezone.utc).date().isoformat()
+    with _ai_usage_lock:
+        try:
+            data = _load_ai_usage()
+            data.setdefault("total", {"nvidia": 0, "anthropic": 0})
+            data.setdefault("by_feature", {})
+            data.setdefault("daily", {})
+            data["total"][provider] = data["total"].get(provider, 0) + 1
+            data["by_feature"][feature] = data["by_feature"].get(feature, 0) + 1
+            data["daily"].setdefault(today, {"nvidia": 0, "anthropic": 0})
+            data["daily"][today][provider] = data["daily"][today].get(provider, 0) + 1
+            # Keep only last 30 days
+            cutoff = (datetime.now(timezone.utc).date() - timedelta(days=30)).isoformat()
+            data["daily"] = {d: v for d, v in data["daily"].items() if d >= cutoff}
+            with open(_AI_USAGE_PATH, "w", encoding="utf-8") as f:
+                json.dump(data, f)
+        except Exception as exc:
+            logger.warning("AI usage record error: %s", exc)
+
+def _call_llm(prompt: str, max_tokens: int = 400, feature: str = "unknown") -> str:
     """Call the active AI provider (nvidia or anthropic) and return text."""
     global _AI_PROVIDER
     provider = _AI_PROVIDER
@@ -4406,6 +4439,7 @@ def _call_llm(prompt: str, max_tokens: int = 400) -> str:
             timeout=30,
         )
         resp.raise_for_status()
+        _record_ai_call("nvidia", feature)
         return resp.json()["choices"][0]["message"]["content"].strip()
 
     if _ANTHROPIC_API_KEY:
@@ -4420,6 +4454,7 @@ def _call_llm(prompt: str, max_tokens: int = 400) -> str:
             timeout=20,
         )
         resp.raise_for_status()
+        _record_ai_call("anthropic", feature)
         return resp.json()["content"][0]["text"].strip()
 
     raise RuntimeError("No AI provider configured (set NVIDIA_API_KEY or ANTHROPIC_API_KEY)")
@@ -4475,7 +4510,7 @@ def generate_trade_thesis(symbol: str, company_info: dict, current_price: float,
     )
 
     try:
-        text = _call_llm(prompt, max_tokens=300)
+        text = _call_llm(prompt, max_tokens=300, feature="trade_thesis")
         return {"thesis": text}
     except Exception as e:
         logger.warning(f"Trade thesis API error for {symbol}: {e}")
@@ -5245,7 +5280,7 @@ def generate_earnings_summary(symbol: str) -> dict:
     )
 
     try:
-        text = _call_llm(prompt, max_tokens=350)
+        text = _call_llm(prompt, max_tokens=350, feature="earnings_summary")
         return {"summary": text}
     except Exception as e:
         logger.warning(f"Earnings summary error for {symbol}: {e}")
@@ -5334,7 +5369,7 @@ def generate_portfolio_advice(symbol: str, company_info: dict, current_price: fl
     )
 
     try:
-        text = _call_llm(prompt, max_tokens=400)
+        text = _call_llm(prompt, max_tokens=400, feature="portfolio_advisor")
         return {"advice": text}
     except Exception as e:
         logger.warning(f"Portfolio advisor error for {symbol}: {e}")
@@ -5948,9 +5983,23 @@ def api_admin_ai_provider():
         return error
     global _AI_PROVIDER
     if request.method == "GET":
-        return jsonify({"provider": _AI_PROVIDER,
-                        "nvidia_configured": bool(_NVIDIA_API_KEY),
-                        "anthropic_configured": bool(_ANTHROPIC_API_KEY)})
+        today = datetime.now(timezone.utc).date().isoformat()
+        usage = _load_ai_usage()
+        total   = usage.get("total", {})
+        daily   = usage.get("daily", {}).get(today, {})
+        by_feat = usage.get("by_feature", {})
+        return jsonify({
+            "provider": _AI_PROVIDER,
+            "nvidia_configured":    bool(_NVIDIA_API_KEY),
+            "anthropic_configured": bool(_ANTHROPIC_API_KEY),
+            "usage": {
+                "total_nvidia":     total.get("nvidia", 0),
+                "total_anthropic":  total.get("anthropic", 0),
+                "today_nvidia":     daily.get("nvidia", 0),
+                "today_anthropic":  daily.get("anthropic", 0),
+                "by_feature":       by_feat,
+            }
+        })
     data = request.get_json(silent=True) or {}
     provider = data.get("provider", "")
     if provider not in ("nvidia", "anthropic"):

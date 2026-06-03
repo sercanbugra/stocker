@@ -4483,6 +4483,7 @@
                                 <i class="fas fa-brain me-1"></i> Claude Haiku
                             </button>
                         </div>
+                        <div id="admin-ai-usage-stats"></div>
                     </div>
                     <div class="mt-3 d-flex justify-content-end gap-2">
                         <button class="btn btn-sm btn-outline-info px-3" id="admin-watchlist-mail-btn">
@@ -5962,11 +5963,11 @@
             // Admin: AI provider toggle
             function loadAiProviderState() {
                 fetch('/api/admin/ai-provider').then(r => r.json()).then(d => {
-                    setAiProviderUI(d.provider, d.nvidia_configured, d.anthropic_configured);
+                    setAiProviderUI(d.provider, d.nvidia_configured, d.anthropic_configured, d.usage || {});
                 }).catch(() => {});
             }
 
-            function setAiProviderUI(provider, nvidiaOk, anthropicOk) {
+            function setAiProviderUI(provider, nvidiaOk, anthropicOk, usage) {
                 const $status = $('#admin-ai-provider-status');
                 const label = provider === 'nvidia'
                     ? '<span style="color:#76b900;">● Llama 3.3 (NVIDIA)</span>'
@@ -5983,6 +5984,29 @@
                     if (p === 'nvidia' && !nvidiaOk) $(this).attr('title', 'NVIDIA_API_KEY not set');
                     if (p === 'anthropic' && !anthropicOk) $(this).attr('title', 'ANTHROPIC_API_KEY not set');
                 });
+                // Usage stats
+                if (usage && $('#admin-ai-usage-stats').length) {
+                    const u = usage;
+                    const bf = u.by_feature || {};
+                    $('#admin-ai-usage-stats').html(`
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;">
+                            <div style="background:rgba(118,185,0,0.08); border:1px solid rgba(118,185,0,0.2); border-radius:8px; padding:8px 10px;">
+                                <div style="font-size:0.68rem; color:rgba(200,238,255,0.45); margin-bottom:2px;">NVIDIA · today</div>
+                                <div style="font-size:1.1rem; font-weight:700; color:#76b900;">${u.today_nvidia || 0}</div>
+                                <div style="font-size:0.65rem; color:rgba(200,238,255,0.35);">total: ${u.total_nvidia || 0}</div>
+                            </div>
+                            <div style="background:rgba(200,160,80,0.08); border:1px solid rgba(200,160,80,0.2); border-radius:8px; padding:8px 10px;">
+                                <div style="font-size:0.68rem; color:rgba(200,238,255,0.45); margin-bottom:2px;">Haiku · today</div>
+                                <div style="font-size:1.1rem; font-weight:700; color:#c8a050;">${u.today_anthropic || 0}</div>
+                                <div style="font-size:0.65rem; color:rgba(200,238,255,0.35);">total: ${u.total_anthropic || 0}</div>
+                            </div>
+                        </div>
+                        <div style="margin-top:6px; font-size:0.68rem; color:rgba(200,238,255,0.4); display:flex; gap:10px; flex-wrap:wrap;">
+                            <span>Trade Thesis: <b style="color:rgba(200,238,255,0.7);">${bf.trade_thesis || 0}</b></span>
+                            <span>Earnings: <b style="color:rgba(200,238,255,0.7);">${bf.earnings_summary || 0}</b></span>
+                            <span>Portfolio: <b style="color:rgba(200,238,255,0.7);">${bf.portfolio_advisor || 0}</b></span>
+                        </div>`);
+                }
             }
 
             $(document).on('click', '.admin-ai-provider-btn', async function() {
@@ -5996,7 +6020,7 @@
                         body: JSON.stringify({provider})
                     });
                     const d = await r.json();
-                    if (d.ok) setAiProviderUI(d.provider, !!d.nvidia_configured, !!d.anthropic_configured);
+                    if (d.ok) loadAiProviderState();
                     else alert(d.error || 'Switch failed');
                 } catch(e) { alert('Request failed'); }
             });
