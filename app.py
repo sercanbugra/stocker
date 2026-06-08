@@ -3894,6 +3894,34 @@ def api_performance():
         except Exception as exc:
             logger.warning("performance: quarterly_income_stmt %s: %s", symbol, exc)
 
+        # ── Dividend History & Upcoming Dates ──
+        try:
+            divs = ticker.dividends
+            info_d = ticker.info
+            div_info = {}
+            if divs is not None and not divs.empty:
+                recent = divs.sort_index(ascending=False).head(12)
+                div_info['history'] = [
+                    {'date': str(idx.date()), 'amount': round(float(val), 4)}
+                    for idx, val in recent.items()
+                ]
+            next_ts = info_d.get('dividendDate')
+            ex_ts   = info_d.get('exDividendDate')
+            if next_ts:
+                div_info['next_dividend_date'] = datetime.utcfromtimestamp(int(next_ts)).strftime('%Y-%m-%d')
+            if ex_ts:
+                div_info['ex_dividend_date'] = datetime.utcfromtimestamp(int(ex_ts)).strftime('%Y-%m-%d')
+            rate  = info_d.get('dividendRate')
+            yld   = info_d.get('dividendYield')
+            if rate:
+                div_info['annual_rate'] = round(float(rate), 4)
+            if yld:
+                div_info['yield_pct'] = round(float(yld) * 100, 2)
+            if div_info:
+                result['dividend_info'] = div_info
+        except Exception as exc:
+            logger.warning("performance: dividend_info %s: %s", symbol, exc)
+
         # ── Intrinsic Value (Graham Number + DCF + P/E Fair Value) ──
         try:
             info = ticker.info

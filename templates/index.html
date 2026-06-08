@@ -7435,21 +7435,55 @@
 
             function renderRevEarnings(data) {
                 var d = data.quarterly_revenue_earnings;
+                var html = '';
                 if (!d || !d.quarters || !d.quarters.length) {
-                    document.getElementById('perf-rev-container').innerHTML = '<div class="text-muted small p-2">No quarterly revenue data available.</div>';
-                    return;
+                    html = '<div class="text-muted small p-2">No quarterly revenue data available.</div>';
+                } else {
+                    var rows = d.quarters.map(function(q, i) {
+                        var rev = d.revenue[i]; var net = d.net_income[i];
+                        var netCls = net === null ? '' : (net >= 0 ? 'text-success' : 'text-danger');
+                        return '<tr><td class="fw-semibold">' + escHtml(q) + '</td>' +
+                               '<td>' + fmtB(rev) + '</td>' +
+                               '<td class="' + netCls + '">' + fmtB(net) + '</td></tr>';
+                    }).join('');
+                    html = '<div class="table-responsive"><table class="table table-sm table-hover mb-0">' +
+                        '<thead><tr><th>Quarter</th><th>Revenue</th><th>Net Income</th></tr></thead>' +
+                        '<tbody>' + rows + '</tbody></table></div>';
                 }
-                var rows = d.quarters.map(function(q, i) {
-                    var rev = d.revenue[i]; var net = d.net_income[i];
-                    var netCls = net === null ? '' : (net >= 0 ? 'text-success' : 'text-danger');
-                    return '<tr><td class="fw-semibold">' + escHtml(q) + '</td>' +
-                           '<td>' + fmtB(rev) + '</td>' +
-                           '<td class="' + netCls + '">' + fmtB(net) + '</td></tr>';
-                }).join('');
-                document.getElementById('perf-rev-container').innerHTML =
-                    '<div class="table-responsive"><table class="table table-sm table-hover mb-0">' +
-                    '<thead><tr><th>Quarter</th><th>Revenue</th><th>Net Income</th></tr></thead>' +
-                    '<tbody>' + rows + '</tbody></table></div>';
+
+                // ── Dividend section ──
+                var di = data.dividend_info;
+                if (di) {
+                    var badgeStyle = 'display:inline-block;padding:3px 8px;border-radius:4px;font-size:0.7rem;font-weight:600;margin:2px 3px 2px 0;background:rgba(247,192,79,0.15);color:#f7c04f;border:1px solid rgba(247,192,79,0.3);';
+                    var divHtml = '<div style="padding:6px 8px 4px;border-top:1px solid rgba(255,255,255,0.07);margin-top:4px;">'
+                        + '<div style="font-size:0.72rem;font-weight:700;color:var(--panel-muted);letter-spacing:.04em;margin-bottom:5px;">'
+                        + '<i class="fas fa-hand-holding-usd" style="margin-right:4px;color:#f7c04f;"></i>DIVIDENDS</div>';
+
+                    // Upcoming badges
+                    var hasBadge = false;
+                    if (di.next_dividend_date) { divHtml += '<span style="' + badgeStyle + '">Next Dividend: ' + escHtml(di.next_dividend_date) + '</span>'; hasBadge = true; }
+                    if (di.ex_dividend_date)   { divHtml += '<span style="' + badgeStyle + '">Ex-Date: ' + escHtml(di.ex_dividend_date) + '</span>'; hasBadge = true; }
+                    if (di.annual_rate)        { divHtml += '<span style="' + badgeStyle + '">Annual: $' + di.annual_rate.toFixed(2) + '</span>'; hasBadge = true; }
+                    if (di.yield_pct)          { divHtml += '<span style="' + badgeStyle + '">Yield: ' + di.yield_pct.toFixed(2) + '%</span>'; hasBadge = true; }
+
+                    // History table
+                    if (di.history && di.history.length) {
+                        var divRows = di.history.map(function(r) {
+                            return '<tr><td>' + escHtml(r.date) + '</td><td style="font-weight:600;color:#f7c04f;">$' + r.amount.toFixed(4) + '</td></tr>';
+                        }).join('');
+                        divHtml += '<div class="table-responsive" style="margin-top:6px;">'
+                            + '<table class="table table-sm mb-0" style="font-size:0.73rem;">'
+                            + '<thead><tr><th>Ex-Date</th><th>Dividend / Share</th></tr></thead>'
+                            + '<tbody>' + divRows + '</tbody></table></div>';
+                    } else if (!hasBadge) {
+                        divHtml += '<div class="text-muted" style="font-size:0.73rem;">No dividend data available.</div>';
+                    }
+
+                    divHtml += '</div>';
+                    html += divHtml;
+                }
+
+                document.getElementById('perf-rev-container').innerHTML = html;
             }
 
             function renderIntrinsicValue(data, sym) {
@@ -7488,8 +7522,8 @@
                 // Methods breakdown rows
                 var methods = [];
                 if (d.graham_number) methods.push(['Graham Number',  '$' + d.graham_number, '√(22.5 × EPS × BVPS)']);
-                if (d.dcf_value)     methods.push(['DCF (5-yr)',      '$' + d.dcf_value,     'FCF/share discounted @' + inp.discount_rate + '%']);
-                if (d.pe_fair_value) methods.push(['P/E Fair Value',  '$' + d.pe_fair_value, 'Fwd EPS × 15×']);
+                if (d.dcf_value)     methods.push(['DCF (10-yr)',      '$' + d.dcf_value,     'FCF/share discounted @' + inp.discount_rate + '%']);
+                if (d.pe_fair_value) methods.push(['P/E Fair Value',  '$' + d.pe_fair_value, 'Fwd EPS × 18×']);
                 var methodRows = methods.map(function(r) {
                     return '<tr>'
                         + '<td style="font-size:0.73rem;color:var(--panel-muted);padding:3px 6px;">' + r[0] + '</td>'
