@@ -104,15 +104,15 @@ _CSP = "; ".join([
     "default-src 'self'",
     # Scripts: jQuery, Bootstrap JS, Plotly — all from trusted CDNs
     # 'unsafe-inline' required for existing inline onclick handlers in the template
-    "script-src 'self' 'unsafe-inline' https://code.jquery.com https://cdn.jsdelivr.net",
+    "script-src 'self' 'unsafe-inline' https://code.jquery.com https://cdn.jsdelivr.net https://www.googletagmanager.com",
     # Styles: Bootstrap, Font Awesome — 'unsafe-inline' required for inline style= attributes
     "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
     # Font Awesome webfonts
     "font-src 'self' data: https://cdnjs.cloudflare.com",
-    # Images: self + data: URIs + Yahoo Finance news thumbnails
-    "img-src 'self' data: https://s.yimg.com https://media.zenfs.com https://finance.yahoo.com",
-    # XHR/fetch: all API calls are same-origin
-    "connect-src 'self'",
+    # Images: self + data: URIs + Yahoo Finance news thumbnails + GA4 beacon
+    "img-src 'self' data: https://s.yimg.com https://media.zenfs.com https://finance.yahoo.com https://www.google-analytics.com https://www.googletagmanager.com",
+    # XHR/fetch: same-origin + GA4 analytics endpoint
+    "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com",
     # Same-origin iframes + trading212 bot (admin-only embed)
     "frame-src 'self' https://trading212.fly.dev",
     # Block Flash/plugins entirely
