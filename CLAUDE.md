@@ -80,13 +80,13 @@ All logic lives in `app.py`. Key sections:
 - **ML prediction** (`train_prediction_models`, `run_prediction`): Trains XGBoost + ExtraTreesRegressor + LightGBM ensemble on engineered features (`build_feature_frame`). Forecasts are done recursively via `_forecast_tree_recursive`. Minimum 60 trading days of data required (`validate_stock_data`).
 - **Pattern detection** (`detect_pattern` and helpers): Pure-Python technical pattern detectors (head-and-shoulders, double top/bottom, triangles, flags, cup-and-handle, etc.) operating on closing price arrays.
 - **Chart building** (`_build_pattern_chart_from_series`, `_build_rsi_chart_from_series`): Returns Plotly JSON consumed by the frontend. RSI chart uses a 45-day window (for warm-up), displaying ~22 days.
-- **Watchlist** (`watchlist_api`): Per-user JSON files at `watchlists/<sanitized_email>.json`; requires Pro tier.
+- **Watchlist** (`watchlist_api`): Per-user JSON files at `watchlists/<sanitized_email>.json`; available to all logged-in users (free tier included).
 - **Watchlist trends** (`/watchlist-trends`, `/api/watchlist-trends`): Aggregated view of symbols across all user watchlists.
 - **News + sentiment** (`fetch_news`, `_sentiment_score`): Pulls news from yfinance, scores titles/summaries with VADER.
 - **AI features** (Claude Haiku via HTTP `requests`): Trade thesis (Pro), earnings summary (Premium), portfolio advisor (Premium). No `anthropic` SDK — uses direct HTTP calls to `api.anthropic.com/v1/messages`.
 - **AI provider toggle** (`_load_ai_provider`, `_save_ai_provider`, `_AI_PROVIDER`): Switches between `"anthropic"` (Claude Haiku, **default**) and `"nvidia"` (Llama 3.3 via NIM). Config persisted in `data/cache/ai_config.json`. Admin-only toggle in the Profile modal calls `/api/admin/ai-provider`. `_record_ai_call` tracks usage per provider per day in `data/cache/ai_usage.json`.
 - **X Share** (`shareToX()` in JS, `/api/share-image`, `/share/<uuid>`, `/share-img/<uuid>.png`): Every analysis card header has an X (Twitter) share button. Client captures the card via `html-to-image` (CDN), uploads PNG to `/api/share-image` → saved as `data/cache/shares/<uuid>.png`. `/share/<uuid>` serves an OG-tag page for Twitter card previews. On desktop a preview modal (`#share-x-modal`) lets users download and tweet; on mobile the Web Share API is used directly.
-- **Payments** (Stripe): Checkout sessions, webhook handler, billing portal, subscription cancellation. Tiers: free (3/day), pro (unlimited + watchlist + AI), premium (pro + earnings + portfolio). Promo codes: `stripe.PromotionCode.list()` resolves a code string to an ID; applied via `discounts=[{"promotion_code": id}]` (mutually exclusive with `allow_promotion_codes`).
+- **Payments** (Stripe): Checkout sessions, webhook handler, billing portal, subscription cancellation. Tiers: free (5/day + watchlist), pro (unlimited + AI trade thesis + peer comparison), premium (pro + earnings + portfolio). Promo codes: `stripe.PromotionCode.list()` resolves a code string to an ID; applied via `discounts=[{"promotion_code": id}]` (mutually exclusive with `allow_promotion_codes`).
 - **Auth**: Google OAuth 2.0 (Flask-Dance) + email/password (bcrypt). Both stored in `data/users.json`.
 - **Account deletion** (`/delete-account`, `/api/delete-account`): User confirms by typing "DELETE"; removes user record and watchlist file.
 - **Undervalued stocks** (`fetch_top_undervalued_stocks`): Scans curated candidate lists for S&P 500, LSE, and BIST; cached daily in `undervalued_stocks.json`.
@@ -122,7 +122,7 @@ All logic lives in `app.py`. Key sections:
 | Tier | Daily analyses | Watchlist | Trade thesis | Peer comparison | Earnings summary | Portfolio advisor |
 |---|---|---|---|---|---|---|
 | Anonymous | 1 | — | — | — | — | — |
-| Free | 3 | — | — | — | — | — |
+| Free | 5 | Yes | — | — | — | — |
 | Pro | Unlimited | Yes | Yes | Yes | — | — |
 | Premium | Unlimited | Yes | Yes | Yes | Yes | Yes |
 | Admin | Unlimited | All | All | All | All | All |
@@ -183,7 +183,7 @@ A full-screen onboarding popup (`#welcome-modal`) is shown on page load for non-
 - **Continue as Guest** → closes modal, sets session flag (1 analysis/day)
 - **Pro / Premium plan cards** → clickable; stores `stocker_pending_tier` in `sessionStorage`, opens auth modal. After login the page reloads as a logged-in user and the jQuery ready block auto-calls `/create-checkout-session` with the stored tier, then redirects to Stripe Checkout.
 
-Plan cards displayed: Guest (1/day), Logged-in User (£0, 3/day), Pro (£3.99/mo, **"Most Popular" badge**), Premium (£5.99/mo). CTA labels: "Start Pro →", "Unlock Premium →". Promo code box always visible below plan cards in all three locations (welcome modal, upgrade modal, profile pricing tab).
+Plan cards displayed: Guest (1/day), Logged-in User (£0, 5/day + Watchlist), Pro (£3.99/mo, **"Most Popular" badge**), Premium (£5.99/mo). CTA labels: "Start Pro →", "Unlock Premium →". Promo code box always visible below plan cards in all three locations (welcome modal, upgrade modal, profile pricing tab).
 
 ## Frontend — Hero Carousel
 

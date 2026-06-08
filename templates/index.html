@@ -4152,7 +4152,7 @@
                     <div class="wm-plan-name">Free</div>
                     <div class="wm-plan-quota" style="font-size:0.95rem;">£0<sup style="font-size:0.5rem;">/mo</sup></div>
                     <div class="wm-plan-feats">
-                        3 analyses/day<br>ML predictions<br>Pattern detection<br>News &amp; sentiment<br>Watchlist
+                        5 analyses/day<br>ML predictions<br>Pattern detection<br>News &amp; sentiment<br>Watchlist
                     </div>
                 </div>
                 <div class="wm-plan wm-plan-pro wm-plan-cta" data-tier="pro" role="button" tabindex="0" title="Choose Pro">
@@ -4195,7 +4195,7 @@
             </button>
             <p class="wm-terms">
                 By continuing you agree to our <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>.
-                Free account: 3 analyses/day &bull; No credit card required.
+                Free account: 5 analyses/day &bull; No credit card required.
             </p>
             </div><!-- /wm-body -->
         </div>
@@ -4709,8 +4709,8 @@
                 <div class="drawer-cap cap-ok"><i class="fas fa-check-circle"></i> AI Trade Thesis</div>
                 <div class="drawer-cap cap-ok"><i class="fas fa-check-circle"></i> Peer Comparison</div>
                 {% else %}
-                <div class="drawer-cap cap-ok"><i class="fas fa-check-circle"></i> 3 analyses / day</div>
-                <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> Watchlist <small>(Pro)</small></div>
+                <div class="drawer-cap cap-ok"><i class="fas fa-check-circle"></i> 5 analyses / day</div>
+                <div class="drawer-cap cap-ok"><i class="fas fa-check-circle"></i> Watchlist</div>
                 <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> AI Trade Thesis <small>(Pro)</small></div>
                 <div class="drawer-cap cap-no"><i class="fas fa-times-circle"></i> Peer Comparison <small>(Pro)</small></div>
                 {% endif %}
@@ -8768,7 +8768,7 @@
                     return;
                 }
                 if (!hasWatchlistAccess) {
-                    openUpgradeModal('Watchlist is a Pro feature — upgrade to save and track your tickers.');
+                    openUpgradeModal('Sign in to save tickers to your watchlist.');
                     return;
                 }
                 const symbol = $('#stock-input').val().trim().toUpperCase();
@@ -8797,7 +8797,7 @@
             $watchlistBody.on('click', '.watchlist-item', function(e) {
                 if ($(e.target).closest('.wl-chip-remove').length) return;
                 if (!hasWatchlistAccess) {
-                    openUpgradeModal('Upgrade to Pro to use your watchlist.');
+                    openUpgradeModal('Sign in to use your watchlist.');
                     return;
                 }
                 const sym = $(this).data('symbol');

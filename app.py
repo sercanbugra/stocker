@@ -301,7 +301,7 @@ def _send_welcome_email(to_email: str) -> None:
           </p>
           <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:28px;">
             <tr><td style="padding:5px 0;color:rgba(200,238,255,0.6);font-size:14px;">
-              ✓ &nbsp;3 stock analyses per day
+              ✓ &nbsp;5 stock analyses per day
             </td></tr>
             <tr><td style="padding:5px 0;color:rgba(200,238,255,0.6);font-size:14px;">
               ✓ &nbsp;ML price predictions (XGBoost + LightGBM + ExtraTrees ensemble)
@@ -932,7 +932,7 @@ def _sync_checkout_session_to_user(checkout_session_id: str) -> bool:
 
 # Subscription tiers
 TIER_RANK = {"free": 0, "pro": 1, "premium": 2, "admin": 99}
-FREE_DAILY_LIMIT = 3
+FREE_DAILY_LIMIT = 5
 ANON_DAILY_LIMIT = 1
 
 # Accounts that are always treated as admin regardless of users.json
