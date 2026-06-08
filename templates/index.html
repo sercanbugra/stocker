@@ -1,12 +1,22 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
+    <!-- Google tag (gtag.js) — Consent Mode v2 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-5BPHKL6RCH"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
+      gtag('consent', 'default', {
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        wait_for_update: 500
+      });
+      if (localStorage.getItem('stocker_analytics_consent') === '1') {
+        gtag('consent', 'update', { analytics_storage: 'granted' });
+      }
       gtag('config', 'G-5BPHKL6RCH');
     </script>
     <meta charset="UTF-8">
@@ -234,6 +244,20 @@
         :root:not([data-theme="ocean"]) #cookie-prefs-overlay * {
             color: var(--panel-text) !important;
         }
+        .cookie-toggle { position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0; }
+        .cookie-toggle input { opacity:0; width:0; height:0; }
+        .cookie-toggle-slider {
+            position:absolute; inset:0; cursor:pointer;
+            background:rgba(200,238,255,0.15); border-radius:24px;
+            transition:background 0.2s;
+        }
+        .cookie-toggle-slider:before {
+            content:''; position:absolute;
+            width:18px; height:18px; left:3px; top:3px;
+            background:#fff; border-radius:50%; transition:transform 0.2s;
+        }
+        .cookie-toggle input:checked + .cookie-toggle-slider { background:#00c8e8; }
+        .cookie-toggle input:checked + .cookie-toggle-slider:before { transform:translateX(20px); }
 
         /* Market ticker */
         :root:not([data-theme="ocean"]) .mkt-ticker    { border-top-color: var(--panel-border); background: #f8fafc; }
@@ -8942,21 +8966,22 @@
                 </div>
             </div>
 
-            <!-- Analytics — we don't use any, shown for transparency -->
+            <!-- Analytics — GA4 with consent toggle -->
             <div style="display:flex; justify-content:space-between; align-items:flex-start; padding:14px 0; border-top:1px solid rgba(0,200,232,0.12);">
                 <div style="flex:1; padding-right:16px;">
                     <p style="margin:0 0 3px; font-size:0.88rem; font-weight:600; color:#c8eeff;">
                         Analytics
                     </p>
                     <p style="margin:0; font-size:0.78rem; color:rgba(200,238,255,0.5); line-height:1.5;">
-                        We do not currently use any analytics or tracking cookies. No third-party analytics scripts are loaded.
+                        We use Google Analytics 4 (GA4) to understand how visitors use Stocker — pages visited, session duration, and general usage patterns. No personally identifiable information is shared.
+                        <a href="https://policies.google.com/privacy" target="_blank" style="color:#00c8e8;">Google Privacy Policy</a>
                     </p>
                 </div>
                 <div style="flex-shrink:0; padding-top:2px;">
-                    <span style="
-                        display:inline-block; background:rgba(200,238,255,0.08); color:rgba(200,238,255,0.35);
-                        font-size:0.72rem; font-weight:700; padding:3px 10px;
-                        border-radius:20px; white-space:nowrap;">Not Used</span>
+                    <label class="cookie-toggle" aria-label="Toggle analytics cookies">
+                        <input type="checkbox" id="analytics-toggle">
+                        <span class="cookie-toggle-slider"></span>
+                    </label>
                 </div>
             </div>
 
@@ -8996,31 +9021,53 @@
 
     <script>
         (function() {
-            var CONSENT_KEY = 'stocker_cookie_consent';
+            var CONSENT_KEY  = 'stocker_cookie_consent';
+            var ANALYTICS_KEY = 'stocker_analytics_consent';
             var banner  = document.getElementById('cookie-banner');
             var overlay = document.getElementById('cookie-prefs-overlay');
+            var analyticsToggle = document.getElementById('analytics-toggle');
 
-            function dismiss() {
+            function applyAnalyticsConsent(granted) {
+                gtag('consent', 'update', { analytics_storage: granted ? 'granted' : 'denied' });
+                if (granted) {
+                    localStorage.setItem(ANALYTICS_KEY, '1');
+                } else {
+                    localStorage.removeItem(ANALYTICS_KEY);
+                }
+            }
+
+            function dismiss(grantAnalytics) {
                 localStorage.setItem(CONSENT_KEY, '1');
+                applyAnalyticsConsent(grantAnalytics);
                 banner.style.display  = 'none';
                 overlay.style.display = 'none';
             }
+
+            // Set toggle to reflect stored analytics preference
+            analyticsToggle.checked = localStorage.getItem(ANALYTICS_KEY) === '1';
 
             if (!localStorage.getItem(CONSENT_KEY)) {
                 banner.style.display = 'block';
             }
 
-            document.getElementById('cookie-accept').addEventListener('click', dismiss);
+            document.getElementById('cookie-accept').addEventListener('click', function() {
+                analyticsToggle.checked = true;
+                dismiss(true);
+            });
 
             document.getElementById('cookie-settings-btn').addEventListener('click', function() {
+                analyticsToggle.checked = localStorage.getItem(ANALYTICS_KEY) === '1';
                 overlay.style.display = 'block';
             });
+
             document.getElementById('cookie-prefs-close').addEventListener('click', function() {
                 overlay.style.display = 'none';
             });
-            document.getElementById('cookie-prefs-save').addEventListener('click', dismiss);
 
-            // Close overlay on backdrop click
+            document.getElementById('cookie-prefs-save').addEventListener('click', function() {
+                dismiss(analyticsToggle.checked);
+            });
+
             overlay.addEventListener('click', function(e) {
                 if (e.target === overlay) overlay.style.display = 'none';
             });
