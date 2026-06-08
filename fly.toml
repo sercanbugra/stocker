@@ -21,11 +21,11 @@ primary_region = 'ams'
   processes = ['app']
 
   [[http_service.checks]]
-    grace_period = "15s"
-    interval = "30s"
+    grace_period = "30s"
+    interval = "60s"
     method = "GET"
     path = "/health"
-    timeout = "5s"
+    timeout = "15s"
 
 [[mounts]]
   source = "stocker_data"
