@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Stocker** — a Flask web app for stock prediction and analysis. Single-file backend (`app.py`, ~5830 lines) with one main Jinja2 template (`templates/index.html`, ~6930 lines).
+**Stocker** — a Flask web app for stock prediction and analysis. Single-file backend (`app.py`, ~6100 lines) with one main Jinja2 template (`templates/index.html`, ~7200 lines).
 
 ## Running Locally
 
@@ -84,6 +84,8 @@ All logic lives in `app.py`. Key sections:
 - **Watchlist trends** (`/watchlist-trends`, `/api/watchlist-trends`): Aggregated view of symbols across all user watchlists.
 - **News + sentiment** (`fetch_news`, `_sentiment_score`): Pulls news from yfinance, scores titles/summaries with VADER.
 - **AI features** (Claude Haiku via HTTP `requests`): Trade thesis (Pro), earnings summary (Premium), portfolio advisor (Premium). No `anthropic` SDK — uses direct HTTP calls to `api.anthropic.com/v1/messages`.
+- **AI provider toggle** (`_load_ai_provider`, `_save_ai_provider`, `_AI_PROVIDER`): Switches between `"anthropic"` (Claude Haiku, **default**) and `"nvidia"` (Llama 3.3 via NIM). Config persisted in `data/cache/ai_config.json`. Admin-only toggle in the Profile modal calls `/api/admin/ai-provider`. `_record_ai_call` tracks usage per provider per day in `data/cache/ai_usage.json`.
+- **X Share** (`shareToX()` in JS, `/api/share-image`, `/share/<uuid>`, `/share-img/<uuid>.png`): Every analysis card header has an X (Twitter) share button. Client captures the card via `html-to-image` (CDN), uploads PNG to `/api/share-image` → saved as `data/cache/shares/<uuid>.png`. `/share/<uuid>` serves an OG-tag page for Twitter card previews. On desktop a preview modal (`#share-x-modal`) lets users download and tweet; on mobile the Web Share API is used directly.
 - **Payments** (Stripe): Checkout sessions, webhook handler, billing portal, subscription cancellation. Tiers: free (3/day), pro (unlimited + watchlist + AI), premium (pro + earnings + portfolio). Promo codes: `stripe.PromotionCode.list()` resolves a code string to an ID; applied via `discounts=[{"promotion_code": id}]` (mutually exclusive with `allow_promotion_codes`).
 - **Auth**: Google OAuth 2.0 (Flask-Dance) + email/password (bcrypt). Both stored in `data/users.json`.
 - **Account deletion** (`/delete-account`, `/api/delete-account`): User confirms by typing "DELETE"; removes user record and watchlist file.
@@ -111,6 +113,9 @@ All logic lives in `app.py`. Key sections:
 | `cache/remarkables_lse.json` | Daily LSE remarkables cache |
 | `cache/remarkables_bist.json` | Daily BIST remarkables cache |
 | `cache/undervalued_stocks.json` | Daily undervalued stocks cache |
+| `cache/ai_config.json` | Active AI provider (`"anthropic"` or `"nvidia"`) |
+| `cache/ai_usage.json` | Per-provider, per-day AI call counts |
+| `cache/shares/<uuid>.png` | Ephemeral X-share screenshots (not auto-purged; manual cleanup if volume fills) |
 
 ## Subscription Tiers
 
@@ -164,6 +169,10 @@ Admin emails are hard-coded in `ADMIN_EMAILS` set in `app.py`. Pricing: Pro £3.
 | `/api/admin/set-tier` | POST | Admin | Override a user's tier without Stripe charge |
 | `/api/admin/send-mail` | POST | Admin | Broadcast HTML email to users filtered by tier |
 | `/api/admin/send-watchlist-mails` | POST | Admin | Send watchlist notification emails |
+| `/api/admin/ai-provider` | GET/POST | Admin | Get or switch active AI provider (`anthropic`/`nvidia`) |
+| `/api/share-image` | POST | — | Upload base64 PNG; returns `{"uuid": "..."}` |
+| `/share/<uuid>` | GET | — | OG-tag page for Twitter card preview; redirects to site |
+| `/share-img/<uuid>.png` | GET | — | Serve share screenshot PNG |
 
 ## Frontend — Welcome Modal
 
@@ -215,6 +224,7 @@ Accessible in the Profile modal for admin-tier users. Features:
 
 - **Members list** (`#admin-members-list`): shows all users with email + tier dropdown. Changing the dropdown triggers a `confirm()` dialog then calls `/api/admin/set-tier`. Tier color-coded: admin (red), premium (gold), pro (blue), free (muted).
 - **Send Mail button**: opens `#admin-mail-modal` (z-index 1500). Compose form: tier filter pills (Admin / Premium / Pro / Free, all pre-selected), Subject, Header tab, Content tab. Recipient count shown live. Send calls `/api/admin/send-mail`; email dispatched in background thread. Success auto-closes modal after 2.2s.
+- **AI Provider toggle**: two buttons (`data-provider="nvidia"` / `data-provider="anthropic"`) call `/api/admin/ai-provider`. Active provider highlighted; usage stats (today / total calls per provider) shown inline.
 
 ## Known Pitfalls
 
@@ -231,6 +241,9 @@ Accessible in the Profile modal for admin-tier users. Features:
 - **Mobile layout**: Results section uses Bootstrap order classes — predictions panel (`order-1 order-lg-2`) appears above the chart on mobile, below on desktop.
 - **Promo code vs allow_promotion_codes**: Stripe's `discounts` and `allow_promotion_codes` parameters are mutually exclusive in checkout sessions. When a promo code is provided, use `discounts=[{"promotion_code": id}]` and omit `allow_promotion_codes`.
 - **Duplicate /privacy route**: There are two `@app.route('/privacy')` declarations (lines ~3758 and ~3776). Flask uses the first one.
+- **CSP `font-src` must include `data:`**: `html-to-image` inlines external fonts (Font Awesome, etc.) as `data:font/ttf;base64,...` URIs when capturing screenshots. The `_CSP` string in `app.py` must have `data:` in `font-src`; removing it breaks the X Share screenshot capture silently.
+- **X Share screenshot on desktop**: Uses `html-to-image` (not `html2canvas` — CORS/CSS-variable issues). The `filter` callback must guard `el.nodeType !== 1` before calling `getComputedStyle`; html-to-image passes text nodes to the filter. Fixed elements (`position: fixed`) and iframes are excluded from capture to avoid the ticker bar contaminating screenshots.
+- **AI provider default**: `_load_ai_provider()` defaults to `"anthropic"` when `data/cache/ai_config.json` is absent. If the file exists with `"nvidia"`, the provider stays Llama until an admin switches it via the panel or the file is deleted.
 
 ## graphify
 

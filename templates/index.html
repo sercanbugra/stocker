@@ -424,6 +424,27 @@
         #predictions-table .text-danger {
             color: #ff8a8a !important;
         }
+        /* ── X Share button ── */
+        .btn-share-x {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px;
+            color: var(--panel-text);
+            padding: 3px 7px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.68rem;
+            opacity: 0.55;
+            transition: opacity 0.15s, border-color 0.15s;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .btn-share-x:hover { opacity: 1; border-color: rgba(255,255,255,0.45); }
+        .btn-share-x.loading { opacity: 0.35; pointer-events: none; }
+        [data-theme="sand"] .btn-share-x { border-color: rgba(0,0,0,0.18); }
+        [data-theme="sand"] .btn-share-x:hover { border-color: rgba(0,0,0,0.45); }
         /* ── Analysis overlay ── */
         .loading-spinner {
             display: none;
@@ -5146,18 +5167,19 @@
                             <button type="button" class="ohlc-tf-btn" data-tf="hourly">1H</button>
                         </div>
                         <span id="ohlc-refresh-lbl" class="text-muted" style="font-size:0.62rem;"></span>
+                        <button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button>
                     </div>
                 </div>
                 <div class="card-body"><div id="overview-chart"></div></div>
             </div>
             <!-- About — right column top -->
             <div class="card about-card mb-3">
-                <div class="card-header"><i class="fas fa-info-circle"></i> About</div>
+                <div class="card-header d-flex justify-content-between align-items-center"><span><i class="fas fa-info-circle"></i> About</span><button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button></div>
                 <div class="card-body" id="about-container"><div class="text-muted">Load a symbol to see company information.</div></div>
             </div>
             <!-- Latest News — right column bottom -->
             <div class="card news-card mb-3">
-                <div class="card-header"><i class="fas fa-newspaper"></i> Latest News</div>
+                <div class="card-header d-flex justify-content-between align-items-center"><span><i class="fas fa-newspaper"></i> Latest News</span><button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button></div>
                 <div class="card-body" id="news-container"></div>
             </div>
         </div><!-- /res-panel-0 -->
@@ -5167,20 +5189,23 @@
             <div class="card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-chart-area"></i> Stock Price Chart</span>
-                    {% if user %}
-                    <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch" style="display:none; padding:5px 12px; font-size:0.75rem;">
-                        <i class="fas fa-star"></i><span> Save</span>
-                    </button>
-                    {% else %}
-                    <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch tb-btn-locked" style="display:none; padding:5px 12px; font-size:0.75rem;">
-                        <i class="fas fa-star"></i><span> Save</span>
-                    </button>
-                    {% endif %}
+                    <div class="d-flex align-items-center gap-2">
+                        {% if user %}
+                        <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch" style="display:none; padding:5px 12px; font-size:0.75rem;">
+                            <i class="fas fa-star"></i><span> Save</span>
+                        </button>
+                        {% else %}
+                        <button id="add-watchlist" type="button" class="tb-btn tb-btn-watch tb-btn-locked" style="display:none; padding:5px 12px; font-size:0.75rem;">
+                            <i class="fas fa-star"></i><span> Save</span>
+                        </button>
+                        {% endif %}
+                        <button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button>
+                    </div>
                 </div>
                 <div class="card-body"><div id="chart"></div></div>
             </div>
             <div class="card predictions-card mb-3">
-                <div class="card-header"><i class="fas fa-calculator"></i> Prediction Results</div>
+                <div class="card-header d-flex justify-content-between align-items-center"><span><i class="fas fa-calculator"></i> Prediction Results</span><button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button></div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0 text-nowrap" id="predictions-table">
@@ -5196,10 +5221,13 @@
                     <span><i class="fas fa-layer-group"></i> Ensemble DRL Strategy
                         <small class="text-muted ms-2" style="font-size:0.65rem;">PPO · A2C · DDPG</small>
                     </span>
-                    <span id="ensemble-loading" class="text-muted" style="font-size:0.68rem;display:none;">
-                        <i class="fas fa-spinner fa-spin me-1"></i>computing…
-                    </span>
-                    <span id="ensemble-signal-badge" style="display:none;font-size:0.72rem;font-weight:700;padding:2px 10px;border-radius:5px;border:1px solid;"></span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span id="ensemble-loading" class="text-muted" style="font-size:0.68rem;display:none;">
+                            <i class="fas fa-spinner fa-spin me-1"></i>computing…
+                        </span>
+                        <span id="ensemble-signal-badge" style="display:none;font-size:0.72rem;font-weight:700;padding:2px 10px;border-radius:5px;border:1px solid;"></span>
+                        <button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button>
+                    </div>
                 </div>
                 <div class="card-body p-1">
                     <div id="ensemble-signal-bar" style="display:none;font-size:0.7rem;padding:4px 6px 2px;border-bottom:1px solid var(--panel-border);margin-bottom:2px;">
@@ -5217,11 +5245,11 @@
         <!-- ── Panel 2: Patterns ── Pattern 1M · Pattern 48H (side-by-side) -->
         <div class="res-panel" id="res-panel-2">
             <div class="card mb-3">
-                <div class="card-header"><i class="fas fa-wave-square"></i> Pattern Detection — Last 1 Month</div>
+                <div class="card-header d-flex justify-content-between align-items-center"><span><i class="fas fa-wave-square"></i> Pattern Detection — Last 1 Month</span><button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button></div>
                 <div class="card-body"><div id="pattern-chart"></div></div>
             </div>
             <div class="card mb-3">
-                <div class="card-header"><i class="fas fa-wave-square"></i> Pattern Detection — Last 48 Hours</div>
+                <div class="card-header d-flex justify-content-between align-items-center"><span><i class="fas fa-wave-square"></i> Pattern Detection — Last 48 Hours</span><button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button></div>
                 <div class="card-body"><div id="pattern-chart-48h"></div></div>
             </div>
         </div><!-- /res-panel-2 -->
@@ -5229,7 +5257,7 @@
         <!-- ── Panel 3: Analysts + Peer Comparison ── -->
         <div class="res-panel" id="res-panel-3">
             <div class="card mb-3">
-                <div class="card-header"><i class="fas fa-user-tie"></i> Top Analysts</div>
+                <div class="card-header d-flex justify-content-between align-items-center"><span><i class="fas fa-user-tie"></i> Top Analysts</span><button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button></div>
                 <div class="card-body">
                     <div class="text-muted mb-2" id="analyst-top-source">Source: N/A</div>
                     <div class="table-responsive">
@@ -5241,7 +5269,7 @@
                 </div>
             </div>
             <div class="card mb-3">
-                <div class="card-header"><i class="fas fa-chart-bar"></i> Analyst Recommendations</div>
+                <div class="card-header d-flex justify-content-between align-items-center"><span><i class="fas fa-chart-bar"></i> Analyst Recommendations</span><button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button></div>
                 <div class="card-body">
                     <div class="text-muted mb-2" id="analyst-reco-source">Source: N/A</div>
                     <div class="analyst-reco" id="analyst-reco"></div>
@@ -5251,7 +5279,10 @@
             <div class="pro-card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-chart-bar"></i> Peer Comparison</span>
-                    <span class="tier-badge tier-badge-pro">Pro</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="tier-badge tier-badge-pro">Pro</span>
+                        <button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button>
+                    </div>
                 </div>
                 <div id="peers-container">
                     {% if user_tier in ('pro', 'premium', 'admin') %}
@@ -5274,7 +5305,10 @@
             <div class="pro-card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-robot"></i> AI Trade Thesis</span>
-                    <span class="tier-badge tier-badge-pro">Pro</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="tier-badge tier-badge-pro">Pro</span>
+                        <button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button>
+                    </div>
                 </div>
                 <div id="thesis-container">
                     {% if user_tier in ('pro', 'premium', 'admin') %}
@@ -5293,7 +5327,10 @@
             <div class="pro-card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-calendar-check"></i> Earnings Summarizer</span>
-                    <span class="tier-badge tier-badge-pro">Pro</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="tier-badge tier-badge-pro">Pro</span>
+                        <button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button>
+                    </div>
                 </div>
                 <div id="earnings-container">
                     {% if user_tier in ('pro', 'premium', 'admin') %}
@@ -5319,6 +5356,7 @@
                         </button>
                         {% endif %}
                         <span class="tier-badge tier-badge-pro">Pro</span>
+                        <button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button>
                     </div>
                 </div>
                 <div id="advisor-container">
@@ -5340,28 +5378,28 @@
         <div class="res-panel" id="res-panel-5">
             <!-- top-left -->
             <div class="card mb-3">
-                <div class="card-header"><i class="fas fa-chart-bar"></i> Revenue vs Earnings</div>
+                <div class="card-header d-flex justify-content-between align-items-center"><span><i class="fas fa-chart-bar"></i> Revenue vs Earnings</span><button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button></div>
                 <div class="card-body p-2" id="perf-rev-container">
                     <div class="text-muted small p-2">Run a prediction to load revenue & earnings data.</div>
                 </div>
             </div>
             <!-- top-right -->
             <div class="card mb-3">
-                <div class="card-header"><i class="fas fa-dollar-sign"></i> Earnings Per Share (EPS)</div>
+                <div class="card-header d-flex justify-content-between align-items-center"><span><i class="fas fa-calculator"></i> Intrinsic Value</span><button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button></div>
                 <div class="card-body p-2" id="perf-eps-container">
-                    <div class="text-muted small p-2">Run a prediction to load EPS data.</div>
+                    <div class="text-muted small p-2">Run a prediction to load intrinsic value.</div>
                 </div>
             </div>
             <!-- bottom-left -->
             <div class="card mb-3">
-                <div class="card-header"><i class="fas fa-chart-line"></i> EPS Trend</div>
+                <div class="card-header d-flex justify-content-between align-items-center"><span><i class="fas fa-chart-line"></i> EPS Trend</span><button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button></div>
                 <div class="card-body p-2" id="perf-trend-container">
                     <div class="text-muted small p-2">Run a prediction to load EPS trend.</div>
                 </div>
             </div>
             <!-- bottom-right -->
             <div class="card mb-3">
-                <div class="card-header"><i class="fas fa-seedling"></i> Growth Estimates (Last 4 Quarters)</div>
+                <div class="card-header d-flex justify-content-between align-items-center"><span><i class="fas fa-seedling"></i> Growth Estimates (Last 8 Quarters)</span><button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button></div>
                 <div class="card-body p-2" id="perf-growth-container">
                     <div class="text-muted small p-2">Run a prediction to load growth estimates.</div>
                 </div>
@@ -5536,6 +5574,212 @@
         }
     </script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js" crossorigin="anonymous"></script>
+    <script>
+    /* ── X Share Modal ── */
+    var _shareXDataUrl  = null;
+    var _shareXFilename = '';
+
+    function _shareXShowModal(dataUrl, filename, tweetText) {
+        _shareXDataUrl  = dataUrl;
+        _shareXFilename = filename;
+        var m   = document.getElementById('share-x-modal');
+        var img = document.getElementById('share-x-preview');
+        var dl  = document.getElementById('share-x-dl-btn');
+        var txt = document.getElementById('share-x-text');
+        txt.value = tweetText;
+        if (dataUrl) {
+            img.src = dataUrl;
+            img.style.display = '';
+            dl.style.display  = '';
+            document.getElementById('sxm-hint').innerHTML =
+                '💡 <strong>1)</strong> <em>İndir</em>\'e bas &nbsp;→&nbsp; <strong>2)</strong> <em>Tweete Git</em>\'e bas &nbsp;→&nbsp; X\'te 📎 ile resmi ekle.';
+        } else {
+            img.style.display = 'none';
+            dl.style.display  = 'none';
+            document.getElementById('sxm-hint').innerHTML =
+                '⚠️ Görüntü yakalanamadı. <em>Tweete Git</em>\'e bas, tweet oluşturulduktan sonra ekran görüntüsünü manuel ekle.';
+        }
+        m.style.display = 'flex';
+        requestAnimationFrame(function() { m.classList.add('sxm-visible'); });
+    }
+
+    function shareXClose() {
+        var m = document.getElementById('share-x-modal');
+        m.classList.remove('sxm-visible');
+        setTimeout(function() { m.style.display = 'none'; }, 220);
+    }
+
+    function shareXDownload() {
+        if (!_shareXDataUrl) return;
+        var a = document.createElement('a');
+        a.download = _shareXFilename;
+        a.href = _shareXDataUrl;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        var btn = document.getElementById('share-x-dl-btn');
+        btn.textContent = '✓ İndirildi';
+        btn.disabled = true;
+        setTimeout(function() { btn.textContent = '⬇ İndir'; btn.disabled = false; }, 2500);
+    }
+
+    function shareXTweet() {
+        var text = document.getElementById('share-x-text').value;
+        window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text), '_blank', 'width=620,height=460,noopener');
+    }
+
+    async function shareToX(btn) {
+        var card = btn.closest('.card, .pro-card');
+        if (!card) return;
+        btn.classList.add('loading');
+
+        var sym = (document.getElementById('stock-input') ? document.getElementById('stock-input').value : '').trim().toUpperCase();
+        var headerEl = card.querySelector('.card-header span') || card.querySelector('.card-header');
+        var cardTitle = headerEl.textContent.trim().replace(/\s+/g, ' ');
+        var tweetText = (sym ? '$' + sym + ' — ' : '') + cardTitle + ' via Stocker AI 📊\n\n#stocker #stocks #StockMarket #StockTrading #Trading #Investing #Investments\n\nhttps://stocker.gultechs.net\n\nPS: Not Financial Advice';
+        var filename  = (sym ? sym + '_' : '') + 'stocker_analysis.png';
+        var bgColor   = getComputedStyle(document.documentElement).getPropertyValue('--panel-bg').trim() || '#0f1b2d';
+
+        var dataUrl = null;
+        try {
+            dataUrl = await htmlToImage.toPng(card, {
+                backgroundColor: bgColor,
+                pixelRatio: 2,
+                cacheBust: true,
+                filter: function(el) {
+                    if (!el || el.nodeType !== 1) return true;
+                    var pos = getComputedStyle(el).position;
+                    return pos !== 'fixed' && el.tagName !== 'IFRAME';
+                }
+            });
+        } catch(err) {
+            console.warn('html-to-image capture failed:', err);
+        }
+
+        btn.classList.remove('loading');
+
+        // Mobile: Web Share API with file
+        if (dataUrl && typeof navigator.canShare === 'function') {
+            try {
+                var res = await fetch(dataUrl);
+                var blob = await res.blob();
+                var file = new File([blob], filename, {type: 'image/png'});
+                if (navigator.canShare({files: [file]})) {
+                    await navigator.share({files: [file], text: tweetText});
+                    return;
+                }
+            } catch(e) {
+                if (e.name === 'AbortError') return;
+            }
+        }
+
+        // Desktop: preview modal
+        _shareXShowModal(dataUrl, filename, tweetText);
+    }
+    </script>
+
+    <!-- ── X Share Preview Modal ── -->
+    <style>
+    #share-x-modal {
+        display: none;
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.72);
+        z-index: 9500;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        opacity: 0;
+        transition: opacity 0.22s;
+    }
+    #share-x-modal.sxm-visible { opacity: 1; }
+    #share-x-inner {
+        background: var(--panel-bg, #0f1b2d);
+        border: 1px solid var(--panel-border, rgba(255,255,255,0.1));
+        border-radius: 14px;
+        width: 100%;
+        max-width: 500px;
+        max-height: 92vh;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        transform: translateY(10px);
+        transition: transform 0.22s;
+    }
+    #share-x-modal.sxm-visible #share-x-inner { transform: translateY(0); }
+    #share-x-modal h6 {
+        margin: 0;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--panel-text);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    #share-x-preview {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid var(--panel-border, rgba(255,255,255,0.12));
+        display: block;
+    }
+    #share-x-text {
+        width: 100%;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--panel-border, rgba(255,255,255,0.12));
+        border-radius: 8px;
+        color: var(--panel-text);
+        font-size: 0.8rem;
+        padding: 10px 12px;
+        resize: vertical;
+        min-height: 80px;
+        line-height: 1.5;
+    }
+    [data-theme="sand"] #share-x-text { background: rgba(0,0,0,0.04); }
+    .sxm-hint {
+        font-size: 0.72rem;
+        color: var(--panel-muted);
+        line-height: 1.4;
+        margin: 0;
+    }
+    .sxm-btns {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .sxm-btns button {
+        flex: 1;
+        min-width: 100px;
+        padding: 9px 14px;
+        border-radius: 8px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: opacity 0.15s;
+    }
+    .sxm-btns button:disabled { opacity: 0.5; cursor: default; }
+    #share-x-cancel { background: transparent; border-color: var(--panel-border); color: var(--panel-muted); }
+    #share-x-dl-btn { background: rgba(255,255,255,0.08); border-color: var(--panel-border); color: var(--panel-text); }
+    #share-x-tweet-btn { background: #000; border-color: #333; color: #fff; }
+    [data-theme="sand"] #share-x-cancel { border-color: rgba(0,0,0,0.2); }
+    [data-theme="sand"] #share-x-dl-btn { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.2); }
+    </style>
+    <div id="share-x-modal" onclick="if(event.target===this)shareXClose()">
+        <div id="share-x-inner">
+            <h6>
+                <span><svg width="14" height="14" viewBox="0 0 1200 1227" fill="none" style="margin-right:6px;vertical-align:-2px"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg>X'te Paylaş</span>
+                <button onclick="shareXClose()" style="background:none;border:none;color:var(--panel-muted);font-size:1.2rem;cursor:pointer;padding:0 4px;line-height:1;">&times;</button>
+            </h6>
+            <img id="share-x-preview" src="" alt="Paylaşılacak görsel">
+            <textarea id="share-x-text" spellcheck="false"></textarea>
+            <p class="sxm-hint" id="sxm-hint">💡 <strong>Desktop:</strong> Önce <em>İndir</em>'e bas, sonra <em>Tweete Git</em>'e bas ve tweet kompozisyonunda resmi ekle (📎 veya sürükle-bırak).</p>
+            <div class="sxm-btns">
+                <button id="share-x-cancel" onclick="shareXClose()">İptal</button>
+                <button id="share-x-dl-btn" onclick="shareXDownload()">⬇ İndir</button>
+                <button id="share-x-tweet-btn" onclick="shareXTweet()"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none" style="margin-right:5px;vertical-align:-1px"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg>Tweete Git</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Fallback wiring in case jQuery or the main ready-block fails early -->
     <script>
@@ -7208,23 +7452,103 @@
                     '<tbody>' + rows + '</tbody></table></div>';
             }
 
-            function renderEps(data) {
-                var d = data.quarterly_eps;
-                if (!d || !d.quarters || !d.quarters.length) {
-                    document.getElementById('perf-eps-container').innerHTML = '<div class="text-muted small p-2">No EPS data available.</div>';
+            function renderIntrinsicValue(data, sym) {
+                var el = document.getElementById('perf-eps-container');
+                var d  = data.intrinsic_value;
+                if (!d || !d.inputs) {
+                    el.innerHTML = '<div class="text-muted small p-2">Intrinsic value data unavailable for this symbol.</div>';
                     return;
                 }
-                var rows = d.quarters.map(function(q, i) {
-                    var act = d.eps_actual[i]; var est = d.eps_estimate ? d.eps_estimate[i] : null;
-                    var beat = (act !== null && est !== null) ? (act >= est ? 'text-success' : 'text-danger') : '';
-                    return '<tr><td class="fw-semibold">' + escHtml(String(q)) + '</td>' +
-                           '<td class="' + beat + '">' + fmtNum(act) + '</td>' +
-                           '<td>' + fmtNum(est) + '</td></tr>';
+                var inp       = d.inputs;
+                var composite = d.composite_value;
+                var price     = inp.current_price;
+                if (!composite || !price) {
+                    el.innerHTML = '<div class="text-muted small p-2">Insufficient data to calculate intrinsic value.</div>';
+                    return;
+                }
+
+                var isOver  = price > composite;
+                var pctDiff = Math.abs(Math.round((price - composite) / composite * 100));
+                var badgeLabel = isOver ? 'OVERVALUATION ' + pctDiff + '%' : 'UNDERVALUATION ' + pctDiff + '%';
+                var badgeBg    = isOver ? '#b91c1c' : '#15803d';
+
+                // Horizontal bar proportions
+                var maxVal   = Math.max(price, composite);
+                var blueW    = Math.round(composite / maxVal * 100);
+                var extraW   = 100 - blueW;
+                var extraBg  = isOver ? '#8b6b4a' : 'rgba(34,197,94,0.35)';
+
+                var barHtml = '<div style="display:flex;height:30px;border-radius:5px;overflow:hidden;margin-bottom:1px;">'
+                    + '<div style="width:' + blueW + '%;background:#2563eb;display:flex;align-items:center;'
+                    + 'padding:0 10px;font-size:0.74rem;color:#fff;white-space:nowrap;overflow:hidden;">'
+                    + 'Intrinsic Value</div>'
+                    + (extraW > 0 ? '<div style="width:' + extraW + '%;background:' + extraBg + ';"></div>' : '')
+                    + '</div>';
+
+                // Methods breakdown rows
+                var methods = [];
+                if (d.graham_number) methods.push(['Graham Number',  '$' + d.graham_number, '√(22.5 × EPS × BVPS)']);
+                if (d.dcf_value)     methods.push(['DCF (5-yr)',      '$' + d.dcf_value,     'FCF/share discounted @' + inp.discount_rate + '%']);
+                if (d.pe_fair_value) methods.push(['P/E Fair Value',  '$' + d.pe_fair_value, 'Fwd EPS × 15×']);
+                var methodRows = methods.map(function(r) {
+                    return '<tr>'
+                        + '<td style="font-size:0.73rem;color:var(--panel-muted);padding:3px 6px;">' + r[0] + '</td>'
+                        + '<td style="font-size:0.73rem;font-weight:700;padding:3px 6px;text-align:right;">' + r[1] + '</td>'
+                        + '<td style="font-size:0.67rem;color:var(--panel-muted);padding:3px 6px;">' + r[2] + '</td>'
+                        + '</tr>';
                 }).join('');
-                document.getElementById('perf-eps-container').innerHTML =
-                    '<div class="table-responsive"><table class="table table-sm table-hover mb-0">' +
-                    '<thead><tr><th>Quarter</th><th>Actual EPS</th><th>Est. EPS</th></tr></thead>' +
-                    '<tbody>' + rows + '</tbody></table></div>';
+
+                // Assumptions
+                var assumRows = [
+                    ['EPS (TTM)', inp.eps !== null ? '$' + inp.eps : '—'],
+                    ['Fwd EPS',   inp.forward_eps !== null ? '$' + inp.forward_eps : '—'],
+                    ['BVPS',      inp.bvps !== null ? '$' + inp.bvps : '—'],
+                    ['Growth',    inp.growth_rate + '%'],
+                    ['Discount',  inp.discount_rate + '%'],
+                ].map(function(r) {
+                    return '<tr>'
+                        + '<td style="font-size:0.68rem;color:var(--panel-muted);padding:2px 6px;">' + r[0] + '</td>'
+                        + '<td style="font-size:0.68rem;padding:2px 6px;text-align:right;">' + r[1] + '</td>'
+                        + '</tr>';
+                }).join('');
+
+                el.innerHTML =
+                    '<div style="padding:12px 10px;">'
+
+                    // Title
+                    + '<div style="font-size:0.9rem;font-weight:700;color:var(--panel-text);margin-bottom:3px;">'
+                    + escHtml(sym || '') + ' Intrinsic Value</div>'
+
+                    // Big composite number
+                    + '<div style="font-size:2rem;font-weight:800;color:#3b82f6;line-height:1.1;margin-bottom:12px;">'
+                    + '$' + composite
+                    + ' <span style="font-size:0.85rem;font-weight:400;color:var(--panel-muted);">USD</span></div>'
+
+                    // Badge right-aligned
+                    + '<div style="display:flex;justify-content:flex-end;margin-bottom:5px;">'
+                    + '<span style="background:' + badgeBg + ';color:#fff;padding:3px 12px;border-radius:4px;'
+                    + 'font-size:0.72rem;font-weight:800;letter-spacing:0.4px;">' + badgeLabel + '</span></div>'
+
+                    // Bar
+                    + barHtml
+
+                    // Price row
+                    + '<div style="display:flex;justify-content:space-between;padding:5px 2px 10px;'
+                    + 'border-bottom:1px solid var(--panel-border);font-size:0.82rem;">'
+                    + '<span style="color:var(--panel-muted);">Price</span>'
+                    + '<span style="font-weight:600;">$' + price + '</span></div>'
+
+                    // Methods
+                    + '<div style="margin-top:8px;">'
+                    + '<div style="font-size:0.65rem;font-weight:700;color:var(--panel-muted);letter-spacing:0.6px;margin-bottom:3px;">VALUATION METHODS</div>'
+                    + '<table style="width:100%;border-collapse:collapse;"><tbody>' + methodRows + '</tbody></table></div>'
+
+                    // Assumptions
+                    + '<div style="margin-top:8px;border-top:1px solid var(--panel-border);padding-top:6px;">'
+                    + '<div style="font-size:0.65rem;font-weight:700;color:var(--panel-muted);letter-spacing:0.6px;margin-bottom:3px;">ASSUMPTIONS</div>'
+                    + '<table style="width:100%;border-collapse:collapse;"><tbody>' + assumRows + '</tbody></table></div>'
+
+                    + '</div>';
             }
 
             function renderEpsTrend(data) {
@@ -7255,7 +7579,7 @@
                     document.getElementById('perf-growth-container').innerHTML = '<div class="text-muted small p-2">No earnings history available.</div>';
                     return;
                 }
-                var shown = d.slice(0, 4);
+                var shown = d.slice(0, 8);
                 var rows = shown.map(function(r) {
                     var surpriseCls = r.surprise_pct === null ? '' : (r.surprise_pct >= 0 ? 'text-success' : 'text-danger');
                     var surpStr = r.surprise_pct !== null ? (r.surprise_pct >= 0 ? '+' : '') + r.surprise_pct.toFixed(1) + '%' : '—';
@@ -7284,7 +7608,7 @@
                             return;
                         }
                         renderRevEarnings(data);
-                        renderEps(data);
+                        renderIntrinsicValue(data, sym);
                         renderEpsTrend(data);
                         renderGrowth(data);
                     })
@@ -7746,10 +8070,14 @@
                         loadOhlcChart(symbol, 'daily');
                         // Reset performance cache so next visit to tab fetches fresh data
                         _perfLoadedFor = null;
-                        // Snap to results section (3rd section = 2 × viewport)
+                        // Snap to results section (after bot for admin, otherwise 2nd after market)
                         setTimeout(function() {
                             var wrap = document.getElementById('snap-wrap');
-                            if (wrap) wrap.scrollTo({ top: wrap.clientHeight * 2, behavior: 'smooth' });
+                            var snapResults = document.getElementById('snap-results');
+                            if (wrap && snapResults) {
+                                var idx = Array.from(wrap.querySelectorAll('.snap-section')).indexOf(snapResults);
+                                wrap.scrollTo({ top: wrap.clientHeight * idx, behavior: 'smooth' });
+                            } else if (wrap) wrap.scrollTo({ top: wrap.clientHeight * 2, behavior: 'smooth' });
                             // Resize charts to fill their new grid cells
                             setTimeout(function() {
                                 ['overview-chart','chart','pattern-chart','pattern-chart-48h'].forEach(function(id) {
@@ -8185,32 +8513,64 @@
                 const entry = sectionMap['ENTRY STRATEGY'] || '';
                 const exit  = sectionMap['EXIT STRATEGY']  || '';
 
-                // --- Buy price(s): look for $ amounts in entry text ---
-                const entryPrices = _allDollarPrices(entry);
-                const buyAt  = _extractPriceNearKw(entry, ['below','weakness','at','around','near','entry','buy'])
-                             || entryPrices[0] || null;
-                // Second tranche: next $ price or 5% below first
-                const buyAt2 = entryPrices.find(p => buyAt && p < buyAt)
-                             || (buyAt ? Math.round(buyAt * 0.95 * 100) / 100 : null);
+                // --- Entry: extract "X% ... $price" pairs (e.g. "30% on pullbacks near $3.40 and 70% on breakouts above $4.00") ---
+                let buyAt = null, buyAt2 = null, portion1 = 60, portion2 = 40;
+                const pctPricePairs = [...entry.matchAll(/(\d{1,3})%[^$\n]{0,80}\$(\d+(?:\.\d+)?)/g)]
+                    .map(m => ({ pct: parseInt(m[1]), price: parseFloat(m[2]) }))
+                    .filter(p => p.pct >= 1 && p.pct <= 99);
+                if (pctPricePairs.length >= 2) {
+                    buyAt    = pctPricePairs[0].price; portion1 = pctPricePairs[0].pct;
+                    buyAt2   = pctPricePairs[1].price; portion2 = pctPricePairs[1].pct;
+                } else if (pctPricePairs.length === 1) {
+                    buyAt    = pctPricePairs[0].price; portion1 = pctPricePairs[0].pct;
+                    portion2 = 100 - portion1;
+                } else {
+                    buyAt  = _extractPriceNearKw(entry, ['below','weakness','at','around','near','entry','buy']) || null;
+                    buyAt2 = _extractPriceNearKw(entry, ['breakout','second','tranche','add']) || null;
+                    if (buyAt2 !== null && buyAt2 === buyAt) buyAt2 = null;
+                    const el = entry.toLowerCase();
+                    if (/equal|half|50.50|evenly/.test(el))    { portion1 = 50; portion2 = 50; }
+                    else if (/two.third|2\/3|70.30/.test(el))  { portion1 = 70; portion2 = 30; }
+                    else if (/three.quart|75.25/.test(el))     { portion1 = 75; portion2 = 25; }
+                }
 
-                // --- Stop Loss: look for $ amount near stop/loss keywords ---
-                const stopPrice = _extractPriceNearKw(exit, ['stop-loss','stop loss','stop at','hard stop','protect','cut'])
-                                || _extractPriceNearKw(exit, ['loss','below'])
-                                || _allDollarPrices(exit)[0] || null;
+                // --- Exit: Stop Loss ---
+                let stopPrice = _extractPriceNearKw(exit, ['stop-loss','stop loss','stop at','hard stop','protect','cut'])
+                              || _extractPriceNearKw(exit, ['loss','below'])
+                              || null;
 
-                // --- Take Profit: look for $ amount near profit/target keywords ---
-                const takePrice = _extractPriceNearKw(exit, ['take profit','taking profit','profit','above','rallies','target','sell'])
-                                || _allDollarPrices(exit).find(p => stopPrice && p > stopPrice)
-                                || null;
+                // --- Exit: Take Profit 1 (first target / trim level) ---
+                let takePrice = _extractPriceNearKw(exit, ['take profit','taking profit','target sale','sale at','profit target','target','sell at'])
+                              || null;
 
-                // --- Portions: first/second tranche split summing to 100 ---
-                let portion1 = 60, portion2 = 40;
-                const el = entry.toLowerCase();
-                if (/equal|half|50.50|evenly/.test(el))    { portion1 = 50; portion2 = 50; }
-                else if (/two.third|2\/3|70.30/.test(el))  { portion1 = 70; portion2 = 30; }
-                else if (/three.quart|75.25/.test(el))     { portion1 = 75; portion2 = 25; }
+                // --- Exit: Take Profit 2 (trailing stop / second target) ---
+                let takePrice2 = _extractPriceNearKw(exit, ['trailing stop','trailing','sustains','remainder','momentum'])
+                               || null;
+                if (takePrice2 !== null && takePrice2 === takePrice) takePrice2 = null;
 
-                return { buyAt, buyAt2, portion1, portion2, takePrice, stopPrice };
+                // --- Exit: Trim percentages (e.g. "Trim 40% at target") ---
+                let trimPct1 = null, trimPct2 = null;
+                const trimMatch = exit.match(/[Tt]rim\s+(\d{1,3})%/);
+                if (trimMatch) { trimPct1 = parseInt(trimMatch[1]); trimPct2 = 100 - trimPct1; }
+
+                // --- Use live price as floor for entry ---
+                const curPrice = window._lastCurrentPrice || null;
+                if (buyAt !== null && curPrice !== null && buyAt < curPrice) buyAt = curPrice;
+
+                // --- Reclassify: price > entry → TP, price < entry → SL ---
+                const effectiveEntry = buyAt || curPrice;
+                if (effectiveEntry) {
+                    if (stopPrice !== null && stopPrice > effectiveEntry) {
+                        if (takePrice === null) takePrice = stopPrice;
+                        stopPrice = null;
+                    }
+                    if (takePrice !== null && takePrice < effectiveEntry) {
+                        if (stopPrice === null) stopPrice = takePrice;
+                        takePrice = null;
+                    }
+                }
+
+                return { buyAt, buyAt2, portion1, portion2, takePrice, takePrice2, trimPct1, trimPct2, stopPrice };
             }
 
             async function loadPortfolioAdvice(sym) {

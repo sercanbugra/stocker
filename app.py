@@ -6,6 +6,9 @@ import json
 import time
 import re
 import secrets
+import uuid
+import base64
+import math
 import threading
 import concurrent.futures
 import smtplib
@@ -32,7 +35,7 @@ from io import StringIO
 from sklearn.preprocessing import MinMaxScaler
 
 # Flask imports
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, send_file
 from flask_dance.contrib.google import make_google_blueprint, google
 from flask_compress import Compress
 from oauthlib.oauth2 import TokenExpiredError
@@ -105,7 +108,7 @@ _CSP = "; ".join([
     # Styles: Bootstrap, Font Awesome — 'unsafe-inline' required for inline style= attributes
     "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
     # Font Awesome webfonts
-    "font-src 'self' https://cdnjs.cloudflare.com",
+    "font-src 'self' data: https://cdnjs.cloudflare.com",
     # Images: self + data: URIs + Yahoo Finance news thumbnails
     "img-src 'self' data: https://s.yimg.com https://media.zenfs.com https://finance.yahoo.com",
     # XHR/fetch: all API calls are same-origin
@@ -1288,6 +1291,7 @@ _DIVIDEND_MEM: list | None = None
 _DIVIDEND_MEM_DAY: str | None = None
 
 UNDERVALUED_CACHE_PATH = os.path.join(_DATA_DIR, "cache", "undervalued_stocks.json")
+_SHARE_DIR = os.path.join(_DATA_DIR, "cache", "shares")
 _UNDERVALUED_MEM: list | None = None
 _UNDERVALUED_MEM_DAY: str | None = None
 
@@ -3865,11 +3869,11 @@ def api_performance():
     try:
         ticker = yf.Ticker(symbol)
 
-        # ── Quarterly Revenue & Net Income (last 4 quarters) ──
+        # ── Quarterly Revenue & Net Income (last 8 quarters) ──
         try:
             q_inc = ticker.quarterly_income_stmt
             if q_inc is not None and not q_inc.empty:
-                cols = list(q_inc.columns[:4])  # newest 4 quarters
+                cols = list(q_inc.columns[:8])  # newest 8 quarters
                 quarters = [str(c.date()) if hasattr(c, 'date') else str(c) for c in reversed(cols)]
                 def _row(q_inc, *keys):
                     for k in keys:
@@ -3890,24 +3894,77 @@ def api_performance():
         except Exception as exc:
             logger.warning("performance: quarterly_income_stmt %s: %s", symbol, exc)
 
-        # ── Quarterly EPS (actual vs estimate) ──
-        try:
-            q_earn = ticker.quarterly_earnings
-            if q_earn is not None and not q_earn.empty:
-                q_earn = q_earn.tail(4)
-                earn_col = next((c for c in ['Earnings', 'EPS Actual'] if c in q_earn.columns), None)
-                est_col  = next((c for c in ['Estimate', 'EPS Estimate'] if c in q_earn.columns), None)
-                result['quarterly_eps'] = {
-                    'quarters':     [str(idx) for idx in q_earn.index],
-                    'eps_actual':   [float(v) if pd.notna(v) else None for v in (q_earn[earn_col] if earn_col else [])],
-                    'eps_estimate': [float(v) if pd.notna(v) else None for v in (q_earn[est_col] if est_col else [None]*len(q_earn))],
-                }
-        except Exception as exc:
-            logger.warning("performance: quarterly_earnings %s: %s", symbol, exc)
-
-        # ── EPS Trend (from info) ──
+        # ── Intrinsic Value (Graham Number + DCF + P/E Fair Value) ──
         try:
             info = ticker.info
+            eps        = info.get('trailingEps') or info.get('epsTrailingTwelveMonths')
+            fwd_eps    = info.get('forwardEps')
+            bvps       = info.get('bookValue')
+            cur_price  = info.get('currentPrice') or info.get('regularMarketPrice') or info.get('previousClose')
+            shares     = info.get('sharesOutstanding')
+            total_fcf  = info.get('freeCashflow')
+            net_income = info.get('netIncomeToCommon')
+            raw_growth = info.get('earningsGrowth') or info.get('revenueGrowth')
+            growth_rate   = min(max(float(raw_growth), -0.40), 0.40) if raw_growth is not None else 0.07
+            discount_rate = 0.10
+            terminal_g    = 0.03
+            iv = {}
+
+            # Graham Number
+            if eps and bvps and eps > 0 and bvps > 0:
+                iv['graham_number'] = round(math.sqrt(22.5 * eps * bvps), 2)
+
+            # 10-year two-stage DCF (Stage 1: years 1-5 at growth_rate; Stage 2: years 6-10 at growth_rate/2)
+            # When reported FCF is negative/missing, fall back to net income as owner-earnings proxy
+            fcf_base = None
+            if total_fcf and shares and shares > 0 and total_fcf > 0:
+                fcf_base = total_fcf / shares
+            elif net_income and shares and shares > 0 and net_income > 0:
+                # Net income haircut (85%) approximates owner earnings when FCF is distorted by working-capital swings
+                fcf_base = (net_income / shares) * 0.85
+
+            if fcf_base and fcf_base > 0:
+                gr2 = growth_rate * 0.5  # moderated growth for stage 2
+                stage1 = [fcf_base * ((1 + growth_rate) ** y) for y in range(1, 6)]
+                stage2 = [stage1[-1] * ((1 + gr2) ** y) for y in range(1, 6)]
+                all_cfs = stage1 + stage2
+                pv_fcfs = sum(cf / ((1 + discount_rate) ** (i + 1)) for i, cf in enumerate(all_cfs))
+                tv = all_cfs[-1] * (1 + terminal_g) / (discount_rate - terminal_g)
+                pv_tv = tv / ((1 + discount_rate) ** 10)
+                iv['dcf_value']     = round(pv_fcfs + pv_tv, 2)
+                iv['fcf_per_share'] = round(fcf_base, 2)
+                iv['dcf_proj_fcfs'] = [round(f, 2) for f in stage1]
+
+            # P/E Fair Value  (forward EPS × 18 — long-term market average multiple)
+            if fwd_eps and fwd_eps > 0:
+                iv['pe_fair_value'] = round(fwd_eps * 18, 2)
+
+            # Composite + signal
+            vals = [v for k, v in iv.items() if k in ('graham_number', 'dcf_value', 'pe_fair_value') and v and v > 0]
+            if vals and cur_price:
+                composite = round(sum(vals) / len(vals), 2)
+                discount_pct = round((composite - cur_price) / composite * 100, 1)
+                iv['composite_value'] = composite
+                iv['discount_pct']    = discount_pct
+                iv['signal']          = 'BUY' if discount_pct > 10 else ('SELL' if discount_pct < -10 else 'HOLD')
+
+            iv['inputs'] = {
+                'current_price':  round(cur_price, 2) if cur_price else None,
+                'eps':            round(eps, 2) if eps else None,
+                'forward_eps':    round(fwd_eps, 2) if fwd_eps else None,
+                'bvps':           round(bvps, 2) if bvps else None,
+                'growth_rate':    round(growth_rate * 100, 1),
+                'discount_rate':  round(discount_rate * 100, 1),
+                'terminal_growth':round(terminal_g * 100, 1),
+            }
+            if iv:
+                result['intrinsic_value'] = iv
+        except Exception as exc:
+            logger.warning("performance: intrinsic_value %s: %s", symbol, exc)
+
+        # ── EPS Trend ──
+        try:
+            info = ticker.info  # safe re-fetch (yfinance caches)
             result['eps_trend'] = {
                 'trailing_eps':    info.get('trailingEps'),
                 'forward_eps':     info.get('forwardEps'),
@@ -4375,9 +4432,9 @@ _AI_CONFIG_PATH = os.path.join(_DATA_DIR, "ai_config.json")
 def _load_ai_provider() -> str:
     try:
         with open(_AI_CONFIG_PATH, "r", encoding="utf-8") as f:
-            return json.load(f).get("provider", "nvidia")
+            return json.load(f).get("provider", "anthropic")
     except Exception:
-        return "nvidia"
+        return "anthropic"
 
 def _save_ai_provider(provider: str) -> None:
     try:
@@ -6330,6 +6387,56 @@ def billing_portal():
     except Exception as e:
         logger.error(f"Stripe billing portal error: {e}")
         return redirect(url_for("home"))
+
+@app.route("/api/share-image", methods=["POST"])
+def api_share_image():
+    data = request.get_json(silent=True) or {}
+    img_data = data.get("image", "")
+    if not isinstance(img_data, str) or not img_data.startswith("data:image/"):
+        return jsonify({"error": "invalid image"}), 400
+    try:
+        _, b64 = img_data.split(",", 1)
+        img_bytes = base64.b64decode(b64)
+    except Exception:
+        return jsonify({"error": "invalid base64"}), 400
+    if len(img_bytes) > 10 * 1024 * 1024:
+        return jsonify({"error": "image too large"}), 413
+    uid = str(uuid.uuid4())
+    os.makedirs(_SHARE_DIR, exist_ok=True)
+    with open(os.path.join(_SHARE_DIR, f"{uid}.png"), "wb") as f:
+        f.write(img_bytes)
+    return jsonify({"uuid": uid})
+
+
+@app.route("/share/<uid>")
+def share_page(uid):
+    if not re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', uid):
+        return "Not found", 404
+    site = os.getenv("SITE_BASE_URL", "https://stocker.gultechs.net")
+    img_url = f"{request.host_url.rstrip('/')}/share-img/{uid}.png"
+    return f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<meta property="og:title" content="Stocker AI — Stock Analysis">
+<meta property="og:description" content="AI-powered stock analysis. Visit stocker.gultechs.net">
+<meta property="og:image" content="{img_url}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="{request.url}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{img_url}">
+<meta http-equiv="refresh" content="0;url={site}">
+</head><body><p>Redirecting…</p></body></html>""", 200, {"Content-Type": "text/html"}
+
+
+@app.route("/share-img/<uid>.png")
+def share_image(uid):
+    if not re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', uid):
+        return "Not found", 404
+    path = os.path.join(_SHARE_DIR, f"{uid}.png")
+    if not os.path.isfile(path):
+        return "Not found", 404
+    return send_file(path, mimetype="image/png")
+
 
 if __name__ == '__main__':
     host = os.getenv('HOST', '0.0.0.0')
