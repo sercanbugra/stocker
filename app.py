@@ -5639,7 +5639,7 @@ def api_me():
         "daily_limit": FREE_DAILY_LIMIT if tier == "free" else -1,
         "nickname": info.get("nickname", "") if isinstance(info, dict) else "",
         "avatar": info.get("avatar", "fa-user") if isinstance(info, dict) else "fa-user",
-        "theme": info.get("theme", "") if isinstance(info, dict) else "",
+        "theme": info.get("theme", "ocean") if isinstance(info, dict) else "ocean",
         "markets": info.get("markets", []) if isinstance(info, dict) else [],
     })
 
