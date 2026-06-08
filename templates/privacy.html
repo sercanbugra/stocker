@@ -17,6 +17,8 @@
       if (localStorage.getItem('stocker_analytics_consent') === '1') {
         gtag('consent', 'update', { analytics_storage: 'granted' });
       }
+      gtag('set', 'url_passthrough', true);
+      gtag('set', 'ads_data_redaction', true);
       gtag('config', 'G-5BPHKL6RCH');
     </script>
     <meta charset="UTF-8">
