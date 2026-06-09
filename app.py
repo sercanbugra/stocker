@@ -4037,6 +4037,11 @@ def privacy():
     return render_template('privacy.html', last_updated=last_updated)
 
 
+@app.route('/blog')
+def blog_index():
+    return render_template('blog.html')
+
+
 @app.route('/blog/how-ai-predicts-stocks')
 def blog_how_ai_predicts_stocks():
     return render_template('blog_how_ai_predicts_stocks.html')

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5BPHKL6RCH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('consent', 'default', { analytics_storage:'denied', ad_storage:'denied', ad_user_data:'denied', ad_personalization:'denied', wait_for_update:500 });
+      if (localStorage.getItem('stocker_analytics_consent') === '1') gtag('consent', 'update', { analytics_storage:'granted' });
+      gtag('set', 'url_passthrough', true);
+      gtag('config', 'G-5BPHKL6RCH');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Blog — Stocker</title>
+    <meta name="description" content="Learn how AI and machine learning are used to predict stock prices. In-depth articles on XGBoost, LightGBM, feature engineering and forecasting from the team behind Stocker.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://stocker.gultechs.net/blog">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Blog — Stocker">
+    <meta property="og:description" content="In-depth articles on AI stock prediction, machine learning models and financial data science from the Stocker team.">
+    <meta property="og:url" content="https://stocker.gultechs.net/blog">
+    <meta property="og:image" content="https://stocker.gultechs.net/static/stocker_logo.png">
+    <link rel="icon" type="image/x-icon" href="/static/favicon-v3.ico">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --bg:      #071a28;
+            --bg-soft: #0a2535;
+            --bg-card: #0d3048;
+            --accent:  #00c8e8;
+            --purple:  #7b61ff;
+            --green:   #22c55e;
+            --gold:    #f7c04f;
+            --text:    #c8eeff;
+            --muted:   rgba(200,238,255,0.5);
+            --border:  rgba(0,200,232,0.18);
+        }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Arial, sans-serif; margin: 0; line-height: 1.7; min-height: 100vh; }
+
+        /* NAV */
+        nav { background: rgba(7,26,40,0.96); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .nav-logo { font-size: 1.2rem; font-weight: 800; color: #fff; text-decoration: none; letter-spacing: -0.5px; }
+        .nav-logo span { color: var(--accent); }
+        .nav-links { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; padding: 6px 12px; border-radius: 8px; transition: color .2s, background .2s; }
+        .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .nav-links a.active { color: var(--accent); }
+
+        /* HERO */
+        .hero { padding: 64px 24px 48px; text-align: center; position: relative; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,200,232,0.06) 0%, transparent 70%); pointer-events: none; }
+        .hero-tag { display: inline-block; background: rgba(0,200,232,0.1); border: 1px solid rgba(0,200,232,0.25); color: var(--accent); font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 4px 14px; border-radius: 20px; margin-bottom: 18px; }
+        .hero h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; color: #fff; margin-bottom: 12px; }
+        .hero p { color: var(--muted); font-size: 1.05rem; max-width: 520px; margin: 0 auto; }
+
+        /* GRID */
+        .blog-grid { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 28px; }
+
+        /* CARD */
+        .blog-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; text-decoration: none; transition: transform .22s, box-shadow .22s, border-color .22s; }
+        .blog-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,0.4); border-color: rgba(0,200,232,0.35); }
+
+        /* CARD THUMBNAIL */
+        .card-thumb { height: 200px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; flex-shrink: 0; }
+        .card-thumb-bg { position: absolute; inset: 0; }
+        .card-thumb-icon { position: relative; z-index: 1; font-size: 4rem; opacity: 0.9; }
+        .card-thumb-label { position: absolute; bottom: 14px; left: 14px; z-index: 1; font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+
+        /* CARD BODY */
+        .card-body { padding: 24px 24px 20px; flex: 1; display: flex; flex-direction: column; }
+        .card-meta { display: flex; align-items: center; gap: 14px; font-size: 0.75rem; color: var(--muted); margin-bottom: 12px; flex-wrap: wrap; }
+        .card-meta span { display: flex; align-items: center; gap: 5px; }
+        .card-title { font-size: 1.2rem; font-weight: 700; color: #fff; line-height: 1.3; margin-bottom: 10px; }
+        .card-desc { font-size: 0.88rem; color: rgba(200,238,255,0.65); line-height: 1.65; flex: 1; margin-bottom: 20px; }
+        .card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+        .card-tag { font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+        .card-read { display: inline-flex; align-items: center; gap: 7px; font-size: 0.85rem; font-weight: 700; text-decoration: none; padding: 9px 18px; border-radius: 30px; border: 1px solid; transition: background .2s, color .2s; width: fit-content; }
+
+        /* Coming soon card */
+        .blog-card-soon { background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px; gap: 10px; min-height: 300px; }
+        .blog-card-soon .soon-icon { font-size: 2.5rem; opacity: 0.3; }
+        .blog-card-soon p { color: rgba(200,238,255,0.3); font-size: 0.88rem; margin: 0; text-align: center; }
+
+        footer { text-align: center; padding: 36px 24px; color: rgba(200,238,255,0.3); font-size: 0.82rem; border-top: 1px solid var(--border); }
+        footer a { color: rgba(200,238,255,0.45); text-decoration: none; margin: 0 8px; }
+        footer a:hover { color: var(--accent); }
+
+        @media (max-width: 560px) {
+            .blog-grid { grid-template-columns: 1fr; padding: 32px 16px 60px; }
+            .card-thumb { height: 160px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="nav-logo">Stock<span>er</span></a>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/blog" class="active">Blog</a>
+        <a href="/privacy">Privacy</a>
+    </div>
+</nav>
+
+<div class="hero">
+    <div class="hero-tag">Stocker Blog</div>
+    <h1>Learn how it works</h1>
+    <p>Plain-English deep dives into the machine learning and financial data science behind Stocker's predictions.</p>
+</div>
+
+<div class="blog-grid">
+
+    <!-- Post 1: How AI Predicts Stocks -->
+    <a href="/blog/how-ai-predicts-stocks" class="blog-card">
+        <div class="card-thumb">
+            <div class="card-thumb-bg" style="background: linear-gradient(135deg, #071a28 0%, #0d1f40 50%, #1a0a35 100%);">
+                <!-- Animated grid lines -->
+                <svg width="100%" height="100%" style="position:absolute;inset:0;opacity:0.15;">
+                    <defs>
+                        <pattern id="grid1" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#00c8e8" stroke-width="0.5"/>
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid1)"/>
+                </svg>
+                <!-- Glowing orbs -->
+                <div style="position:absolute; width:120px; height:120px; border-radius:50%; background:radial-gradient(circle, rgba(123,97,255,0.35) 0%, transparent 70%); top:20px; left:30px;"></div>
+                <div style="position:absolute; width:80px; height:80px; border-radius:50%; background:radial-gradient(circle, rgba(0,200,232,0.3) 0%, transparent 70%); bottom:20px; right:40px;"></div>
+            </div>
+            <div class="card-thumb-icon">🤖</div>
+            <div class="card-thumb-label" style="background:rgba(123,97,255,0.2); border:1px solid rgba(123,97,255,0.4); color:#a78bfa;">Machine Learning</div>
+        </div>
+        <div class="card-body">
+            <div class="card-meta">
+                <span><i class="fas fa-calendar-alt"></i> 9 June 2026</span>
+                <span><i class="fas fa-clock"></i> 8 min read</span>
+            </div>
+            <div class="card-title">How AI Predicts Stock Prices</div>
+            <div class="card-desc">A step-by-step breakdown of Stocker's prediction pipeline: from raw OHLCV data to a 30-day forecast. Covers feature engineering, the XGBoost + LightGBM + ExtraTrees ensemble, and recursive forecasting.</div>
+            <div class="card-tags">
+                <span class="card-tag" style="background:rgba(123,97,255,0.12); color:#a78bfa;">XGBoost</span>
+                <span class="card-tag" style="background:rgba(123,97,255,0.12); color:#a78bfa;">LightGBM</span>
+                <span class="card-tag" style="background:rgba(0,200,232,0.1); color:var(--accent);">Feature Engineering</span>
+                <span class="card-tag" style="background:rgba(0,200,232,0.1); color:var(--accent);">Forecasting</span>
+            </div>
+            <span class="card-read" style="color:#a78bfa; border-color:rgba(123,97,255,0.35);">
+                Read article <i class="fas fa-arrow-right" style="font-size:0.75rem;"></i>
+            </span>
+        </div>
+    </a>
+
+    <!-- Post 2: XGBoost vs LightGBM -->
+    <a href="/blog/xgboost-vs-lightgbm-stock-prediction" class="blog-card">
+        <div class="card-thumb">
+            <div class="card-thumb-bg" style="background: linear-gradient(135deg, #071a28 0%, #071a20 50%, #0a1f28 100%);">
+                <svg width="100%" height="100%" style="position:absolute;inset:0;opacity:0.12;">
+                    <defs>
+                        <pattern id="grid2" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#00c8e8" stroke-width="0.5"/>
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid2)"/>
+                </svg>
+                <!-- Bar chart illustration -->
+                <div style="position:absolute; bottom:30px; left:50%; transform:translateX(-50%); display:flex; align-items:flex-end; gap:6px;">
+                    <div style="width:22px; height:70px; background:rgba(0,200,232,0.6); border-radius:4px 4px 0 0;"></div>
+                    <div style="width:22px; height:90px; background:rgba(0,200,232,0.8); border-radius:4px 4px 0 0;"></div>
+                    <div style="width:22px; height:55px; background:rgba(123,97,255,0.6); border-radius:4px 4px 0 0;"></div>
+                    <div style="width:22px; height:105px; background:rgba(123,97,255,0.85); border-radius:4px 4px 0 0;"></div>
+                    <div style="width:22px; height:80px; background:rgba(34,197,94,0.7); border-radius:4px 4px 0 0;"></div>
+                    <div style="width:22px; height:120px; background:rgba(34,197,94,0.9); border-radius:4px 4px 0 0;"></div>
+                </div>
+                <div style="position:absolute; top:22px; left:50%; transform:translateX(-50%); font-size:0.7rem; font-weight:700; letter-spacing:2px; color:rgba(0,200,232,0.6); text-transform:uppercase; white-space:nowrap;">XGBoost  vs  LightGBM</div>
+            </div>
+            <div class="card-thumb-label" style="background:rgba(0,200,232,0.15); border:1px solid rgba(0,200,232,0.35); color:var(--accent);">Deep Dive</div>
+        </div>
+        <div class="card-body">
+            <div class="card-meta">
+                <span><i class="fas fa-calendar-alt"></i> 9 June 2026</span>
+                <span><i class="fas fa-clock"></i> 10 min read</span>
+            </div>
+            <div class="card-title">XGBoost vs LightGBM for Stock Prediction</div>
+            <div class="card-desc">Both dominate gradient boosting benchmarks. But for financial time-series they make different trade-offs in speed, memory and overfitting risk. See the head-to-head benchmarks and find out why Stocker uses both.</div>
+            <div class="card-tags">
+                <span class="card-tag" style="background:rgba(0,200,232,0.1); color:var(--accent);">XGBoost</span>
+                <span class="card-tag" style="background:rgba(123,97,255,0.12); color:#a78bfa;">LightGBM</span>
+                <span class="card-tag" style="background:rgba(34,197,94,0.1); color:var(--green);">Ensemble</span>
+                <span class="card-tag" style="background:rgba(247,192,79,0.1); color:var(--gold);">Benchmarks</span>
+            </div>
+            <span class="card-read" style="color:var(--accent); border-color:rgba(0,200,232,0.3);">
+                Read article <i class="fas fa-arrow-right" style="font-size:0.75rem;"></i>
+            </span>
+        </div>
+    </a>
+
+    <!-- Coming soon card -->
+    <div class="blog-card-soon">
+        <div class="soon-icon"><i class="fas fa-pen-nib"></i></div>
+        <p>More articles coming soon.<br>Topics: technical indicators, sentiment analysis, backtesting strategies.</p>
+    </div>
+
+</div>
+
+<footer>
+    <a href="/">Stocker</a>
+    <a href="/blog">Blog</a>
+    <a href="/privacy">Privacy</a>
+    <br><br>
+    <span>© 2026 Stocker · stocker.gultechs.net · Not financial advice.</span>
+</footer>
+
+</body>
+</html>
