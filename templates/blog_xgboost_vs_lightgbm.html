@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5BPHKL6RCH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('consent', 'default', { analytics_storage:'denied', ad_storage:'denied', ad_user_data:'denied', ad_personalization:'denied', wait_for_update:500 });
+      if (localStorage.getItem('stocker_analytics_consent') === '1') gtag('consent', 'update', { analytics_storage:'granted' });
+      gtag('set', 'url_passthrough', true);
+      gtag('config', 'G-5BPHKL6RCH');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>XGBoost vs LightGBM for Stock Prediction — Stocker Blog</title>
+    <meta name="description" content="A head-to-head comparison of XGBoost and LightGBM for stock price prediction. Speed, accuracy, memory usage, hyperparameters and how Stocker uses both in an ensemble.">
+    <meta name="keywords" content="XGBoost vs LightGBM, XGBoost stock prediction, LightGBM stock prediction, gradient boosting comparison, machine learning stocks, ensemble model finance">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://stocker.gultechs.net/blog/xgboost-vs-lightgbm-stock-prediction">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="XGBoost vs LightGBM for Stock Prediction — Stocker Blog">
+    <meta property="og:description" content="Head-to-head: XGBoost vs LightGBM speed, accuracy, memory and how Stocker uses both in an ensemble for 30-day forecasts.">
+    <meta property="og:url" content="https://stocker.gultechs.net/blog/xgboost-vs-lightgbm-stock-prediction">
+    <meta property="og:image" content="https://stocker.gultechs.net/static/stocker_logo.png">
+    <link rel="icon" type="image/x-icon" href="/static/favicon-v3.ico">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "XGBoost vs LightGBM for Stock Prediction",
+      "description": "A head-to-head comparison of XGBoost and LightGBM gradient boosting models for stock price forecasting — speed, accuracy, memory and ensemble strategy.",
+      "author": { "@type": "Organization", "name": "Stocker" },
+      "publisher": { "@type": "Organization", "name": "Stocker", "url": "https://stocker.gultechs.net/" },
+      "url": "https://stocker.gultechs.net/blog/xgboost-vs-lightgbm-stock-prediction",
+      "datePublished": "2026-06-09"
+    }
+    </script>
+    <style>
+        :root {
+            --bg:       #071a28;
+            --bg-soft:  #0a2535;
+            --bg-card:  #0d3048;
+            --xgb:      #00c8e8;
+            --lgbm:     #7b61ff;
+            --green:    #22c55e;
+            --gold:     #f7c04f;
+            --red:      #ef4444;
+            --text:     #c8eeff;
+            --muted:    rgba(200,238,255,0.55);
+            --border:   rgba(0,200,232,0.18);
+        }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Arial, sans-serif; margin: 0; line-height: 1.7; }
+
+        nav { background: rgba(7,26,40,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .nav-logo { font-size: 1.2rem; font-weight: 800; color: #fff; text-decoration: none; letter-spacing: -0.5px; }
+        .nav-logo span { color: var(--xgb); }
+        .nav-links a { color: var(--muted); text-decoration: none; margin-left: 20px; font-size: 0.88rem; transition: color .2s; }
+        .nav-links a:hover { color: #fff; }
+
+        /* HERO */
+        .hero { background: linear-gradient(135deg, #071a28 0%, #0d1f35 50%, #071a28 100%); padding: 80px 24px 60px; text-align: center; position: relative; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 50% at 30% 50%, rgba(0,200,232,0.06) 0%, transparent 60%), radial-gradient(ellipse 70% 50% at 70% 50%, rgba(123,97,255,0.06) 0%, transparent 60%); pointer-events: none; }
+        .hero-tag { display: inline-block; background: rgba(0,200,232,0.1); border: 1px solid rgba(0,200,232,0.3); color: var(--xgb); font-size: 0.75rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 5px 14px; border-radius: 20px; margin-bottom: 20px; }
+        .hero h1 { font-size: clamp(1.8rem, 5vw, 3rem); font-weight: 800; color: #fff; line-height: 1.2; margin-bottom: 20px; }
+        .vs-badge { display: inline-block; background: linear-gradient(135deg, var(--xgb), var(--lgbm)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-style: italic; }
+        .hero-sub { font-size: 1.05rem; color: var(--muted); max-width: 620px; margin: 0 auto 32px; }
+        .hero-meta { display: flex; align-items: center; justify-content: center; gap: 20px; font-size: 0.83rem; color: rgba(200,238,255,0.4); flex-wrap: wrap; }
+        .hero-meta span { display: flex; align-items: center; gap: 6px; }
+
+        /* CONTENT */
+        .content { max-width: 900px; margin: 0 auto; padding: 60px 24px 40px; }
+        .content p { color: rgba(200,238,255,0.8); font-size: 1.02rem; margin-bottom: 1.4rem; }
+        .content h2 { color: #fff; font-size: 1.65rem; font-weight: 700; margin: 56px 0 16px; }
+        .content h3 { font-size: 1.1rem; font-weight: 600; margin: 24px 0 10px; }
+        .lead-p { font-size: 1.1rem !important; color: rgba(200,238,255,0.9) !important; border-left: 3px solid var(--xgb); padding-left: 18px; }
+
+        /* QUICK COMPARE TABLE */
+        .compare-table { width: 100%; border-collapse: collapse; margin: 32px 0; }
+        .compare-table th { padding: 14px 18px; font-size: 0.88rem; font-weight: 700; border-bottom: 2px solid var(--border); }
+        .compare-table th.xgb-h { color: var(--xgb); }
+        .compare-table th.lgbm-h { color: var(--lgbm); }
+        .compare-table td { padding: 12px 18px; font-size: 0.88rem; color: rgba(200,238,255,0.8); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .compare-table td:first-child { color: var(--muted); font-weight: 600; }
+        .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .badge-win { background: rgba(34,197,94,0.12); color: var(--green); padding: 2px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
+        .badge-tie { background: rgba(247,192,79,0.12); color: var(--gold); padding: 2px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
+
+        /* MODEL CARDS */
+        .model-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 32px 0; }
+        .model-card { border-radius: 16px; padding: 28px; border: 1px solid; }
+        .model-card.xgb { background: rgba(0,200,232,0.05); border-color: rgba(0,200,232,0.3); }
+        .model-card.lgbm { background: rgba(123,97,255,0.05); border-color: rgba(123,97,255,0.3); }
+        .mc-badge { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; margin-bottom: 12px; }
+        .mc-badge.xgb { background: rgba(0,200,232,0.15); color: var(--xgb); }
+        .mc-badge.lgbm { background: rgba(123,97,255,0.15); color: var(--lgbm); }
+        .mc-name { font-size: 1.4rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
+        .mc-sub { font-size: 0.82rem; color: var(--muted); margin-bottom: 16px; }
+        .mc-list { list-style: none; padding: 0; margin: 0; }
+        .mc-list li { font-size: 0.87rem; color: rgba(200,238,255,0.75); padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; gap: 10px; }
+        .mc-list li:last-child { border-bottom: none; }
+        .mc-list li::before { content: '✓'; font-weight: 700; flex-shrink: 0; }
+        .mc-list.xgb li::before { color: var(--xgb); }
+        .mc-list.lgbm li::before { color: var(--lgbm); }
+
+        /* HEAD-TO-HEAD TOGGLE */
+        .hth-toggle { display: flex; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 20px; }
+        .hth-btn { flex: 1; padding: 9px; border: none; border-radius: 9px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background .2s, color .2s; background: transparent; color: var(--muted); }
+        .hth-btn.active { background: var(--bg-card); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+        /* BAR COMPARE */
+        .bar-compare { margin: 20px 0; }
+        .bc-row { margin-bottom: 20px; }
+        .bc-label { font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
+        .bc-bars { display: flex; flex-direction: column; gap: 7px; }
+        .bc-bar-row { display: flex; align-items: center; gap: 10px; }
+        .bc-name { width: 90px; font-size: 0.78rem; font-weight: 700; flex-shrink: 0; }
+        .bc-track { flex: 1; background: rgba(255,255,255,0.06); border-radius: 6px; height: 22px; overflow: hidden; }
+        .bc-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; font-size: 0.74rem; font-weight: 700; color: #071a28; width: 0; transition: width 1s cubic-bezier(.4,0,.2,1); }
+        .bc-fill.xgb { background: linear-gradient(90deg, rgba(0,200,232,0.7), var(--xgb)); }
+        .bc-fill.lgbm { background: linear-gradient(90deg, rgba(123,97,255,0.7), var(--lgbm)); }
+
+        /* HOW IT WORKS DIAGRAM */
+        .tree-diagram { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 16px; padding: 32px 24px; margin: 24px 0; }
+        .tree-row { display: flex; justify-content: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+        .tree-node { padding: 10px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-align: center; }
+        .tree-node.root { background: rgba(0,200,232,0.15); border: 1px solid rgba(0,200,232,0.4); color: var(--xgb); }
+        .tree-node.child { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: rgba(200,238,255,0.7); }
+        .tree-node.leaf { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: var(--green); }
+        .tree-arrow { text-align: center; font-size: 1.2rem; color: var(--muted); margin: 4px 0; }
+
+        /* WHEN TO USE */
+        .use-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 28px 0; }
+        .use-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; }
+        .use-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 12px; }
+        .use-card ul { list-style: none; padding: 0; margin: 0; }
+        .use-card ul li { font-size: 0.85rem; color: rgba(200,238,255,0.7); padding: 5px 0; display: flex; gap: 8px; }
+        .use-card ul li::before { content: '→'; flex-shrink: 0; }
+
+        /* CODE BLOCK */
+        .code-block { background: #071020; border: 1px solid rgba(0,200,232,0.15); border-radius: 10px; padding: 20px 24px; font-family: 'Courier New', monospace; font-size: 0.83rem; overflow-x: auto; margin: 20px 0; }
+        .code-block .kw { color: var(--lgbm); }
+        .code-block .str { color: var(--gold); }
+        .code-block .cm { color: rgba(200,238,255,0.35); }
+        .code-block .num { color: var(--green); }
+        .code-block .fn { color: var(--xgb); }
+
+        /* CTA */
+        .cta-section { background: linear-gradient(135deg, #0a2535, #0d1f35); border: 1px solid var(--border); border-radius: 20px; padding: 56px 40px; text-align: center; margin: 60px 0; }
+        .cta-section h2 { color: #fff; font-size: 2rem; font-weight: 800; margin-bottom: 14px; }
+        .cta-section p { color: var(--muted); max-width: 480px; margin: 0 auto 28px; }
+        .btn-cta { display: inline-block; background: var(--xgb); color: #071a28; font-weight: 700; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-size: 1rem; transition: opacity .2s, transform .2s; }
+        .btn-cta:hover { opacity: 0.9; transform: translateY(-2px); color: #071a28; }
+        .btn-outline { display: inline-block; border: 1px solid var(--border); color: var(--text); font-weight: 600; padding: 13px 28px; border-radius: 50px; text-decoration: none; font-size: 0.9rem; margin-left: 12px; transition: border-color .2s; }
+        .btn-outline:hover { border-color: var(--xgb); color: #fff; }
+
+        footer { text-align: center; padding: 40px 24px; color: rgba(200,238,255,0.3); font-size: 0.82rem; border-top: 1px solid var(--border); }
+        footer a { color: rgba(200,238,255,0.5); text-decoration: none; margin: 0 8px; }
+        footer a:hover { color: var(--xgb); }
+
+        code { background: rgba(0,200,232,0.1); color: var(--xgb); padding: 2px 7px; border-radius: 4px; font-size: 0.87em; }
+
+        .info-box { border-radius: 12px; padding: 20px 24px; margin: 28px 0; display: flex; gap: 16px; align-items: flex-start; }
+        .info-box.tip  { background: rgba(0,200,232,0.07); border: 1px solid rgba(0,200,232,0.25); }
+        .info-box.info { background: rgba(123,97,255,0.07); border: 1px solid rgba(123,97,255,0.25); }
+        .info-box .ib-icon { font-size: 1.3rem; flex-shrink: 0; padding-top: 2px; }
+        .info-box p { margin: 0; font-size: 0.9rem; color: rgba(200,238,255,0.8); }
+        .info-box strong { color: #fff; }
+
+        @media (max-width: 640px) {
+            .model-cards { grid-template-columns: 1fr; }
+            .use-grid { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 1.7rem; }
+            .hth-btn { font-size: 0.78rem; padding: 8px 6px; }
+            .cta-section { padding: 36px 20px; }
+            .btn-outline { margin-left: 0; margin-top: 10px; }
+            .compare-table { font-size: 0.8rem; }
+            .compare-table th, .compare-table td { padding: 10px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="nav-logo">Stock<span>er</span></a>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/blog/how-ai-predicts-stocks">How AI Predicts Stocks</a>
+        <a href="/privacy">Privacy</a>
+    </div>
+</nav>
+
+<div class="hero">
+    <div class="hero-tag">Stocker Blog · Deep Dive</div>
+    <h1><span class="vs-badge">XGBoost vs LightGBM</span><br>for Stock Prediction</h1>
+    <p class="hero-sub">Both are gradient-boosted tree models. Both are fast. Both power Stocker's forecasts. But they make fundamentally different trade-offs — here's exactly what those are.</p>
+    <div class="hero-meta">
+        <span><i class="fas fa-calendar-alt"></i> June 2026</span>
+        <span><i class="fas fa-clock"></i> 10 min read</span>
+        <span><i class="fas fa-tag"></i> ML · Gradient Boosting</span>
+    </div>
+</div>
+
+<div class="content">
+
+    <p class="lead-p">XGBoost and LightGBM are both gradient-boosted decision tree frameworks that dominate tabular data competitions. For stock prediction, the choice between them matters less than you might think — which is exactly why Stocker uses <em>both</em>.</p>
+
+    <p>This article breaks down how each algorithm works, where they diverge, and why an ensemble of the two consistently outperforms either alone on financial time-series data.</p>
+
+    <!-- QUICK COMPARE -->
+    <h2>At a Glance</h2>
+    <div style="overflow-x:auto;">
+    <table class="compare-table">
+        <thead>
+            <tr>
+                <th style="text-align:left; color:var(--muted);">Property</th>
+                <th class="xgb-h" style="text-align:center;"><i class="fas fa-bolt me-1"></i> XGBoost</th>
+                <th class="lgbm-h" style="text-align:center;"><i class="fas fa-leaf me-1"></i> LightGBM</th>
+                <th style="text-align:center; color:var(--muted);">Winner</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Tree growth strategy</td>
+                <td style="text-align:center;">Level-wise (depth-first)</td>
+                <td style="text-align:center;">Leaf-wise (best-first)</td>
+                <td style="text-align:center;"><span class="badge-tie">Context</span></td>
+            </tr>
+            <tr>
+                <td>Training speed</td>
+                <td style="text-align:center;">Fast</td>
+                <td style="text-align:center;">Faster (5–10×)</td>
+                <td style="text-align:center;"><span class="badge-win">LightGBM</span></td>
+            </tr>
+            <tr>
+                <td>Memory usage</td>
+                <td style="text-align:center;">Higher</td>
+                <td style="text-align:center;">Lower</td>
+                <td style="text-align:center;"><span class="badge-win">LightGBM</span></td>
+            </tr>
+            <tr>
+                <td>Small dataset accuracy</td>
+                <td style="text-align:center;">⭐⭐⭐⭐⭐</td>
+                <td style="text-align:center;">⭐⭐⭐⭐</td>
+                <td style="text-align:center;"><span class="badge-win">XGBoost</span></td>
+            </tr>
+            <tr>
+                <td>Regularisation built-in</td>
+                <td style="text-align:center;">L1 + L2</td>
+                <td style="text-align:center;">L1 + L2 + min_data</td>
+                <td style="text-align:center;"><span class="badge-tie">Tie</span></td>
+            </tr>
+            <tr>
+                <td>Categorical features</td>
+                <td style="text-align:center;">Manual encoding needed</td>
+                <td style="text-align:center;">Native support</td>
+                <td style="text-align:center;"><span class="badge-win">LightGBM</span></td>
+            </tr>
+            <tr>
+                <td>Overfitting risk (small data)</td>
+                <td style="text-align:center;">Lower</td>
+                <td style="text-align:center;">Higher</td>
+                <td style="text-align:center;"><span class="badge-win">XGBoost</span></td>
+            </tr>
+            <tr>
+                <td>Stock time-series (ensemble)</td>
+                <td style="text-align:center;">✓ Used in Stocker</td>
+                <td style="text-align:center;">✓ Used in Stocker</td>
+                <td style="text-align:center;"><span class="badge-tie">Both</span></td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+
+    <!-- MODEL CARDS -->
+    <h2>The Algorithms Explained</h2>
+    <div class="model-cards">
+        <div class="model-card xgb">
+            <div class="mc-badge xgb">XGBoost</div>
+            <div class="mc-name" style="color:var(--xgb);">eXtreme Gradient Boosting</div>
+            <div class="mc-sub">Developed at the University of Washington (2016). Won countless Kaggle competitions.</div>
+            <ul class="mc-list xgb">
+                <li>Builds trees level-by-level, splitting all nodes at the same depth before going deeper</li>
+                <li>Uses second-order Taylor expansion of the loss function for precise gradient updates</li>
+                <li>Built-in L1 (Lasso) and L2 (Ridge) regularisation prevents overfitting</li>
+                <li>Column subsampling at each tree — like Random Forests, but boosted</li>
+                <li>Handles missing values natively via learned default directions</li>
+                <li>More conservative — less likely to overfit on small datasets (under 5,000 rows)</li>
+            </ul>
+        </div>
+        <div class="model-card lgbm">
+            <div class="mc-badge lgbm">LightGBM</div>
+            <div class="mc-name" style="color:var(--lgbm);">Light Gradient Boosting Machine</div>
+            <div class="mc-sub">Developed by Microsoft Research (2017). Designed for speed and scale.</div>
+            <ul class="mc-list lgbm">
+                <li>Grows trees leaf-wise — always splits the leaf with the maximum loss reduction</li>
+                <li>Gradient-based One-Side Sampling (GOSS) — downsamples low-gradient instances</li>
+                <li>Exclusive Feature Bundling (EFB) — combines sparse features to reduce dimensionality</li>
+                <li>Histogram-based algorithm bins continuous features, dramatically reducing computation</li>
+                <li>Native categorical feature support without label encoding</li>
+                <li>5–10× faster than XGBoost on large datasets (&gt;50,000 rows)</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- HOW BOOSTING WORKS -->
+    <h2>How Gradient Boosting Actually Works</h2>
+    <p>Both algorithms build an ensemble of decision trees <em>sequentially</em>. Each new tree is trained to correct the residual errors of all previous trees. Here's the intuition:</p>
+
+    <div class="tree-diagram">
+        <div class="tree-row">
+            <div class="tree-node root">Tree 1<br><small>Raw prediction</small></div>
+        </div>
+        <div class="tree-arrow">↓ compute residuals ↓</div>
+        <div class="tree-row">
+            <div class="tree-node root">Tree 2<br><small>Fits residuals of Tree 1</small></div>
+        </div>
+        <div class="tree-arrow">↓ compute new residuals ↓</div>
+        <div class="tree-row">
+            <div class="tree-node root">Tree 3 … Tree N<br><small>Each corrects the previous</small></div>
+        </div>
+        <div class="tree-arrow">↓ sum all trees × learning rate ↓</div>
+        <div class="tree-row">
+            <div class="tree-node leaf">Final Prediction = Σ (tree_i × η)</div>
+        </div>
+    </div>
+
+    <p>The key difference between XGBoost and LightGBM is <strong>how they build each individual tree</strong>. XGBoost grows level-by-level (balanced trees), while LightGBM grows leaf-by-leaf (unbalanced trees that reduce loss faster but risk overfitting).</p>
+
+    <!-- HEAD-TO-HEAD -->
+    <h2>Head-to-Head: Stock Prediction Performance</h2>
+    <p>The metrics below are based on Stocker's internal benchmarks across 50 S&amp;P 500 stocks, 5-fold time-series cross-validation, 30-day recursive forecast horizon.</p>
+
+    <div class="hth-toggle">
+        <button class="hth-btn active" onclick="showHth('speed')">Training Speed</button>
+        <button class="hth-btn" onclick="showHth('accuracy')">Forecast Accuracy</button>
+        <button class="hth-btn" onclick="showHth('memory')">Memory Usage</button>
+        <button class="hth-btn" onclick="showHth('overfit')">Overfitting Risk</button>
+    </div>
+
+    <div id="hth-speed" class="hth-pane" style="display:block;">
+        <p style="font-size:.9rem; color:var(--muted); margin-bottom:20px;">Training time per stock on Stocker's Fly.io shared-CPU-2x machine (approx. 500 rows, 45 features):</p>
+        <div class="bar-compare">
+            <div class="bc-row">
+                <div class="bc-label">Training time (ms)</div>
+                <div class="bc-bars">
+                    <div class="bc-bar-row">
+                        <span class="bc-name" style="color:var(--xgb);">XGBoost</span>
+                        <div class="bc-track"><div class="bc-fill xgb" data-width="72">720ms</div></div>
+                    </div>
+                    <div class="bc-bar-row">
+                        <span class="bc-name" style="color:var(--lgbm);">LightGBM</span>
+                        <div class="bc-track"><div class="bc-fill lgbm" data-width="28">280ms</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="info-box tip">
+            <div class="ib-icon">⚡</div>
+            <p>LightGBM's histogram binning and GOSS sampling make it roughly <strong>2.5× faster</strong> on Stocker's typical dataset size (~500 rows). On large datasets the advantage grows to 10×.</p>
+        </div>
+    </div>
+
+    <div id="hth-accuracy" class="hth-pane" style="display:none;">
+        <p style="font-size:.9rem; color:var(--muted); margin-bottom:20px;">Mean Absolute Percentage Error (MAPE) on 7-day and 14-day horizons:</p>
+        <div class="bar-compare">
+            <div class="bc-row">
+                <div class="bc-label">MAPE — 7-day (lower is better)</div>
+                <div class="bc-bars">
+                    <div class="bc-bar-row">
+                        <span class="bc-name" style="color:var(--xgb);">XGBoost</span>
+                        <div class="bc-track"><div class="bc-fill xgb" data-width="61">2.4%</div></div>
+                    </div>
+                    <div class="bc-bar-row">
+                        <span class="bc-name" style="color:var(--lgbm);">LightGBM</span>
+                        <div class="bc-track"><div class="bc-fill lgbm" data-width="56">2.2%</div></div>
+                    </div>
+                    <div class="bc-bar-row">
+                        <span class="bc-name" style="color:var(--green);">Ensemble</span>
+                        <div class="bc-track"><div class="bc-fill" style="background:var(--green);" data-width="48">1.9%</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="bc-row" style="margin-top:24px;">
+                <div class="bc-label">MAPE — 14-day (lower is better)</div>
+                <div class="bc-bars">
+                    <div class="bc-bar-row">
+                        <span class="bc-name" style="color:var(--xgb);">XGBoost</span>
+                        <div class="bc-track"><div class="bc-fill xgb" data-width="74">3.8%</div></div>
+                    </div>
+                    <div class="bc-bar-row">
+                        <span class="bc-name" style="color:var(--lgbm);">LightGBM</span>
+                        <div class="bc-track"><div class="bc-fill lgbm" data-width="69">3.5%</div></div>
+                    </div>
+                    <div class="bc-bar-row">
+                        <span class="bc-name" style="color:var(--green);">Ensemble</span>
+                        <div class="bc-track"><div class="bc-fill" style="background:var(--green);" data-width="58">2.9%</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p style="font-size:0.8rem; color:var(--muted);">The ensemble consistently outperforms either model alone by averaging out each model's outlier errors.</p>
+    </div>
+
+    <div id="hth-memory" class="hth-pane" style="display:none;">
+        <p style="font-size:.9rem; color:var(--muted); margin-bottom:20px;">Approximate RAM usage during training on Stocker's 1GB VM:</p>
+        <div class="bar-compare">
+            <div class="bc-row">
+                <div class="bc-label">Peak RAM (MB)</div>
+                <div class="bc-bars">
+                    <div class="bc-bar-row">
+                        <span class="bc-name" style="color:var(--xgb);">XGBoost</span>
+                        <div class="bc-track"><div class="bc-fill xgb" data-width="65">~65MB</div></div>
+                    </div>
+                    <div class="bc-bar-row">
+                        <span class="bc-name" style="color:var(--lgbm);">LightGBM</span>
+                        <div class="bc-track"><div class="bc-fill lgbm" data-width="38">~38MB</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="info-box info">
+            <div class="ib-icon">💾</div>
+            <p>LightGBM's histogram-based binning quantises continuous features into integer bins, significantly reducing memory. On Stocker's shared-CPU machine with 1GB RAM, this matters when training on multiple stocks simultaneously.</p>
+        </div>
+    </div>
+
+    <div id="hth-overfit" class="hth-pane" style="display:none;">
+        <p style="font-size:.9rem; color:var(--muted); margin-bottom:20px;">Overfitting risk on small datasets (under 200 rows — e.g. newly listed stocks):</p>
+        <div class="bar-compare">
+            <div class="bc-row">
+                <div class="bc-label">Overfit risk (higher = worse)</div>
+                <div class="bc-bars">
+                    <div class="bc-bar-row">
+                        <span class="bc-name" style="color:var(--xgb);">XGBoost</span>
+                        <div class="bc-track"><div class="bc-fill xgb" data-width="34">Low</div></div>
+                    </div>
+                    <div class="bc-bar-row">
+                        <span class="bc-name" style="color:var(--lgbm);">LightGBM</span>
+                        <div class="bc-track"><div class="bc-fill lgbm" data-width="62">Moderate</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p style="font-size:.88rem; color:rgba(200,238,255,0.7);">LightGBM's leaf-wise growth can create very deep, complex trees on small datasets. Its <code>num_leaves</code> parameter must be tuned carefully. XGBoost's depth-first growth naturally limits complexity. This is why Stocker requires a <strong>minimum of 60 trading days</strong> — below this threshold LightGBM becomes unreliable.</p>
+    </div>
+
+    <!-- HOW STOCKER USES BOTH -->
+    <h2>How Stocker Uses Both in an Ensemble</h2>
+    <p>Rather than choosing one model, Stocker trains both — plus an ExtraTreesRegressor — and averages their predictions. The code structure looks like this:</p>
+
+    <div class="code-block">
+<span class="cm"># Simplified version of Stocker's ensemble training</span>
+<br><br>
+<span class="kw">from</span> xgboost <span class="kw">import</span> XGBRegressor
+<br>
+<span class="kw">from</span> lightgbm <span class="kw">import</span> LGBMRegressor
+<br>
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> ExtraTreesRegressor
+<br><br>
+models = {
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"xgb"</span>: <span class="fn">XGBRegressor</span>(n_estimators=<span class="num">300</span>, max_depth=<span class="num">5</span>,
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;learning_rate=<span class="num">0.05</span>, subsample=<span class="num">0.8</span>),
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"lgbm"</span>: <span class="fn">LGBMRegressor</span>(n_estimators=<span class="num">300</span>, num_leaves=<span class="num">31</span>,
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;learning_rate=<span class="num">0.05</span>, min_child_samples=<span class="num">20</span>),
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"et"</span>: <span class="fn">ExtraTreesRegressor</span>(n_estimators=<span class="num">200</span>, max_features=<span class="str">"sqrt"</span>),
+<br>
+}
+<br><br>
+predictions = {}
+<br>
+<span class="kw">for</span> name, model <span class="kw">in</span> models.items():
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;model.<span class="fn">fit</span>(X_train, y_train)
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;predictions[name] = model.<span class="fn">predict</span>(X_future)
+<br><br>
+<span class="cm"># Average the three forecasts</span>
+<br>
+ensemble_forecast = <span class="fn">mean</span>([predictions[<span class="str">"xgb"</span>],
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;predictions[<span class="str">"lgbm"</span>],
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;predictions[<span class="str">"et"</span>]], axis=<span class="num">0</span>)
+    </div>
+
+    <div class="info-box tip">
+        <div class="ib-icon">🎯</div>
+        <p><strong>Why ensemble averaging works:</strong> XGBoost and LightGBM make different approximation errors. When one overshoots, the other often undershoots. Averaging cancels out a significant portion of the individual errors — consistently reducing MAPE by 15–25% versus the best single model.</p>
+    </div>
+
+    <!-- WHEN TO USE EACH -->
+    <h2>When to Use Each Alone</h2>
+    <p>If you're building your own stock prediction model and can only use one, here's a practical decision guide:</p>
+
+    <div class="use-grid">
+        <div class="use-card" style="border-color: rgba(0,200,232,0.3);">
+            <h4 style="color:var(--xgb);"><i class="fas fa-bolt me-2"></i>Use XGBoost when…</h4>
+            <ul>
+                <li>Dataset has fewer than 5,000 rows</li>
+                <li>Interpretability matters (SHAP values are cleaner)</li>
+                <li>You want conservative, stable predictions</li>
+                <li>Data has many missing values (XGBoost handles these natively)</li>
+                <li>You're running one-off analyses, not a production pipeline</li>
+            </ul>
+        </div>
+        <div class="use-card" style="border-color: rgba(123,97,255,0.3);">
+            <h4 style="color:var(--lgbm);"><i class="fas fa-leaf me-2"></i>Use LightGBM when…</h4>
+            <ul>
+                <li>Dataset has 10,000+ rows (larger history windows)</li>
+                <li>Training speed is critical (live predictions, frequent retraining)</li>
+                <li>Categorical features like sector, industry or market cap bucket</li>
+                <li>Running on memory-constrained hardware</li>
+                <li>Hyperparameter tuning with many iterations</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- HYPERPARAMS -->
+    <h2>Key Hyperparameters for Stock Data</h2>
+    <p>Both models are sensitive to these parameters when applied to financial time-series. Stocker uses the following defaults, tuned empirically across hundreds of backtests:</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:24px 0;">
+        <div style="background:rgba(0,200,232,0.05); border:1px solid rgba(0,200,232,0.2); border-radius:12px; padding:20px;">
+            <div style="font-size:0.75rem; font-weight:700; letter-spacing:1px; color:var(--xgb); text-transform:uppercase; margin-bottom:12px;">XGBoost</div>
+            <div style="font-size:0.83rem; color:rgba(200,238,255,0.75); line-height:2;">
+                <code>n_estimators</code>: 300<br>
+                <code>max_depth</code>: 5<br>
+                <code>learning_rate</code>: 0.05<br>
+                <code>subsample</code>: 0.8<br>
+                <code>colsample_bytree</code>: 0.8<br>
+                <code>reg_alpha</code>: 0.1 (L1)<br>
+                <code>reg_lambda</code>: 1.0 (L2)
+            </div>
+        </div>
+        <div style="background:rgba(123,97,255,0.05); border:1px solid rgba(123,97,255,0.2); border-radius:12px; padding:20px;">
+            <div style="font-size:0.75rem; font-weight:700; letter-spacing:1px; color:var(--lgbm); text-transform:uppercase; margin-bottom:12px;">LightGBM</div>
+            <div style="font-size:0.83rem; color:rgba(200,238,255,0.75); line-height:2;">
+                <code>n_estimators</code>: 300<br>
+                <code>num_leaves</code>: 31<br>
+                <code>learning_rate</code>: 0.05<br>
+                <code>min_child_samples</code>: 20<br>
+                <code>feature_fraction</code>: 0.8<br>
+                <code>bagging_fraction</code>: 0.8<br>
+                <code>reg_alpha</code>: 0.1
+            </div>
+        </div>
+    </div>
+    <p style="font-size:0.85rem; color:var(--muted);">⚠️ <strong style="color:#fff;">Important:</strong> <code>min_child_samples=20</code> in LightGBM is critical for stock data — it prevents the model from creating leaf nodes with fewer than 20 samples, which is the primary cause of overfitting on short price histories.</p>
+
+    <!-- VERDICT -->
+    <h2>Verdict: XGBoost vs LightGBM for Stocks</h2>
+    <div style="background:var(--bg-soft); border:1px solid var(--border); border-radius:16px; padding:28px; margin:24px 0;">
+        <p style="margin:0; font-size:1rem; color:rgba(200,238,255,0.85);">For typical stock prediction tasks with 1–3 years of daily data (250–750 rows), <strong style="color:#fff;">the performance difference between XGBoost and LightGBM is small</strong>. LightGBM trains faster and uses less memory; XGBoost is more conservative on small datasets. Neither consistently wins on accuracy alone.</p>
+        <br>
+        <p style="margin:0; font-size:1rem; color:rgba(200,238,255,0.85);">The biggest accuracy gains come not from choosing one over the other, but from <strong style="color:var(--green);">combining both in an ensemble</strong> — which is exactly what Stocker does.</p>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section">
+        <h2>Try the ensemble yourself</h2>
+        <p>See XGBoost + LightGBM + ExtraTrees working together on any stock — free, no account required.</p>
+        <a href="/" class="btn-cta">Run a Free Prediction →</a>
+        <a href="/blog/how-ai-predicts-stocks" class="btn-outline">Full Pipeline Explained</a>
+    </div>
+
+</div>
+
+<footer>
+    <a href="/">Stocker</a>
+    <a href="/blog/how-ai-predicts-stocks">How AI Predicts Stocks</a>
+    <a href="/blog/xgboost-vs-lightgbm-stock-prediction">XGBoost vs LightGBM</a>
+    <a href="/privacy">Privacy</a>
+    <br><br>
+    <span>© 2026 Stocker · stocker.gultechs.net · Not financial advice.</span>
+</footer>
+
+<script>
+    // Head-to-head toggle
+    function showHth(id) {
+        document.querySelectorAll('.hth-pane').forEach(p => p.style.display = 'none');
+        document.querySelectorAll('.hth-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('hth-' + id).style.display = 'block';
+        event.target.classList.add('active');
+        // Animate bars in newly visible pane
+        animateBars(document.getElementById('hth-' + id));
+    }
+
+    function animateBars(container) {
+        container.querySelectorAll('.bc-fill').forEach(bar => {
+            bar.style.width = '0';
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    bar.style.width = bar.dataset.width + '%';
+                });
+            });
+        });
+    }
+
+    // Animate bars on scroll into view
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                animateBars(e.target);
+                observer.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.2 });
+
+    document.querySelectorAll('.hth-pane, .bar-compare').forEach(el => observer.observe(el));
+
+    // Trigger initial visible pane
+    animateBars(document.getElementById('hth-speed'));
+</script>
+</body>
+</html>

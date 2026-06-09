@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5BPHKL6RCH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('consent', 'default', { analytics_storage:'denied', ad_storage:'denied', ad_user_data:'denied', ad_personalization:'denied', wait_for_update:500 });
+      if (localStorage.getItem('stocker_analytics_consent') === '1') gtag('consent', 'update', { analytics_storage:'granted' });
+      gtag('set', 'url_passthrough', true);
+      gtag('config', 'G-5BPHKL6RCH');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>How AI Predicts Stock Prices — Stocker Blog</title>
+    <meta name="description" content="A deep dive into how Stocker uses machine learning — XGBoost, LightGBM and ExtraTreesRegressor — to forecast stock prices. Learn about feature engineering, ensemble models and 30-day recursive predictions.">
+    <meta name="keywords" content="how AI predicts stocks, machine learning stock prediction, XGBoost stock forecast, stock price prediction ML, technical indicator AI, stock ensemble model">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://stocker.gultechs.net/blog/how-ai-predicts-stocks">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="How AI Predicts Stock Prices — Stocker Blog">
+    <meta property="og:description" content="A deep dive into how Stocker uses ML ensemble models to forecast stock prices with 30-day predictions.">
+    <meta property="og:url" content="https://stocker.gultechs.net/blog/how-ai-predicts-stocks">
+    <meta property="og:image" content="https://stocker.gultechs.net/static/stocker_logo.png">
+    <link rel="icon" type="image/x-icon" href="/static/favicon-v3.ico">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "How AI Predicts Stock Prices",
+      "description": "A deep dive into how Stocker uses XGBoost, LightGBM and ExtraTreesRegressor ensemble to forecast stock prices with 30-day recursive predictions.",
+      "author": { "@type": "Organization", "name": "Stocker" },
+      "publisher": { "@type": "Organization", "name": "Stocker", "url": "https://stocker.gultechs.net/" },
+      "url": "https://stocker.gultechs.net/blog/how-ai-predicts-stocks",
+      "datePublished": "2026-06-09",
+      "mainEntityOfPage": "https://stocker.gultechs.net/blog/how-ai-predicts-stocks"
+    }
+    </script>
+    <style>
+        :root {
+            --bg:      #071a28;
+            --bg-soft: #0a2535;
+            --bg-card: #0d3048;
+            --accent:  #00c8e8;
+            --accent2: #7b61ff;
+            --gold:    #f7c04f;
+            --green:   #22c55e;
+            --text:    #c8eeff;
+            --muted:   rgba(200,238,255,0.55);
+            --border:  rgba(0,200,232,0.18);
+        }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Arial, sans-serif; margin: 0; line-height: 1.7; }
+
+        /* ── NAV ── */
+        nav { background: rgba(7,26,40,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .nav-logo { font-size: 1.2rem; font-weight: 800; color: #fff; text-decoration: none; letter-spacing: -0.5px; }
+        .nav-logo span { color: var(--accent); }
+        .nav-links a { color: var(--muted); text-decoration: none; margin-left: 20px; font-size: 0.88rem; transition: color .2s; }
+        .nav-links a:hover { color: #fff; }
+
+        /* ── HERO ── */
+        .hero { background: linear-gradient(135deg, #071a28 0%, #0a2535 40%, #071e35 100%); padding: 80px 24px 60px; text-align: center; position: relative; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,200,232,0.08) 0%, transparent 70%); pointer-events: none; }
+        .hero-tag { display: inline-block; background: rgba(0,200,232,0.12); border: 1px solid rgba(0,200,232,0.3); color: var(--accent); font-size: 0.75rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 5px 14px; border-radius: 20px; margin-bottom: 20px; }
+        .hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; color: #fff; line-height: 1.2; margin-bottom: 20px; }
+        .hero h1 span { color: var(--accent); }
+        .hero-sub { font-size: 1.1rem; color: var(--muted); max-width: 600px; margin: 0 auto 32px; }
+        .hero-meta { display: flex; align-items: center; justify-content: center; gap: 20px; font-size: 0.83rem; color: rgba(200,238,255,0.4); flex-wrap: wrap; }
+        .hero-meta span { display: flex; align-items: center; gap: 6px; }
+
+        /* ── CONTENT ── */
+        .content { max-width: 860px; margin: 0 auto; padding: 60px 24px 40px; }
+        .content p { color: rgba(200,238,255,0.8); font-size: 1.02rem; margin-bottom: 1.4rem; }
+        .content h2 { color: #fff; font-size: 1.65rem; font-weight: 700; margin: 56px 0 16px; }
+        .content h3 { color: var(--accent); font-size: 1.15rem; font-weight: 600; margin: 28px 0 10px; }
+        .lead-p { font-size: 1.12rem !important; color: rgba(200,238,255,0.9) !important; border-left: 3px solid var(--accent); padding-left: 18px; }
+
+        /* ── PIPELINE ── */
+        .pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0; margin: 40px 0; }
+        .pipe-step { background: var(--bg-card); border: 1px solid var(--border); padding: 28px 20px; text-align: center; position: relative; transition: transform .25s, box-shadow .25s; cursor: default; }
+        .pipe-step:first-child { border-radius: 12px 0 0 12px; }
+        .pipe-step:last-child { border-radius: 0 12px 12px 0; }
+        .pipe-step:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,200,232,0.12); z-index: 1; }
+        .pipe-step::after { content: '→'; position: absolute; right: -14px; top: 50%; transform: translateY(-50%); color: var(--accent); font-size: 1.2rem; z-index: 2; }
+        .pipe-step:last-child::after { display: none; }
+        .pipe-icon { font-size: 2rem; margin-bottom: 12px; }
+        .pipe-num { font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; color: var(--accent); text-transform: uppercase; margin-bottom: 6px; }
+        .pipe-title { font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+        .pipe-desc { font-size: 0.78rem; color: var(--muted); }
+
+        /* ── FEATURE CARDS ── */
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; margin: 28px 0 40px; }
+        .feat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; transition: border-color .25s, transform .25s; }
+        .feat-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+        .feat-card .icon { font-size: 1.6rem; margin-bottom: 10px; }
+        .feat-card h4 { font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+        .feat-card p { font-size: 0.82rem; color: var(--muted); margin: 0; }
+
+        /* ── TABS ── */
+        .tab-nav { display: flex; gap: 0; margin-bottom: 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+        .tab-btn { background: none; border: none; color: var(--muted); padding: 10px 20px; font-size: 0.88rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .2s, border-color .2s; }
+        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab-btn:hover { color: #fff; }
+        .tab-pane { display: none; background: var(--bg-card); border: 1px solid var(--border); border-top: none; border-radius: 0 0 12px 12px; padding: 28px; }
+        .tab-pane.active { display: block; }
+
+        /* ── STAT BARS ── */
+        .stat-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+        .stat-label { width: 160px; font-size: 0.83rem; color: var(--muted); flex-shrink: 0; }
+        .stat-bar-wrap { flex: 1; background: rgba(255,255,255,0.06); border-radius: 6px; height: 10px; overflow: hidden; }
+        .stat-bar { height: 100%; border-radius: 6px; width: 0; transition: width 1.2s cubic-bezier(.4,0,.2,1); }
+        .stat-val { width: 44px; text-align: right; font-size: 0.83rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+
+        /* ── INFO BOXES ── */
+        .info-box { border-radius: 12px; padding: 20px 24px; margin: 28px 0; display: flex; gap: 16px; align-items: flex-start; }
+        .info-box.tip  { background: rgba(0,200,232,0.07); border: 1px solid rgba(0,200,232,0.25); }
+        .info-box.warn { background: rgba(247,192,79,0.07); border: 1px solid rgba(247,192,79,0.25); }
+        .info-box .ib-icon { font-size: 1.3rem; flex-shrink: 0; padding-top: 2px; }
+        .info-box p { margin: 0; font-size: 0.9rem; color: rgba(200,238,255,0.8); }
+        .info-box strong { color: #fff; }
+
+        /* ── ENSEMBLE DIAGRAM ── */
+        .ensemble { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 16px; padding: 36px 24px; margin: 32px 0; text-align: center; }
+        .ens-models { display: flex; justify-content: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+        .ens-model { background: var(--bg-card); border-radius: 10px; padding: 14px 20px; border: 1px solid var(--border); min-width: 140px; }
+        .ens-model .em-name { font-size: 0.82rem; font-weight: 700; color: #fff; }
+        .ens-model .em-role { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+        .ens-arrow { font-size: 1.5rem; color: var(--accent); margin-bottom: 10px; }
+        .ens-output { display: inline-block; background: linear-gradient(135deg, rgba(0,200,232,0.15), rgba(123,97,255,0.15)); border: 1px solid var(--accent); border-radius: 10px; padding: 14px 32px; }
+        .ens-output .eo-label { font-size: 0.75rem; color: var(--accent); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+        .ens-output .eo-value { font-size: 1.4rem; font-weight: 800; color: #fff; margin-top: 4px; }
+
+        /* ── CTA ── */
+        .cta-section { background: linear-gradient(135deg, #0a2535, #071e35); border: 1px solid var(--border); border-radius: 20px; padding: 56px 40px; text-align: center; margin: 60px 0; }
+        .cta-section h2 { color: #fff; font-size: 2rem; font-weight: 800; margin-bottom: 14px; }
+        .cta-section p { color: var(--muted); max-width: 480px; margin: 0 auto 28px; }
+        .btn-cta { display: inline-block; background: var(--accent); color: #071a28; font-weight: 700; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-size: 1rem; transition: opacity .2s, transform .2s; }
+        .btn-cta:hover { opacity: 0.9; transform: translateY(-2px); color: #071a28; }
+        .btn-outline { display: inline-block; border: 1px solid var(--border); color: var(--text); font-weight: 600; padding: 13px 28px; border-radius: 50px; text-decoration: none; font-size: 0.9rem; margin-left: 12px; transition: border-color .2s; }
+        .btn-outline:hover { border-color: var(--accent); color: #fff; }
+
+        /* ── FOOTER ── */
+        footer { text-align: center; padding: 40px 24px; color: rgba(200,238,255,0.3); font-size: 0.82rem; border-top: 1px solid var(--border); }
+        footer a { color: rgba(200,238,255,0.5); text-decoration: none; margin: 0 8px; }
+        footer a:hover { color: var(--accent); }
+
+        /* ── CODE ── */
+        code { background: rgba(0,200,232,0.1); color: var(--accent); padding: 2px 7px; border-radius: 4px; font-size: 0.87em; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 600px) {
+            .pipeline { grid-template-columns: 1fr; }
+            .pipe-step { border-radius: 10px !important; }
+            .pipe-step::after { content: '↓'; right: 50%; top: auto; bottom: -18px; transform: translateX(50%); }
+            .hero h1 { font-size: 1.8rem; }
+            .cta-section { padding: 36px 20px; }
+            .btn-outline { margin-left: 0; margin-top: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+    <a href="/" class="nav-logo">Stock<span>er</span></a>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/blog/xgboost-vs-lightgbm-stock-prediction">XGBoost vs LightGBM</a>
+        <a href="/privacy">Privacy</a>
+    </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+    <div class="hero-tag">Stocker Blog</div>
+    <h1>How <span>AI</span> Predicts<br>Stock Prices</h1>
+    <p class="hero-sub">A technical deep-dive into the machine learning pipeline behind Stocker's 30-day stock forecasts — from raw price data to ensemble predictions.</p>
+    <div class="hero-meta">
+        <span><i class="fas fa-calendar-alt"></i> June 2026</span>
+        <span><i class="fas fa-clock"></i> 8 min read</span>
+        <span><i class="fas fa-tag"></i> Machine Learning · Fintech</span>
+    </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+    <p class="lead-p">Stock price prediction is one of the most challenging problems in machine learning. Markets are noisy, non-stationary, and influenced by everything from quarterly earnings to geopolitical events. Yet despite this complexity, ML models can identify patterns in historical data that carry real predictive signal — if engineered carefully.</p>
+
+    <p>This article explains exactly how Stocker's prediction engine works: what data it ingests, how features are engineered, which models are used, and how the final 30-day forecast is assembled.</p>
+
+    <!-- PIPELINE -->
+    <h2>The 4-Step Prediction Pipeline</h2>
+    <p>Every time you run an analysis on Stocker, the following pipeline executes in sequence:</p>
+
+    <div class="pipeline">
+        <div class="pipe-step">
+            <div class="pipe-icon">📥</div>
+            <div class="pipe-num">Step 1</div>
+            <div class="pipe-title">Data Collection</div>
+            <div class="pipe-desc">OHLCV history, fundamentals, analyst ratings, news</div>
+        </div>
+        <div class="pipe-step">
+            <div class="pipe-icon">⚙️</div>
+            <div class="pipe-num">Step 2</div>
+            <div class="pipe-title">Feature Engineering</div>
+            <div class="pipe-desc">60+ technical indicators and lag features computed</div>
+        </div>
+        <div class="pipe-step">
+            <div class="pipe-icon">🧠</div>
+            <div class="pipe-num">Step 3</div>
+            <div class="pipe-title">Model Training</div>
+            <div class="pipe-desc">XGBoost, LightGBM and ExtraTrees trained on the feature frame</div>
+        </div>
+        <div class="pipe-step">
+            <div class="pipe-icon">📈</div>
+            <div class="pipe-num">Step 4</div>
+            <div class="pipe-title">Forecasting</div>
+            <div class="pipe-desc">30 trading days predicted recursively via ensemble average</div>
+        </div>
+    </div>
+
+    <!-- DATA -->
+    <h2>Step 1 — Data Collection</h2>
+    <p>The foundation of any good ML model is high-quality data. Stocker fetches data from two sources: <strong>Yahoo Finance</strong> as the primary source, with <strong>Stooq</strong> as a fallback for historical OHLCV data when Yahoo rate-limits or returns incomplete results.</p>
+
+    <div class="feature-grid">
+        <div class="feat-card">
+            <div class="icon">📊</div>
+            <h4>OHLCV History</h4>
+            <p>Open, High, Low, Close, Volume — at least 60 trading days required. More history means better feature quality.</p>
+        </div>
+        <div class="feat-card">
+            <div class="icon">🏢</div>
+            <h4>Fundamentals</h4>
+            <p>P/E ratio, EPS, revenue growth, market cap, beta — contextualises the stock within its sector.</p>
+        </div>
+        <div class="feat-card">
+            <div class="icon">👨‍💼</div>
+            <h4>Analyst Ratings</h4>
+            <p>Strong buy / buy / hold / sell counts from Wall Street analysts, fetched from Yahoo Finance QuoteSummary API.</p>
+        </div>
+        <div class="feat-card">
+            <div class="icon">📰</div>
+            <h4>News &amp; Sentiment</h4>
+            <p>Recent headlines scored with VADER sentiment analysis — captures market mood beyond price action alone.</p>
+        </div>
+    </div>
+
+    <div class="info-box tip">
+        <div class="ib-icon">💡</div>
+        <p><strong>Minimum data threshold:</strong> Stocker requires at least <strong>60 trading days</strong> of history. Newly listed stocks or tickers with sparse data will return an error rather than produce an unreliable forecast.</p>
+    </div>
+
+    <!-- FEATURES -->
+    <h2>Step 2 — Feature Engineering</h2>
+    <p>Raw price data alone has limited predictive power. The real work happens in feature engineering — transforming OHLCV bars into a rich set of signals that the model can learn from.</p>
+
+    <!-- TABS -->
+    <div class="tab-nav">
+        <button class="tab-btn active" onclick="showTab('price')">Price Features</button>
+        <button class="tab-btn" onclick="showTab('momentum')">Momentum</button>
+        <button class="tab-btn" onclick="showTab('volatility')">Volatility</button>
+        <button class="tab-btn" onclick="showTab('volume')">Volume</button>
+    </div>
+
+    <div id="tab-price" class="tab-pane active">
+        <h4 style="color:#fff; margin-top:0;">Price-Derived Features</h4>
+        <p style="color:var(--muted); font-size:.9rem; margin-bottom:16px;">These features capture the direction and magnitude of recent price movements.</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>log_return</code><br><span style="font-size:.78rem; color:var(--muted);">Log of daily return — normalises scale across stocks</span></div>
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>lag_1 … lag_5</code><br><span style="font-size:.78rem; color:var(--muted);">Previous 1–5 day close prices as direct features</span></div>
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>sma_20, sma_50</code><br><span style="font-size:.78rem; color:var(--muted);">20 and 50 day Simple Moving Averages</span></div>
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>ema_12, ema_26</code><br><span style="font-size:.78rem; color:var(--muted);">Exponential MAs used to compute MACD signal</span></div>
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>price_vs_sma20</code><br><span style="font-size:.78rem; color:var(--muted);">% distance of price from its 20-day average</span></div>
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>high_low_range</code><br><span style="font-size:.78rem; color:var(--muted);">Daily candle range as % of close</span></div>
+        </div>
+    </div>
+    <div id="tab-momentum" class="tab-pane">
+        <h4 style="color:#fff; margin-top:0;">Momentum Indicators</h4>
+        <p style="color:var(--muted); font-size:.9rem; margin-bottom:16px;">Momentum features capture the speed and direction of recent price trends.</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>rsi_14</code><br><span style="font-size:.78rem; color:var(--muted);">Relative Strength Index (14 period) — overbought/oversold</span></div>
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>macd</code><br><span style="font-size:.78rem; color:var(--muted);">MACD line (EMA12 − EMA26)</span></div>
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>macd_signal</code><br><span style="font-size:.78rem; color:var(--muted);">9-day EMA of MACD — crossover signal</span></div>
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>momentum_5</code><br><span style="font-size:.78rem; color:var(--muted);">5-day price momentum (close / close_5d_ago − 1)</span></div>
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>momentum_10</code><br><span style="font-size:.78rem; color:var(--muted);">10-day price momentum</span></div>
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>stoch_k</code><br><span style="font-size:.78rem; color:var(--muted);">Stochastic %K — position within recent high/low range</span></div>
+        </div>
+    </div>
+    <div id="tab-volatility" class="tab-pane">
+        <h4 style="color:#fff; margin-top:0;">Volatility Features</h4>
+        <p style="color:var(--muted); font-size:.9rem; margin-bottom:16px;">Volatility features help the model understand regime — is the market calm or turbulent?</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>bb_upper / bb_lower</code><br><span style="font-size:.78rem; color:var(--muted);">Bollinger Bands (20-day, 2σ) — dynamic support/resistance</span></div>
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>bb_width</code><br><span style="font-size:.78rem; color:var(--muted);">Band width as % of midline — volatility regime</span></div>
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>atr_14</code><br><span style="font-size:.78rem; color:var(--muted);">Average True Range — absolute daily volatility</span></div>
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>rolling_std_20</code><br><span style="font-size:.78rem; color:var(--muted);">20-day rolling standard deviation of returns</span></div>
+        </div>
+    </div>
+    <div id="tab-volume" class="tab-pane">
+        <h4 style="color:#fff; margin-top:0;">Volume Features</h4>
+        <p style="color:var(--muted); font-size:.9rem; margin-bottom:16px;">Volume confirms price moves — a breakout on high volume is more reliable than one on thin volume.</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>volume_ratio</code><br><span style="font-size:.78rem; color:var(--muted);">Today's volume / 20-day average volume</span></div>
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>obv</code><br><span style="font-size:.78rem; color:var(--muted);">On-Balance Volume — cumulative buy/sell pressure</span></div>
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>vwap_ratio</code><br><span style="font-size:.78rem; color:var(--muted);">Price vs VWAP — institutional entry/exit levels</span></div>
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px 16px;"><code>volume_trend</code><br><span style="font-size:.78rem; color:var(--muted);">5-day volume slope — accelerating or decelerating interest</span></div>
+        </div>
+    </div>
+
+    <!-- MODEL -->
+    <h2>Step 3 — The Ensemble Model</h2>
+    <p>Stocker trains three separate models on the feature frame, each with different learning biases. The final prediction is the <strong>average</strong> of all three — a technique called ensemble averaging that reduces variance and produces more stable forecasts than any single model.</p>
+
+    <div class="ensemble">
+        <div class="ens-models">
+            <div class="ens-model" style="border-color:rgba(0,200,232,0.4);">
+                <div class="em-name" style="color:var(--accent);">XGBoost</div>
+                <div class="em-role">Depth-limited trees<br>L1/L2 regularisation</div>
+            </div>
+            <div class="ens-model" style="border-color:rgba(123,97,255,0.4);">
+                <div class="em-name" style="color:#7b61ff;">LightGBM</div>
+                <div class="em-role">Leaf-wise growth<br>Gradient-based sampling</div>
+            </div>
+            <div class="ens-model" style="border-color:rgba(34,197,94,0.4);">
+                <div class="em-name" style="color:var(--green);">ExtraTrees</div>
+                <div class="em-role">Random splits<br>Maximum diversity</div>
+            </div>
+        </div>
+        <div class="ens-arrow">↓ averaged ↓</div>
+        <div class="ens-output">
+            <div class="eo-label">Ensemble Forecast</div>
+            <div class="eo-value">30-day price series</div>
+        </div>
+    </div>
+
+    <h3>Why three models?</h3>
+    <p>Each model makes different assumptions about the data. XGBoost and LightGBM are gradient-boosted trees that build models sequentially, each new tree correcting the errors of the previous ones. ExtraTreesRegressor builds trees with randomised splits, injecting diversity into the ensemble.</p>
+    <p>When models with different biases agree on a direction, the signal is stronger. When they disagree, the average dampens the extreme prediction — protecting against model-specific overfitting.</p>
+
+    <!-- FORECAST -->
+    <h2>Step 4 — Recursive Forecasting</h2>
+    <p>Predicting one day ahead is straightforward — use today's features to predict tomorrow's price. But predicting <em>30 days ahead</em> is harder because features like <code>lag_1</code> and <code>rsi_14</code> depend on prices we haven't seen yet.</p>
+    <p>Stocker solves this with <strong>recursive forecasting</strong>:</p>
+
+    <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:24px 28px; margin:24px 0;">
+        <div style="display:flex; flex-direction:column; gap:14px;">
+            <div style="display:flex; gap:14px; align-items:center;">
+                <div style="width:32px; height:32px; background:var(--accent); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; color:#071a28; flex-shrink:0;">1</div>
+                <p style="margin:0; font-size:.9rem; color:rgba(200,238,255,0.8);">Predict <strong style="color:#fff;">Day 1</strong> using known historical features.</p>
+            </div>
+            <div style="display:flex; gap:14px; align-items:center;">
+                <div style="width:32px; height:32px; background:var(--accent); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; color:#071a28; flex-shrink:0;">2</div>
+                <p style="margin:0; font-size:.9rem; color:rgba(200,238,255,0.8);">Append the Day 1 prediction to the price series. <strong style="color:#fff;">Recompute all features</strong> (SMA, RSI, lags etc.) on the extended series.</p>
+            </div>
+            <div style="display:flex; gap:14px; align-items:center;">
+                <div style="width:32px; height:32px; background:var(--accent); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; color:#071a28; flex-shrink:0;">3</div>
+                <p style="margin:0; font-size:.9rem; color:rgba(200,238,255,0.8);">Predict <strong style="color:#fff;">Day 2</strong> using the updated feature set. Repeat for all 30 trading days.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-box warn">
+        <div class="ib-icon">⚠️</div>
+        <p><strong>Error accumulation:</strong> Each recursive step compounds the prediction error of the previous step. This means near-term forecasts (1–7 days) are typically more accurate than far-term forecasts (20–30 days). Treat the 30-day chart as a <strong>directional trend estimate</strong>, not a precise price target.</p>
+    </div>
+
+    <!-- ACCURACY -->
+    <h2>How Accurate Are the Predictions?</h2>
+    <p>Stocker's models are evaluated on out-of-sample test sets for each stock individually. Typical accuracy metrics on a 7-day horizon for large-cap S&amp;P 500 stocks:</p>
+
+    <div style="margin:24px 0;">
+        <div class="stat-row">
+            <span class="stat-label">Directional accuracy</span>
+            <div class="stat-bar-wrap"><div class="stat-bar" style="background:var(--accent);" data-width="68"></div></div>
+            <span class="stat-val">~68%</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Within 3% error (7d)</span>
+            <div class="stat-bar-wrap"><div class="stat-bar" style="background:var(--accent2);" data-width="71"></div></div>
+            <span class="stat-val">~71%</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Within 5% error (14d)</span>
+            <div class="stat-bar-wrap"><div class="stat-bar" style="background:var(--green);" data-width="59"></div></div>
+            <span class="stat-val">~59%</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Within 8% error (30d)</span>
+            <div class="stat-bar-wrap"><div class="stat-bar" style="background:var(--gold);" data-width="47"></div></div>
+            <span class="stat-val">~47%</span>
+        </div>
+    </div>
+    <p style="font-size:0.82rem; color:var(--muted);">* Indicative averages across S&amp;P 500 backtests. Performance varies significantly by stock, sector, and market regime. Past model performance does not guarantee future accuracy.</p>
+
+    <h2>What AI Cannot Predict</h2>
+    <p>No ML model can predict the following — and Stocker's is no exception:</p>
+    <div class="feature-grid">
+        <div class="feat-card">
+            <div class="icon">🦢</div>
+            <h4>Black Swan Events</h4>
+            <p>Pandemics, sudden regulatory bans, geopolitical shocks — events with no historical precedent.</p>
+        </div>
+        <div class="feat-card">
+            <div class="icon">📣</div>
+            <h4>Earnings Surprises</h4>
+            <p>A company beating or missing estimates by a wide margin can move a stock 15–30% overnight.</p>
+        </div>
+        <div class="feat-card">
+            <div class="icon">🏛️</div>
+            <h4>Central Bank Decisions</h4>
+            <p>Unexpected rate changes affect the entire market simultaneously — not captured by individual stock features.</p>
+        </div>
+        <div class="feat-card">
+            <div class="icon">🐋</div>
+            <h4>Institutional Flow</h4>
+            <p>Dark pool trades and large block orders are not visible in public OHLCV data.</p>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section">
+        <h2>See it in action</h2>
+        <p>Run a free AI prediction on any US or Turkish stock — no account required.</p>
+        <a href="/" class="btn-cta">Try Stocker Free →</a>
+        <a href="/blog/xgboost-vs-lightgbm-stock-prediction" class="btn-outline">XGBoost vs LightGBM</a>
+    </div>
+
+</div><!-- /content -->
+
+<footer>
+    <a href="/">Stocker</a>
+    <a href="/blog/how-ai-predicts-stocks">How AI Predicts Stocks</a>
+    <a href="/blog/xgboost-vs-lightgbm-stock-prediction">XGBoost vs LightGBM</a>
+    <a href="/privacy">Privacy</a>
+    <br><br>
+    <span>© 2026 Stocker · stocker.gultechs.net · Not financial advice.</span>
+</footer>
+
+<script>
+    // Tabs
+    function showTab(id) {
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + id).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    // Animate stat bars on scroll
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                e.target.querySelectorAll('.stat-bar').forEach(bar => {
+                    bar.style.width = bar.dataset.width + '%';
+                });
+                observer.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.3 });
+    document.querySelectorAll('.stat-row').forEach(r => observer.observe(r.closest('div') || r));
+    // Trigger all at once when section visible
+    const statsSection = document.querySelector('.stat-row')?.closest('div');
+    if (statsSection) observer.observe(statsSection);
+</script>
+</body>
+</html>

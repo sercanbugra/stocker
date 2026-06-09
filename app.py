@@ -4037,6 +4037,16 @@ def privacy():
     return render_template('privacy.html', last_updated=last_updated)
 
 
+@app.route('/blog/how-ai-predicts-stocks')
+def blog_how_ai_predicts_stocks():
+    return render_template('blog_how_ai_predicts_stocks.html')
+
+
+@app.route('/blog/xgboost-vs-lightgbm-stock-prediction')
+def blog_xgboost_vs_lightgbm():
+    return render_template('blog_xgboost_vs_lightgbm.html')
+
+
 @app.route('/sitemap.xml')
 def sitemap():
     from flask import send_from_directory
