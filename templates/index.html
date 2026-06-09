@@ -23,14 +23,14 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Stocker — Stock Prediction & Analysis</title>
+    <title>Stocker — Free AI Stock Prediction & Analysis Tool</title>
     <link rel="icon" type="image/x-icon"  href="{{ url_for('static', filename='favicon-v3.ico') }}">
     <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='favicon-192.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
 
     <!-- ── SEO: Core meta ── -->
-    <meta name="description" content="Stocker — AI-powered stock prediction and analysis. Get ML-based price forecasts, technical pattern detection, sentiment analysis, analyst insights, and watchlist tracking for any stock.">
-    <meta name="keywords" content="stock prediction, stock analysis, AI stock forecast, technical analysis, stock pattern detection, stock sentiment, S&P 500, NASDAQ, stock market AI">
+    <meta name="description" content="Free AI stock prediction tool using XGBoost & LightGBM ensemble. Get 30-day price forecasts, technical pattern detection, news sentiment, analyst insights and AI trade thesis for any US or Turkish (BIST) stock.">
+    <meta name="keywords" content="stock prediction, AI stock forecast, stock analysis tool, machine learning stock prediction, XGBoost stock, technical pattern detection, stock sentiment analysis, BIST stock analysis, free stock predictor, S&P 500 forecast, NASDAQ analysis, stock market AI">
     <meta name="robots" content="index, follow">
     <meta name="author" content="Stocker">
     <link rel="canonical" href="https://stocker.gultechs.net/">
@@ -38,8 +38,8 @@
     <!-- ── SEO: Open Graph ── -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Stocker">
-    <meta property="og:title" content="Stocker — AI Stock Prediction & Analysis">
-    <meta property="og:description" content="AI-powered stock prediction and analysis. ML-based price forecasts, technical pattern detection, sentiment analysis, and analyst insights for any stock.">
+    <meta property="og:title" content="Stocker — Free AI Stock Prediction & Analysis Tool">
+    <meta property="og:description" content="Free AI stock prediction using ML ensemble (XGBoost + LightGBM). 30-day forecasts, pattern detection, sentiment analysis and AI trade thesis for US and Turkish stocks.">
     <meta property="og:url" content="https://stocker.gultechs.net/">
     <meta property="og:image" content="https://stocker.gultechs.net/static/stocker_logo.png">
     <meta property="og:image:width" content="1200">
@@ -48,8 +48,8 @@
 
     <!-- ── SEO: Twitter Card ── -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Stocker — AI Stock Prediction & Analysis">
-    <meta name="twitter:description" content="AI-powered stock prediction and analysis. ML-based price forecasts, technical pattern detection, sentiment analysis, and analyst insights for any stock.">
+    <meta name="twitter:title" content="Stocker — Free AI Stock Prediction & Analysis Tool">
+    <meta name="twitter:description" content="Free AI stock prediction using ML ensemble (XGBoost + LightGBM). 30-day forecasts, pattern detection, sentiment analysis and AI trade thesis for US and Turkish stocks.">
     <meta name="twitter:image" content="https://stocker.gultechs.net/static/stocker_logo.png">
 
     <!-- ── Structured Data: WebApplication ── -->
@@ -59,10 +59,11 @@
       "@type": "WebApplication",
       "name": "Stocker",
       "url": "https://stocker.gultechs.net/",
-      "description": "AI-powered stock prediction and analysis tool. Get ML-based price forecasts, technical pattern detection, sentiment analysis, analyst insights, and watchlist tracking for any stock.",
+      "description": "Free AI-powered stock prediction and analysis tool. Get ML-based price forecasts using XGBoost and LightGBM ensemble, technical pattern detection, news sentiment analysis, analyst insights, and watchlist tracking for US and Turkish stocks.",
       "applicationCategory": "FinanceApplication",
       "operatingSystem": "All",
       "browserRequirements": "Requires JavaScript",
+      "inLanguage": "en",
       "offers": [
         {
           "@type": "Offer",
@@ -70,6 +71,7 @@
           "price": "0",
           "priceCurrency": "GBP",
           "availability": "https://schema.org/InStock",
+          "description": "5 free stock analyses per day with ML predictions and pattern detection",
           "url": "https://stocker.gultechs.net/"
         },
         {
@@ -78,6 +80,7 @@
           "price": "3.99",
           "priceCurrency": "GBP",
           "availability": "https://schema.org/InStock",
+          "description": "Unlimited analyses, AI trade thesis, peer comparison, watchlist",
           "url": "https://stocker.gultechs.net/"
         },
         {
@@ -86,25 +89,48 @@
           "price": "5.99",
           "priceCurrency": "GBP",
           "availability": "https://schema.org/InStock",
+          "description": "Everything in Pro plus AI earnings summariser and AI portfolio advisor",
           "url": "https://stocker.gultechs.net/"
         }
       ],
       "featureList": [
-        "AI-powered stock price forecasting",
-        "Technical pattern detection",
-        "Sentiment analysis from news",
-        "Analyst upgrade/downgrade insights",
-        "Watchlist tracking",
-        "S&P 500 and NASDAQ notable movers"
+        "ML stock price forecasting using XGBoost and LightGBM ensemble",
+        "30-day price prediction with confidence intervals",
+        "Technical chart pattern detection (head and shoulders, double top, triangles, flags)",
+        "RSI and momentum indicator analysis",
+        "News sentiment analysis powered by VADER",
+        "AI trade thesis with bull case, bear case and verdict",
+        "Earnings summariser for quarterly results",
+        "AI portfolio advisor for position sizing",
+        "Peer comparison with sector fundamentals",
+        "Analyst upgrade and downgrade tracking",
+        "Stock watchlist with news digests",
+        "S&P 500 and NASDAQ daily notable movers",
+        "BIST 100 Turkish stock market analysis",
+        "Free to use with no account required"
       ],
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.7",
-        "ratingCount": "128",
-        "bestRating": "5",
-        "worstRating": "1"
-      },
-      "screenshot": "https://stocker.gultechs.net/static/stocker_logo.png",
+      "screenshot": [
+        {
+          "@type": "ImageObject",
+          "url": "https://stocker.gultechs.net/static/AI_Trade_Thesis.png",
+          "caption": "AI Trade Thesis — bull case, bear case and verdict"
+        },
+        {
+          "@type": "ImageObject",
+          "url": "https://stocker.gultechs.net/static/Peer_Comparison.png",
+          "caption": "Peer Comparison — side-by-side fundamental metrics"
+        },
+        {
+          "@type": "ImageObject",
+          "url": "https://stocker.gultechs.net/static/Earning_Summarizer.png",
+          "caption": "AI Earnings Summariser — quarterly results analysis"
+        },
+        {
+          "@type": "ImageObject",
+          "url": "https://stocker.gultechs.net/static/AI_Portfolio_Adviser.png",
+          "caption": "AI Portfolio Advisor — position sizing and risk guidance"
+        }
+      ],
       "provider": {
         "@type": "Organization",
         "name": "Stocker",
@@ -120,7 +146,7 @@
       "@type": "WebSite",
       "name": "Stocker",
       "url": "https://stocker.gultechs.net/",
-      "description": "AI-powered stock prediction and analysis",
+      "description": "Free AI-powered stock prediction and analysis for US and Turkish markets",
       "potentialAction": {
         "@type": "SearchAction",
         "target": {
@@ -139,8 +165,79 @@
       "@type": "Organization",
       "name": "Stocker",
       "url": "https://stocker.gultechs.net/",
-      "logo": "https://stocker.gultechs.net/static/stocker_logo.png",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://stocker.gultechs.net/static/stocker_logo.png",
+        "width": 512,
+        "height": 512
+      },
       "sameAs": []
+    }
+    </script>
+
+    <!-- ── Structured Data: FAQ ── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How does Stocker predict stock prices?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Stocker uses a machine learning ensemble combining XGBoost, LightGBM, and ExtraTreesRegressor models trained on historical OHLCV data, technical indicators (RSI, MACD, Bollinger Bands), and momentum features. Forecasts are generated recursively for up to 30 trading days ahead."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Stocker free to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Stocker is free to use without an account for 1 analysis per day. Free registered users get 5 analyses per day plus a personal watchlist. Pro (£3.99/mo) and Premium (£5.99/mo) plans offer unlimited analyses and AI-powered features."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which stocks can I analyse on Stocker?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Stocker supports all US stocks listed on NYSE and NASDAQ (including the full S&P 500), and Turkish stocks listed on Borsa Istanbul (BIST) with the .IS suffix. You can analyse any valid ticker symbol."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How accurate are Stocker's stock predictions?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Stocker's ML ensemble provides directional forecasts based on historical patterns and technical indicators. The predictions show a probable price range rather than a guaranteed price. Like any quantitative model, accuracy varies by market conditions. Always combine AI forecasts with your own research."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the AI Trade Thesis feature?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "AI Trade Thesis is a Pro feature that generates a structured bull case, bear case, and final verdict for any stock using the Llama 3.3 70B or Claude Haiku language model. It synthesises the ML forecast, analyst consensus, news sentiment, and fundamental data into a concise analysis."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Stocker support Turkish stocks (BIST)?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Stocker fully supports Borsa Istanbul (BIST) stocks. Enter the ticker with the .IS suffix (e.g. THYAO.IS, EREGL.IS). All ML prediction, pattern detection, and AI features work for Turkish stocks."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What technical patterns does Stocker detect?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Stocker automatically detects head and shoulders, inverse head and shoulders, double top, double bottom, ascending and descending triangles, symmetrical triangles, bull and bear flags, pennants, and cup and handle patterns on the price chart."
+          }
+        }
+      ]
     }
     </script>
 
