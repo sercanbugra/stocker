@@ -30,7 +30,7 @@
 
     <!-- ── SEO: Core meta ── -->
     <meta name="description" content="Free AI stock prediction tool using XGBoost & LightGBM ensemble. Get 30-day price forecasts, technical pattern detection, news sentiment, analyst insights and AI trade thesis for any US or Turkish (BIST) stock.">
-    <meta name="keywords" content="stock prediction, AI stock forecast, stock analysis tool, machine learning stock prediction, XGBoost stock, technical pattern detection, stock sentiment analysis, BIST stock analysis, free stock predictor, S&P 500 forecast, NASDAQ analysis, stock market AI">
+    <meta name="keywords" content="stock prediction, AI stock forecast, stock analysis tool, machine learning stock prediction, XGBoost stock, LightGBM finance, technical pattern detection, stock sentiment analysis, BIST stock analysis, free stock predictor, S&P 500 forecast, NASDAQ analysis, stock market AI, stock analysis, stock valuation, intrinsic value, AI investing, artificial intelligence stocks, dividend investing, value investing, growth investing, stock market analysis, financial education, investing for beginners, stock screener, stock research, long term investing, passive income, dividends, machine learning finance, fundamental analysis, stocker, AI stock analysis, stock fair value, intrinsic value calculator, dividend tracker, undervalued stocks, overvalued stocks, financial ratios, stock insights, stock valuation tool, portfolio tracking, earnings analysis, dividend income">
     <meta name="robots" content="index, follow">
     <meta name="author" content="Stocker">
     <link rel="canonical" href="https://stocker.gultechs.net/">
@@ -3696,6 +3696,14 @@
         #snap-hero { display: flex; align-items: center; }
         #snap-hero .snap-inner { width: 100%; padding-top: 8px; }
 
+        /* Market Pulse heatmap (inside Remarkables card) */
+        #hm-in-card { border-top: 1px solid var(--panel-border); }
+        #hm-in-card-header { display:flex; justify-content:space-between; align-items:center; padding:6px 12px 3px; }
+        #market-heatmap-svg-wrap { width:100%; height:260px; position:relative; overflow:hidden; background:rgba(0,0,0,0.06); }
+        #market-heatmap-svg-wrap svg { display:block; }
+        .hm-b { transition: filter .12s; }
+        .hm-b:hover { filter: brightness(1.25) drop-shadow(0 0 5px currentColor); }
+
         /* Bot section: full-height iframe embed */
         #snap-bot { display: flex; flex-direction: column; overflow: hidden; }
         #snap-bot .snap-bot-header {
@@ -4982,6 +4990,7 @@
                         onmouseout="this.style.color='';this.style.borderColor=''">
                         <i class="fas fa-sync-alt"></i>
                     </button>
+                    <button class="btn-share-x" onclick="shareToX(this)" title="Share on X"><svg width="11" height="11" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button>
                 </div>
             </div>
             <div class="card-body p-0">
@@ -5195,6 +5204,31 @@
                     </div>
 
                 </div><!-- /rm-section-tr -->
+
+                <!-- Market Pulse bubble heatmap -->
+                <div id="hm-in-card">
+                    <div id="hm-in-card-header">
+                        <span style="font-size:0.72rem;font-weight:600;color:var(--panel-text);">
+                            <i class="fas fa-th" style="color:var(--accent);font-size:0.65rem;margin-right:4px;"></i>Market Pulse
+                            <small id="heatmap-mkt-label" style="font-size:0.62rem;font-weight:400;color:var(--panel-muted);margin-left:4px;">US · Sectors</small>
+                        </span>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="font-size:0.6rem;color:var(--panel-muted);">size = Δ% magnitude</span>
+                            <button id="heatmap-refresh-btn" title="Refresh"
+                                style="background:none;border:1px solid var(--panel-border);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--panel-muted);font-size:0.65rem;transition:color .15s,border-color .15s;flex-shrink:0;"
+                                onmouseover="this.style.color='var(--panel-text)';this.style.borderColor='rgba(255,255,255,0.3)'"
+                                onmouseout="this.style.color='';this.style.borderColor=''">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="btn-share-x" onclick="shareToX(this)" data-share-el="hm-in-card" data-share-title="Market Pulse — Sector Bubbles" title="Share on X"><svg width="10" height="10" viewBox="0 0 1200 1227" fill="none"><path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.163 519.284ZM569.165 687.828L521.697 619.934L144.011 79.6904H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.828Z" fill="currentColor"/></svg></button>
+                        </div>
+                    </div>
+                    <div id="market-heatmap-svg-wrap">
+                        <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--panel-muted);font-size:0.82rem;">
+                            <i class="fas fa-circle-notch fa-spin me-2"></i> Loading…
+                        </div>
+                    </div>
+                </div>
 
                 <div class="remarkables-meta" id="remarkables-meta">
                     <i class="fas fa-satellite-dish me-1" style="font-size:0.65rem;"></i>
@@ -5769,13 +5803,14 @@
     }
 
     async function shareToX(btn) {
-        var card = btn.closest('.card, .pro-card');
+        var shareElId = btn.dataset.shareEl;
+        var card = shareElId ? document.getElementById(shareElId) : btn.closest('.card, .pro-card');
         if (!card) return;
         btn.classList.add('loading');
 
         var sym = (document.getElementById('stock-input') ? document.getElementById('stock-input').value : '').trim().toUpperCase();
         var headerEl = card.querySelector('.card-header span') || card.querySelector('.card-header');
-        var cardTitle = headerEl.textContent.trim().replace(/\s+/g, ' ');
+        var cardTitle = headerEl ? headerEl.textContent.trim().replace(/\s+/g, ' ') : (btn.dataset.shareTitle || 'Market Snapshot');
         var tweetText = (sym ? '$' + sym + ' — ' : '') + cardTitle + ' via Stocker AI 📊\n\n#stocker #stocks #StockMarket #StockTrading #Trading #Investing #Investments\n\nhttps://stocker.gultechs.net\n\nPS: Not Financial Advice';
         var filename  = (sym ? sym + '_' : '') + 'stocker_analysis.png';
         var bgColor   = getComputedStyle(document.documentElement).getPropertyValue('--panel-bg').trim() || '#0f1b2d';
@@ -7188,6 +7223,237 @@
                     apply(finalSel);
                     if (triggerRefresh) loadRemarkables(true);
                 };
+            })();
+
+            // ── Market Pulse Heatmap ──────────────────────────────────────
+            (function() {
+                var _hmCache  = {};
+                var _hmMarket = (window._rm_selected_markets || ['us'])[0] || 'us';
+
+                function shortSec(s) {
+                    return s.replace('Consumer Cyclical','Cons. Cyclical')
+                             .replace('Consumer Defensive','Cons. Defensive')
+                             .replace('Financial Services','Financials')
+                             .replace('Basic Materials','Materials')
+                             .replace('Communication Services','Comm.');
+                }
+                function esc(s) {
+                    return String(s).replace(/[<>&"]/g, function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];});
+                }
+                function fnvJitter(sym, range) {
+                    var h = 0x811c9dc5;
+                    for (var i = 0; i < sym.length; i++) { h ^= sym.charCodeAt(i); h = (h * 0x01000193) >>> 0; }
+                    return ((h & 0x7ff) / 0x7ff - 0.5) * range;
+                }
+
+                function renderHeatmap(data) {
+                    var wrap = document.getElementById('market-heatmap-svg-wrap');
+                    if (!wrap) return;
+
+                    var W  = wrap.clientWidth  || 480;
+                    var H  = wrap.clientHeight || 260;
+                    var PT = 26, PB = 12, PL = 28, PR = 6;
+                    var IH = H - PT - PB, IW = W - PL - PR;
+                    var CY = PT + IH / 2, HALF = IH / 2 - 5;
+
+                    var secCount = {};
+                    data.forEach(function(s){ secCount[s.sector] = (secCount[s.sector]||0)+1; });
+                    var PINNED_LAST = ['Biotech', 'AI & Chips'];
+                    var regularCols = Object.entries(secCount)
+                        .filter(function(e){ return PINNED_LAST.indexOf(e[0]) === -1; })
+                        .sort(function(a,b){ return b[1]-a[1]; })
+                        .slice(0,5)
+                        .map(function(e){ return e[0]; });
+                    var pinnedCols = PINNED_LAST.filter(function(s){ return secCount[s]; });
+                    var cols = regularCols.concat(pinnedCols);
+
+                    var stocks = data.filter(function(s){ return cols.indexOf(s.sector) !== -1; });
+                    if (!stocks.length) {
+                        wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--panel-muted);font-size:0.82rem;">No data.</div>';
+                        return;
+                    }
+
+                    var maxChg = Math.max(3, Math.max.apply(null, stocks.map(function(s){ return Math.abs(s.change_pct); })));
+                    var colW   = IW / cols.length;
+                    var MAX_R  = Math.min(colW * 0.37, 20), MIN_R = 4.5;
+
+                    function rFn(v){ return Math.min(MAX_R, MIN_R + (Math.sqrt(Math.abs(v))/Math.sqrt(maxChg))*(MAX_R-MIN_R)); }
+                    function yFn(v){ return CY - (v/maxChg)*HALF; }
+
+                    /* ── SVG defs ── */
+                    var svg = '<svg width="'+W+'" height="'+H+'" xmlns="http://www.w3.org/2000/svg" style="display:block;user-select:none">';
+                    svg += '<defs>'
+                      + '<linearGradient id="hmBg" x1="0" y1="0" x2="0" y2="1">'
+                      +   '<stop offset="0%"   stop-color="rgba(34,197,94,0.07)"/>'
+                      +   '<stop offset="44%"  stop-color="rgba(255,255,255,0)"/>'
+                      +   '<stop offset="56%"  stop-color="rgba(255,255,255,0)"/>'
+                      +   '<stop offset="100%" stop-color="rgba(239,68,68,0.07)"/>'
+                      + '</linearGradient>'
+                      + '<radialGradient id="hmShinG" cx="35%" cy="32%" r="55%">'
+                      +   '<stop offset="0%"   stop-color="rgba(255,255,255,0.28)"/>'
+                      +   '<stop offset="100%" stop-color="rgba(255,255,255,0)"/>'
+                      + '</radialGradient>'
+                      + '<radialGradient id="hmShinR" cx="35%" cy="32%" r="55%">'
+                      +   '<stop offset="0%"   stop-color="rgba(255,220,220,0.22)"/>'
+                      +   '<stop offset="100%" stop-color="rgba(255,255,255,0)"/>'
+                      + '</radialGradient>'
+                      + '<clipPath id="hmClip"><rect x="'+PL+'" y="'+PT+'" width="'+IW+'" height="'+IH+'"/></clipPath>'
+                      + '</defs>';
+
+                    /* ── Background ── */
+                    svg += '<rect x="'+PL+'" y="'+PT+'" width="'+IW+'" height="'+IH+'" fill="url(#hmBg)" rx="4"/>';
+
+                    /* Alternating column tint */
+                    cols.forEach(function(_,si){
+                        if (si%2===0) svg += '<rect x="'+(PL+si*colW).toFixed(1)+'" y="'+PT+'" width="'+colW.toFixed(1)+'" height="'+IH+'" fill="rgba(255,255,255,0.018)" rx="0"/>';
+                    });
+
+                    /* ── Grid lines ── */
+                    svg += '<line x1="'+PL+'" y1="'+CY.toFixed(1)+'" x2="'+(W-PR)+'" y2="'+CY.toFixed(1)+'" stroke="rgba(255,255,255,0.28)" stroke-width="1.5"/>';
+                    svg += '<text x="'+(PL-4)+'" y="'+(CY+3.5).toFixed(1)+'" font-size="7.5" text-anchor="end" fill="rgba(200,220,255,0.5)" font-family="system-ui">0%</text>';
+
+                    for (var pct=3; pct <= maxChg+0.5; pct+=3) {
+                        var yp=yFn(pct), yn=yFn(-pct);
+                        if (yp>=PT && yp<=H-PB) {
+                            svg += '<line x1="'+PL+'" y1="'+yp.toFixed(1)+'" x2="'+(W-PR)+'" y2="'+yp.toFixed(1)+'" stroke="rgba(34,197,94,0.13)" stroke-width="1" stroke-dasharray="2,6"/>';
+                            svg += '<text x="'+(PL-4)+'" y="'+(yp+3).toFixed(1)+'" font-size="7.5" text-anchor="end" fill="rgba(74,222,128,0.5)" font-family="system-ui">+'+pct+'%</text>';
+                        }
+                        if (yn>=PT && yn<=H-PB) {
+                            svg += '<line x1="'+PL+'" y1="'+yn.toFixed(1)+'" x2="'+(W-PR)+'" y2="'+yn.toFixed(1)+'" stroke="rgba(239,68,68,0.13)" stroke-width="1" stroke-dasharray="2,6"/>';
+                            svg += '<text x="'+(PL-4)+'" y="'+(yn+3).toFixed(1)+'" font-size="7.5" text-anchor="end" fill="rgba(248,113,113,0.5)" font-family="system-ui">-'+pct+'%</text>';
+                        }
+                    }
+
+                    /* ── Column dividers + sector labels ── */
+                    cols.forEach(function(sector, si) {
+                        var colX  = PL + si*colW, colCX = colX + colW/2;
+                        if (si>0) svg += '<line x1="'+colX.toFixed(1)+'" y1="'+PT+'" x2="'+colX.toFixed(1)+'" y2="'+(H-PB)+'" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>';
+                        /* Per-column zero line */
+                        svg += '<line x1="'+(colX+4).toFixed(1)+'" y1="'+CY.toFixed(1)+'" x2="'+(colX+colW-4).toFixed(1)+'" y2="'+CY.toFixed(1)+'" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="2,4"/>';
+                        var lbl = shortSec(sector);
+                        var lblW = lbl.length * 5.8 + 8;
+                        svg += '<rect x="'+(colCX-lblW/2).toFixed(1)+'" y="'+(PT-20)+'" width="'+lblW.toFixed(1)+'" height="13" rx="3" fill="rgba(255,255,255,0.06)"/>';
+                        svg += '<text x="'+colCX.toFixed(1)+'" y="'+(PT-10)+'" text-anchor="middle" font-size="9.5" fill="rgba(180,215,255,0.65)" font-family="system-ui,sans-serif" font-weight="600">'+esc(lbl)+'</text>';
+                    });
+
+                    /* ── Bubbles: large → small (z-order) ── */
+                    var mainCircles = '', shineCircles = '', labels = '';
+                    cols.forEach(function(sector, si) {
+                        var colX  = PL + si*colW, colCX = colX + colW/2;
+                        var sec   = stocks.filter(function(s){ return s.sector===sector; })
+                                          .sort(function(a,b){ return Math.abs(b.change_pct)-Math.abs(a.change_pct); });
+                        sec.forEach(function(stock) {
+                            var r   = rFn(stock.change_pct);
+                            var cx  = Math.max(colX+r+2, Math.min(colX+colW-r-2, colCX + fnvJitter(stock.symbol, colW*0.48)));
+                            var cy  = Math.max(PT+r+1, Math.min(H-PB-r-1, yFn(stock.change_pct)));
+                            var pos = stock.change_pct >= 0;
+                            var fill = pos ? '#22c55e' : '#ef4444';
+                            var strk = pos ? '#4ade80' : '#f87171';
+                            var alpha = Math.min(0.82, 0.32 + Math.abs(stock.change_pct)/maxChg*0.50);
+                            var sign  = pos ? '+' : '';
+                            var sym   = stock.symbol.replace('.IS','').replace('.L','');
+
+                            mainCircles +=
+                              '<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+r.toFixed(1)+'"'
+                              +' fill="'+fill+'" fill-opacity="'+alpha.toFixed(2)+'"'
+                              +' stroke="'+strk+'" stroke-width="1.3" stroke-opacity="0.75"'
+                              +' class="hm-b"'
+                              +' data-sym="'+esc(stock.symbol)+'"'
+                              +' data-chg="'+sign+stock.change_pct+'"'
+                              +' data-name="'+esc(stock.name||stock.symbol)+'"'
+                              +' data-alpha="'+alpha.toFixed(2)+'"'
+                              +' style="cursor:pointer"/>';
+
+                            /* Radial shine overlay (non-interactive) */
+                            shineCircles +=
+                              '<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+r.toFixed(1)+'"'
+                              +' fill="url(#hmShin'+(pos?'G':'R')+')" pointer-events="none"/>';
+
+                            /* Ticker label inside bubble if large enough */
+                            if (r >= 13) {
+                                var fs = Math.min(8.5, r * 0.52).toFixed(1);
+                                labels += '<text x="'+cx.toFixed(1)+'" y="'+(cy+3).toFixed(1)+'" text-anchor="middle"'
+                                  +' font-size="'+fs+'" fill="rgba(255,255,255,0.92)" font-weight="700"'
+                                  +' font-family="system-ui,monospace" pointer-events="none">'+esc(sym)+'</text>';
+                            }
+                        });
+                    });
+
+                    svg += '<g clip-path="url(#hmClip)">'+mainCircles+shineCircles+labels+'</g>';
+                    svg += '</svg>';
+
+                    /* ── Tooltip ── */
+                    wrap.innerHTML = svg
+                      + '<div id="hm-tt" style="display:none;position:absolute;pointer-events:none;'
+                      + 'background:rgba(6,12,28,0.97);border:1px solid rgba(255,255,255,0.18);'
+                      + 'border-radius:9px;padding:8px 13px;font-size:12px;line-height:1.5;'
+                      + 'z-index:200;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,0.55)"></div>';
+
+                    var tt = wrap.querySelector('#hm-tt');
+                    wrap.querySelectorAll('.hm-b').forEach(function(c) {
+                        c.addEventListener('mouseenter', function() {
+                            var pos = parseFloat(this.dataset.chg) >= 0;
+                            var clr = pos ? '#4ade80' : '#f87171';
+                            var sign = pos ? '+' : '';
+                            tt.innerHTML =
+                              '<div style="font-weight:700;color:#f1f5f9;font-size:12.5px;margin-bottom:1px">'+this.dataset.sym+'</div>'
+                              +'<div style="font-size:11px;color:rgba(200,215,240,0.6);margin-bottom:3px">'+esc(this.dataset.name.length>22?this.dataset.name.slice(0,21)+'…':this.dataset.name)+'</div>'
+                              +'<div style="color:'+clr+';font-weight:600;font-size:13px">'+sign+this.dataset.chg+'%</div>';
+                            tt.style.display = 'block';
+                            this.setAttribute('stroke-width','2.8');
+                            this.setAttribute('fill-opacity','0.96');
+                        });
+                        c.addEventListener('mousemove', function(e) {
+                            var rect = wrap.getBoundingClientRect();
+                            var x = e.clientX - rect.left + 14, y = e.clientY - rect.top - 62;
+                            if (x + 130 > rect.width - 4) x = e.clientX - rect.left - 140;
+                            if (y < 4) y = 4;
+                            tt.style.left = x+'px'; tt.style.top = y+'px';
+                        });
+                        c.addEventListener('mouseleave', function() {
+                            tt.style.display = 'none';
+                            this.setAttribute('stroke-width','1.3');
+                            this.setAttribute('fill-opacity', this.dataset.alpha);
+                        });
+                    });
+                }
+
+                async function loadHeatmap(market, force) {
+                    _hmMarket = market || 'us';
+                    var wrap = document.getElementById('market-heatmap-svg-wrap');
+                    if (!wrap) return;
+                    var lbl = document.getElementById('heatmap-mkt-label');
+                    if (lbl) lbl.textContent = (_hmMarket==='tr' ? 'BIST' : 'NASDAQ') + ' · Sectors';
+                    if (!force && _hmCache[_hmMarket]) { renderHeatmap(_hmCache[_hmMarket]); return; }
+                    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--panel-muted);font-size:0.82rem;"><i class="fas fa-circle-notch fa-spin me-2"></i> Loading…</div>';
+                    try {
+                        var resp = await fetch('/api/market-heatmap?market=' + _hmMarket);
+                        var data = await resp.json();
+                        if (Array.isArray(data) && data.length) {
+                            _hmCache[_hmMarket] = data;
+                            renderHeatmap(data);
+                        } else {
+                            wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--panel-muted);font-size:0.82rem;">No data.</div>';
+                        }
+                    } catch(_) {
+                        wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--panel-muted);font-size:0.82rem;">Could not load.</div>';
+                    }
+                }
+
+                var _hmRT;
+                window.addEventListener('resize', function(){
+                    clearTimeout(_hmRT);
+                    _hmRT = setTimeout(function(){ if (_hmCache[_hmMarket]) renderHeatmap(_hmCache[_hmMarket]); }, 180);
+                });
+
+                document.querySelectorAll('.rm2-mkt-btn').forEach(function(btn){
+                    btn.addEventListener('click', function(){ loadHeatmap(btn.dataset.market, false); });
+                });
+
+                var rfBtn = document.getElementById('heatmap-refresh-btn');
+                if (rfBtn) rfBtn.addEventListener('click', function(){ loadHeatmap(_hmMarket, true); });
+
+                setTimeout(function(){ loadHeatmap(_hmMarket, false); }, 350);
             })();
 
             // ── Side drawer toggle + draggable button ──
