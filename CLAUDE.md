@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Stocker** — a Flask web app for stock prediction and analysis. Single-file backend (`app.py`, ~6100 lines) with one main Jinja2 template (`templates/index.html`, ~7200 lines).
+**Stocker** — a Flask web app for stock prediction and analysis. Single-file backend (`app.py`, ~6500 lines) with one main Jinja2 template (`templates/index.html`, ~9400 lines). Additional templates: `blog.html`, `blog_how_ai_predicts_stocks.html`, `blog_xgboost_vs_lightgbm.html`, `delete_account.html`, `privacy.html`, `watchlist_trends.html`.
 
 ## Running Locally
 
@@ -37,12 +37,17 @@ pytest tests/test_auth.py::TestRegister::test_register_success -v
 
 Tests use a temporary data directory via `PERSISTENT_DATA_DIR` monkeypatch — no real `users.json` is touched. Set `GOOGLE_OAUTH_CLIENT_ID=""` and `GOOGLE_OAUTH_CLIENT_SECRET=""` (the fixture does this automatically).
 
+Only `tests/test_auth.py` exists — auth flows are the only area with test coverage. All prediction, ML, and API routes are untested.
+
 ## Utility Scripts
 
 ```bash
 # Rebuild data/cache/industry_db.json (symbol metadata: name, sector, market)
 python build_industry_db.py            # full build, ~5-10 min
 python build_industry_db.py --update   # re-fetch only symbols missing sector/industry
+
+# Rebuild data/autocomplete_db.json (ticker search; sources: Nasdaq Trader files + BIST/FTSE + industry_db)
+python build_autocomplete_db.py
 ```
 
 ## Environment Variables
@@ -97,6 +102,13 @@ All logic lives in `app.py`. Key sections:
 - **Android TWA** (`/.well-known/assetlinks.json`): Returns Digital Asset Links JSON for the Stocker Android TWA (package `net.gultechs.stocker.twa`), enabling verified deep linking.
 - **Input validation**: `_is_valid_symbol(s)` — regex `^[A-Z0-9.\-]{1,20}$` — enforced on all endpoints that accept a `symbol` parameter (`/predict`, `/api/trade-thesis`, `/api/earnings-summary`, `/api/portfolio-advisor`, `/api/peers`). Prevents path traversal via the file-backed cache.
 - **Rate limiting**: `_is_rate_limited(ip, limit, window)` — in-memory IP-based bucket. Applied to `/client-log` (10 req/60s) to prevent log flooding.
+- **Autocomplete** (`/api/autocomplete`): Serves full symbol list from `autocomplete_db.json` for the ticker search input. Falls back to `industry_db.json` if not built. 1-hour `Cache-Control` header; results cached in browser `sessionStorage`.
+- **OHLC chart** (`/api/ohlc`): Returns Plotly candlestick JSON for a symbol + timeframe (`hourly`/`daily`/`monthly`/`6month`/`yearly`). Fetched live from yfinance on each request.
+- **Performance** (`/api/performance`): Returns multi-period return breakdown (1W, 1M, 3M, 6M, 1Y) for a symbol via yfinance.
+- **Market heatmap** (`/api/market-heatmap`, `_HEATMAP_CACHE`): Returns sector-grouped price change data for US or TR markets. Reads `industry_db.json` to classify symbols into up to 5 top sectors plus pinned "Biotech" and "AI & Chips" columns (US only, 18 symbols each). 5-minute in-memory cache per market key.
+- **Dividend stocks** (`fetch_top_dividend_stocks`, `_start_dividend_refresh_if_needed`): Scans curated candidate lists for high-yield dividend payers; cached daily in `dividend_stocks.json`. Background thread pattern mirrors the undervalued stocks flow.
+- **Ensemble backtest** (`/api/ensemble-backtest`): Simulates the Columbia DRL Ensemble paper (Yang et al. 2020) — three agent proxies (PPO/trend, A2C/mean-reversion, DDPG/momentum) selected quarterly by Sharpe ratio. Returns a cumulative return series for charting. Pro+ only.
+- **Watchlist news** (`/api/watchlist-news`): Fetches recent news for up to 10 symbols in the user's watchlist using a thread pool. Pro+ only.
 
 ## Data & Cache Files
 
@@ -116,6 +128,7 @@ All logic lives in `app.py`. Key sections:
 | `cache/ai_config.json` | Active AI provider (`"anthropic"` or `"nvidia"`) |
 | `cache/ai_usage.json` | Per-provider, per-day AI call counts |
 | `cache/shares/<uuid>.png` | Ephemeral X-share screenshots (not auto-purged; manual cleanup if volume fills) |
+| `data/autocomplete_db.json` | Ticker search suggestions — built by `build_autocomplete_db.py` (US + TR + UK symbols with names) |
 
 ## Subscription Tiers
 
@@ -173,6 +186,15 @@ Admin emails are hard-coded in `ADMIN_EMAILS` set in `app.py`. Pricing: Pro £3.
 | `/api/share-image` | POST | — | Upload base64 PNG; returns `{"uuid": "..."}` |
 | `/share/<uuid>` | GET | — | OG-tag page for Twitter card preview; redirects to site |
 | `/share-img/<uuid>.png` | GET | — | Serve share screenshot PNG |
+| `/api/autocomplete` | GET | — | Full symbol list for ticker search; 1h `Cache-Control`, browser sessionStorage |
+| `/api/ohlc` | GET | — | Plotly candlestick JSON; `?symbol=&tf=daily\|hourly\|monthly\|6month\|yearly` |
+| `/api/performance` | GET | — | Multi-period return breakdown (1W/1M/3M/6M/1Y) for a symbol |
+| `/api/market-heatmap` | GET | — | Sector price-change grid; `?market=us\|tr`; 5-min in-memory cache |
+| `/api/ensemble-backtest` | POST | Pro+ | Simulated DRL Ensemble backtest (Columbia paper); returns cumulative return series |
+| `/api/watchlist-news` | GET | Pro+ | Recent news headlines for up to 10 watchlist symbols |
+| `/blog` | GET | — | Blog index page |
+| `/blog/how-ai-predicts-stocks` | GET | — | Blog article |
+| `/blog/xgboost-vs-lightgbm-stock-prediction` | GET | — | Blog article |
 
 ## Frontend — Welcome Modal
 
@@ -245,12 +267,15 @@ Accessible in the Profile modal for admin-tier users. Features:
 - **X Share screenshot on desktop**: Uses `html-to-image` (not `html2canvas` — CORS/CSS-variable issues). The `filter` callback must guard `el.nodeType !== 1` before calling `getComputedStyle`; html-to-image passes text nodes to the filter. Fixed elements (`position: fixed`) and iframes are excluded from capture to avoid the ticker bar contaminating screenshots.
 - **AI provider default**: `_load_ai_provider()` defaults to `"anthropic"` when `data/cache/ai_config.json` is absent. If the file exists with `"nvidia"`, the provider stays Llama until an admin switches it via the panel or the file is deleted.
 
+## PWA
+
+`static/sw.js` is a service worker with cache key `stocker-v3`. It precaches the manifest and icons, intercepts same-origin fetches (CDN requests pass through), and serves stale-while-revalidate for static assets. `static/manifest.json` enables "Add to Home Screen". When making changes that may result in stale caches, bump the `CACHE` constant in `sw.js` to `stocker-v4`, etc.
+
 ## graphify
 
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
 
 Rules:
 - ALWAYS read graphify-out/GRAPH_REPORT.md before reading any source files, running grep/glob searches, or answering codebase questions. The graph is your primary map of the codebase.
-- IF graphify-out/wiki/index.md EXISTS, navigate it instead of reading raw files
 - For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` over grep — these traverse the graph's EXTRACTED + INFERRED edges instead of scanning files
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
