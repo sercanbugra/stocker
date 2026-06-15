@@ -11,6 +11,21 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://stocker.gultechs.net/blog</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://stocker.gultechs.net/blog/how-ai-predicts-stocks</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stocker.gultechs.net/blog/xgboost-vs-lightgbm-stock-prediction</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://stocker.gultechs.net/privacy</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>

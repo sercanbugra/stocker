@@ -27,17 +27,30 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script type="application/ld+json">
+    [
     {
       "@context": "https://schema.org",
       "@type": "Article",
       "headline": "How AI Predicts Stock Prices",
       "description": "A deep dive into how Stocker uses XGBoost, LightGBM and ExtraTreesRegressor ensemble to forecast stock prices with 30-day recursive predictions.",
-      "author": { "@type": "Organization", "name": "Stocker" },
-      "publisher": { "@type": "Organization", "name": "Stocker", "url": "https://stocker.gultechs.net/" },
+      "image": "https://stocker.gultechs.net/static/stocker_logo.png",
+      "author": { "@type": "Organization", "name": "Stocker", "url": "https://stocker.gultechs.net/" },
+      "publisher": { "@type": "Organization", "name": "Stocker", "url": "https://stocker.gultechs.net/", "logo": { "@type": "ImageObject", "url": "https://stocker.gultechs.net/static/stocker_logo.png" } },
       "url": "https://stocker.gultechs.net/blog/how-ai-predicts-stocks",
       "datePublished": "2026-06-09",
-      "mainEntityOfPage": "https://stocker.gultechs.net/blog/how-ai-predicts-stocks"
+      "dateModified": "2026-06-09",
+      "mainEntityOfPage": { "@type": "WebPage", "@id": "https://stocker.gultechs.net/blog/how-ai-predicts-stocks" }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://stocker.gultechs.net/" },
+        { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://stocker.gultechs.net/blog" },
+        { "@type": "ListItem", "position": 3, "name": "How AI Predicts Stock Prices", "item": "https://stocker.gultechs.net/blog/how-ai-predicts-stocks" }
+      ]
     }
+    ]
     </script>
     <style>
         :root {
@@ -153,12 +166,37 @@
 
         /* ── RESPONSIVE ── */
         @media (max-width: 600px) {
+            /* Nav */
+            .nav-links { display: none; }
+
+            /* Pipeline */
             .pipeline { grid-template-columns: 1fr; }
             .pipe-step { border-radius: 10px !important; }
             .pipe-step::after { content: '↓'; right: 50%; top: auto; bottom: -18px; transform: translateX(50%); }
+            .pipe-num { font-size: 0.75rem; }
+            .pipe-desc { font-size: 0.82rem; }
+
+            /* Hero */
             .hero h1 { font-size: 1.8rem; }
+
+            /* Tabs — scrollable row, 44px touch targets */
+            .tab-nav { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+            .tab-btn { min-height: 44px; padding: 10px 14px; white-space: nowrap; }
+            .tab-pane { padding: 20px 16px; }
+            /* Override inline 2-col grids inside tab panes to single column */
+            .tab-pane div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+
+            /* Stat bars */
+            .stat-label { width: 100px; font-size: 0.78rem; }
+            .stat-val { width: 36px; font-size: 0.78rem; }
+
+            /* Ensemble model role text — bump up from 0.72rem */
+            .ens-model .em-role { font-size: 0.78rem; }
+
+            /* CTA */
             .cta-section { padding: 36px 20px; }
-            .btn-outline { margin-left: 0; margin-top: 10px; }
+            .btn-cta { display: block; text-align: center; }
+            .btn-outline { display: block; text-align: center; margin-left: 0; margin-top: 10px; }
         }
     </style>
 </head>
