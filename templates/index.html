@@ -4292,6 +4292,53 @@
             color: rgba(200,238,255,0.4);
         }
 
+        /* ── Objection busters ── */
+        .wm-objections {
+            display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+            margin: 8px 0 10px; font-size: 0.72rem; color: var(--panel-muted);
+        }
+        .wm-objections span { display: flex; align-items: center; gap: 4px; }
+        .wm-objections .fas { color: #2dd4bf; font-size: 0.62rem; }
+
+        /* ── Competitor comparison table ── */
+        .cmp-wrap { margin-top: 14px; }
+        .cmp-title {
+            font-size: 0.67rem; font-weight: 700; letter-spacing: 0.05em;
+            text-transform: uppercase; color: var(--panel-muted); margin-bottom: 6px;
+        }
+        .cmp-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+        .cmp-table th {
+            font-size: 0.65rem; font-weight: 700; letter-spacing: 0.04em;
+            text-transform: uppercase; color: var(--panel-muted);
+            padding: 4px 6px; text-align: center;
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .cmp-table th:first-child { text-align: left; }
+        .cmp-table th.cmp-us { color: var(--accent); }
+        .cmp-table td {
+            padding: 5px 6px; text-align: center; color: var(--panel-muted);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-size: 0.71rem;
+        }
+        .cmp-table td:first-child { text-align: left; color: var(--panel-text); }
+        .cmp-table tr:last-child td { border-bottom: none; }
+        .cmp-yes { color: #2dd4bf; }
+        .cmp-part { color: #f7c04f; font-size: 0.65rem; }
+        .cmp-no { color: rgba(255,255,255,0.18); }
+        [data-theme="sand"] .cmp-no { color: rgba(0,0,0,0.18); }
+        [data-theme="sand"] .cmp-table td { border-bottom-color: rgba(0,0,0,0.05); }
+
+        /* ── Upgrade modal differentiator ── */
+        .upgrade-why {
+            display: flex; flex-direction: column; gap: 5px;
+            margin: 10px 0 4px; padding: 10px 12px;
+            border-radius: 8px; background: rgba(0,200,232,0.04);
+            border: 1px solid rgba(0,200,232,0.1);
+            font-size: 0.72rem; color: var(--panel-muted);
+        }
+        .upgrade-why span { display: flex; align-items: center; gap: 7px; }
+        .upgrade-why .fas { color: var(--accent); font-size: 0.68rem; width: 12px; flex-shrink: 0; }
+
         /* ── Social proof / trust elements ── */
         .hero-trust-strip {
             display: flex; align-items: center; gap: 7px;
@@ -4416,6 +4463,12 @@
             </div>
 
             <hr class="wm-sep">
+
+            <div class="wm-objections">
+                <span><i class="fas fa-check-circle"></i> No credit card to start</span>
+                <span><i class="fas fa-check-circle"></i> Cancel any time</span>
+                <span><i class="fas fa-check-circle"></i> Your data stays private</span>
+            </div>
 
             <a class="wm-btn-google" href="/login/google?prompt=consent&select_account=1">
                 <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
@@ -4590,6 +4643,11 @@
                     <button type="button" class="promo-box-apply" id="upgrade-promo-apply">Apply</button>
                 </div>
                 <div id="upgrade-promo-feedback" class="promo-box-feedback"></div>
+            </div>
+            <div class="upgrade-why">
+                <span><i class="fas fa-chart-line"></i> ML forecasts (XGBoost + LightGBM + ExtraTrees) — Yahoo Finance doesn't do this</span>
+                <span><i class="fas fa-robot"></i> Auto-generated AI trade thesis per stock — not just raw data</span>
+                <span><i class="fas fa-times"></i> No Bloomberg fees — Pro starts at £3.99/mo, cancel any time</span>
             </div>
             <div class="upgrade-trust-row">
                 <span><i class="fab fa-stripe" style="color:#6772e5;"></i> Stripe PCI-DSS</span>
@@ -4771,7 +4829,7 @@
                 <!-- ── Plans & Pricing tab ── -->
                 <div class="profile-tab-pane" id="profile-pane-pricing">
                     <div class="mb-1 fw-semibold">Plans &amp; Pricing</div>
-                    <p class="text-muted small mb-0">Choose the plan that fits you best.</p>
+                    <p class="text-muted small mb-0">ML forecasts, AI trade reasoning &amp; live market data — features Yahoo Finance and ChatGPT don't offer.</p>
                     {% if subscribed %}
                     <div class="alert alert-success py-2 small mb-0 mt-2">
                         <i class="fas fa-check-circle me-1"></i> Your subscription is active. Thank you!
@@ -4824,6 +4882,63 @@
                             <button type="button" class="promo-box-apply" id="profile-promo-apply">Apply</button>
                         </div>
                         <div id="profile-promo-feedback" class="promo-box-feedback"></div>
+                    </div>
+                    <div class="cmp-wrap">
+                        <div class="cmp-title">How Stocker compares</div>
+                        <table class="cmp-table" aria-label="Feature comparison">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Yahoo Finance</th>
+                                    <th>ChatGPT</th>
+                                    <th class="cmp-us">Stocker</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>ML price forecasts</td>
+                                    <td><span class="cmp-no">✗</span></td>
+                                    <td><span class="cmp-no">✗</span></td>
+                                    <td><span class="cmp-yes">✓</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Chart pattern detection</td>
+                                    <td><span class="cmp-no">✗</span></td>
+                                    <td><span class="cmp-no">✗</span></td>
+                                    <td><span class="cmp-yes">✓</span></td>
+                                </tr>
+                                <tr>
+                                    <td>AI trade thesis</td>
+                                    <td><span class="cmp-no">✗</span></td>
+                                    <td><span class="cmp-part">Manual prompt</span></td>
+                                    <td><span class="cmp-yes">✓ Auto</span></td>
+                                </tr>
+                                <tr>
+                                    <td>News sentiment scoring</td>
+                                    <td><span class="cmp-part">Basic</span></td>
+                                    <td><span class="cmp-no">✗</span></td>
+                                    <td><span class="cmp-yes">✓</span></td>
+                                </tr>
+                                <tr>
+                                    <td>UK &amp; Turkish markets</td>
+                                    <td><span class="cmp-part">Partial</span></td>
+                                    <td><span class="cmp-no">✗</span></td>
+                                    <td><span class="cmp-yes">✓</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Free ML analyses/day</td>
+                                    <td><span class="cmp-no">✗</span></td>
+                                    <td><span class="cmp-no">✗</span></td>
+                                    <td><span class="cmp-yes">5 free</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Monthly cost</td>
+                                    <td><span class="cmp-part">$34.99 premium</span></td>
+                                    <td><span class="cmp-part">$20 Plus</span></td>
+                                    <td><span class="cmp-yes">£0–£3.99</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                     {% if not user %}
                     <p class="text-muted small text-center mt-3 mb-0">
