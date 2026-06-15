@@ -4291,6 +4291,42 @@
             font-size: 0.82rem; letter-spacing: 0.5px;
             color: rgba(200,238,255,0.4);
         }
+
+        /* ── Social proof / trust elements ── */
+        .hero-trust-strip {
+            display: flex; align-items: center; gap: 7px;
+            justify-content: center; flex-wrap: wrap;
+            margin-top: 18px; font-size: 0.77rem;
+            color: rgba(200,238,255,0.5);
+        }
+        .hero-trust-strip .trust-item { display: flex; align-items: center; gap: 5px; }
+        .hero-trust-strip .trust-divider { opacity: 0.3; user-select: none; }
+        .hero-trust-strip i { color: var(--accent); font-size: 0.7rem; }
+
+        .upgrade-trust-row {
+            display: flex; align-items: center; justify-content: center; gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 12px; padding-top: 10px;
+            border-top: 1px solid var(--panel-border);
+            font-size: 0.7rem; color: var(--panel-muted);
+        }
+        .upgrade-trust-row span { display: flex; align-items: center; gap: 4px; }
+        .upgrade-trust-row .fab { font-size: 0.82rem; }
+        .upgrade-trust-row .fas { font-size: 0.72rem; color: #2dd4bf; }
+
+        .drawer-about {
+            margin: 0 0 14px;
+            padding: 11px 12px; border-radius: 10px;
+            background: rgba(0,200,232,0.04);
+            border: 1px solid rgba(0,200,232,0.1);
+        }
+        .drawer-about-title {
+            font-size: 0.69rem; font-weight: 700; letter-spacing: 0.05em;
+            text-transform: uppercase; color: var(--accent); margin-bottom: 5px;
+        }
+        .drawer-about-body {
+            font-size: 0.76rem; color: var(--panel-muted); line-height: 1.52;
+        }
     </style>
 </head>
 <body>
@@ -4396,6 +4432,12 @@
             <button class="wm-btn-guest" id="wm-guest-btn" type="button">
                 Continue as Guest &mdash; 1 free analysis today
             </button>
+            <div class="upgrade-trust-row" style="margin-top:10px;padding-top:10px;">
+                <span><i class="fab fa-stripe" style="color:#6772e5;"></i> Stripe PCI-DSS</span>
+                <span><i class="fab fa-google" style="color:#4285f4;"></i> Google OAuth</span>
+                <span><i class="fas fa-shield-alt"></i> SSL / TLS</span>
+                <span><i class="fas fa-times-circle" style="color:#ef4444;"></i> No card stored</span>
+            </div>
             <p class="wm-terms">
                 By continuing you agree to our <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>.
                 Free account: 5 analyses/day &bull; No credit card required.
@@ -4548,6 +4590,12 @@
                     <button type="button" class="promo-box-apply" id="upgrade-promo-apply">Apply</button>
                 </div>
                 <div id="upgrade-promo-feedback" class="promo-box-feedback"></div>
+            </div>
+            <div class="upgrade-trust-row">
+                <span><i class="fab fa-stripe" style="color:#6772e5;"></i> Stripe PCI-DSS</span>
+                <span><i class="fab fa-google" style="color:#4285f4;"></i> Google OAuth</span>
+                <span><i class="fas fa-shield-alt"></i> SSL / TLS</span>
+                <span><i class="fas fa-times-circle" style="color:#ef4444;"></i> No card stored</span>
             </div>
             {% if not user %}
             <p class="text-muted small text-center mt-3 mb-0">
@@ -4996,6 +5044,15 @@
 
         <!-- Footer: links + Gultechs logo -->
         <div class="drawer-footer">
+            <div class="drawer-about">
+                <div class="drawer-about-title"><i class="fas fa-info-circle me-1"></i> About Stocker</div>
+                <div class="drawer-about-body">
+                    AI-powered stock analysis built by <strong style="color:var(--panel-text);">Gultechs</strong>.
+                    Combines XGBoost, LightGBM &amp; ExtraTrees ensemble forecasting with live market data,
+                    news sentiment, and Claude AI trade insights — covering US, UK, and Turkish markets.
+                    Payments secured by Stripe. No card stored on our servers.
+                </div>
+            </div>
             <div class="drawer-footer-links">
                 <a href="/privacy">Privacy Policy</a>
                 <a href="mailto:info@gultechs.net">Contact</a>
@@ -5036,6 +5093,15 @@
             <div class="hero-ctas">
                 <button class="hero-btn-primary" id="hero-cta-analyse"><i class="fas fa-search"></i> Analyse a Stock</button>
                 <button class="hero-btn-ghost" id="hero-scroll-markets">Explore Markets ↓</button>
+            </div>
+            <div class="hero-trust-strip">
+                <span class="trust-item"><i class="fas fa-brain"></i> XGBoost · LightGBM · ExtraTrees</span>
+                <span class="trust-divider">·</span>
+                <span class="trust-item"><i class="fas fa-globe"></i> US · UK · TR markets</span>
+                <span class="trust-divider">·</span>
+                <span class="trust-item"><i class="fas fa-lock"></i> SSL encrypted</span>
+                <span class="trust-divider">·</span>
+                <span class="trust-item"><i class="fas fa-gift"></i> Free to start</span>
             </div>
         </div>
     </div><!-- /snap-inner snap-hero -->
