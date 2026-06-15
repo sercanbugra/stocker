@@ -1377,13 +1377,14 @@
             color: #f7c04f;
             background: rgba(247,192,79,0.12);
             border-radius: 5px;
-            padding: 2px 8px;
+            padding: 0 8px;
             white-space: nowrap;
         }
         .remarkables-meta {
             font-size: 0.7rem;
             color: var(--panel-muted);
             padding: 6px 14px 2px;
+            flex-shrink: 0;
         }
         /* keep old names for JS compat */
         .remarkables-list { list-style: none; padding: 0; margin: 0; }
@@ -3664,6 +3665,7 @@
             flex: 1; min-height: 0;
             overflow-y: auto;
             max-height: none !important;
+            display: flex; flex-direction: column;
         }
         /* Remarkables: 2-column grid, rows shrink to content — card body scrolls as one unit */
         #rm-section-us, #rm-section-tr {
@@ -3671,6 +3673,7 @@
             grid-template-columns: 1fr 1fr;
             grid-template-rows: auto auto;
             height: auto;
+            flex-shrink: 0;
         }
         #rm-section-us .rm2-section-wrap,
         #rm-section-tr .rm2-section-wrap {
@@ -3697,9 +3700,9 @@
         #snap-hero .snap-inner { width: 100%; padding-top: 8px; }
 
         /* Market Pulse heatmap (inside Remarkables card) */
-        #hm-in-card { border-top: 1px solid var(--panel-border); }
-        #hm-in-card-header { display:flex; justify-content:space-between; align-items:center; padding:6px 12px 3px; }
-        #market-heatmap-svg-wrap { width:100%; height:260px; position:relative; overflow:hidden; background:rgba(0,0,0,0.06); }
+        #hm-in-card { border-top: 1px solid var(--panel-border); flex: 1; min-height: 0; display: flex; flex-direction: column; }
+        #hm-in-card-header { display:flex; justify-content:space-between; align-items:center; padding:6px 12px 3px; flex-shrink:0; }
+        #market-heatmap-svg-wrap { width:100%; flex: 1; min-height: 0; position:relative; overflow:hidden; background:rgba(0,0,0,0.06); }
         #market-heatmap-svg-wrap svg { display:block; }
         .hm-b { transition: filter .12s; }
         .hm-b:hover { filter: brightness(1.25) drop-shadow(0 0 5px currentColor); }
@@ -4251,9 +4254,78 @@
             box-shadow: 0 2px 8px rgba(99,102,241,0.12);
         }
         .wl-notice { font-size:0.68rem; color:var(--panel-muted); padding:2px 2px 0; }
+
+        /* ── App Launch Loader (TWA / PWA cold-start) ── */
+        #app-launch-loader {
+            position: fixed; inset: 0; z-index: 99999;
+            background: #071a28;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            transition: opacity 0.35s ease;
+        }
+        #app-launch-loader.all-out {
+            opacity: 0; pointer-events: none;
+        }
+        .all-logo-img { height: 64px; width: auto; }
+        .all-bars {
+            display: flex; gap: 5px; align-items: flex-end;
+            margin-top: 28px; height: 28px;
+        }
+        .all-bar {
+            width: 5px; border-radius: 3px;
+            background: #00c8e8;
+            animation: all-bounce 1s ease-in-out infinite;
+        }
+        .all-bar:nth-child(1) { animation-delay: 0s; }
+        .all-bar:nth-child(2) { animation-delay: 0.15s; }
+        .all-bar:nth-child(3) { animation-delay: 0.30s; }
+        .all-bar:nth-child(4) { animation-delay: 0.45s; }
+        .all-bar:nth-child(5) { animation-delay: 0.60s; }
+        @keyframes all-bounce {
+            0%, 100% { height: 8px;  opacity: 0.35; }
+            50%       { height: 28px; opacity: 1;    }
+        }
+        .all-label {
+            margin-top: 20px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 0.82rem; letter-spacing: 0.5px;
+            color: rgba(200,238,255,0.4);
+        }
     </style>
 </head>
 <body>
+    <!-- App Launch Loader: visible immediately, removed on DOMContentLoaded -->
+    <div id="app-launch-loader" aria-hidden="true">
+        <picture>
+            <source srcset="{{ url_for('static', filename='stocker_logo.webp') }}" type="image/webp">
+            <img class="all-logo-img" src="{{ url_for('static', filename='stocker_logo_sm.png') }}" alt="Stocker" width="96" height="64" fetchpriority="high">
+        </picture>
+        <div class="all-bars">
+            <div class="all-bar"></div>
+            <div class="all-bar"></div>
+            <div class="all-bar"></div>
+            <div class="all-bar"></div>
+            <div class="all-bar"></div>
+        </div>
+        <span class="all-label">Loading…</span>
+    </div>
+    <script>
+    (function () {
+        function removeLoader() {
+            var el = document.getElementById('app-launch-loader');
+            if (!el || el._gone) return;
+            el._gone = true;
+            el.classList.add('all-out');
+            setTimeout(function () { el.parentNode && el.parentNode.removeChild(el); }, 380);
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', removeLoader);
+        } else {
+            removeLoader();
+        }
+        setTimeout(removeLoader, 7000); /* hard ceiling — never blocks UI */
+    }());
+    </script>
     <!-- ── Welcome / Onboarding Modal (shown on page load for guests) ── -->
     {% if not user_email %}
     <div class="welcome-modal" id="welcome-modal" role="dialog" aria-modal="true" aria-labelledby="wm-title">
@@ -5006,7 +5078,7 @@
                         </div>
                         <ol class="rm2-list remarkables-list" id="risk-lovers-list">
                             {% if remarkables and remarkables.for_risk_lovers %}
-                                {% for item in remarkables.for_risk_lovers %}
+                                {% for item in remarkables.for_risk_lovers[:5] %}
                                 <li>
                                     <span class="rm-rank">{{ loop.index }}</span>
                                     <a href="#" class="remarkable-symbol" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
@@ -5034,7 +5106,7 @@
                         </div>
                         <ol class="rm2-list remarkables-list" id="no-pain-list">
                             {% if remarkables and remarkables.no_pain_but_gain %}
-                                {% for item in remarkables.no_pain_but_gain %}
+                                {% for item in remarkables.no_pain_but_gain[:5] %}
                                 <li>
                                     <span class="rm-rank">{{ loop.index }}</span>
                                     <a href="#" class="remarkable-symbol" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
@@ -5060,7 +5132,7 @@
                             <span class="rm2-sub">Highest yield payers</span>
                         </div>
                         <ol class="rm2-list">
-                            {% if dividend_stocks %}{% for item in dividend_stocks %}
+                            {% if dividend_stocks %}{% for item in dividend_stocks[:5] %}
                             <li>
                                 <span class="rm-rank">{{ loop.index }}</span>
                                 <a href="#" class="remarkable-symbol nl-symbol-link" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
@@ -5084,7 +5156,7 @@
                             <span class="rm2-sub">Top FCF yield stocks</span>
                         </div>
                         <ol class="rm2-list">
-                            {% if undervalued_stocks %}{% for item in undervalued_stocks %}
+                            {% if undervalued_stocks %}{% for item in undervalued_stocks[:5] %}
                             <li>
                                 <span class="rm-rank">{{ loop.index }}</span>
                                 <a href="#" class="remarkable-symbol nl-symbol-link" data-symbol="{{ item.symbol }}">{{ item.symbol }}</a>
@@ -7414,6 +7486,12 @@
                             tt.style.display = 'none';
                             this.setAttribute('stroke-width','1.3');
                             this.setAttribute('fill-opacity', this.dataset.alpha);
+                        });
+                        c.addEventListener('click', function() {
+                            var sym = this.dataset.sym;
+                            var input = document.getElementById('stock-input');
+                            var btn   = document.getElementById('predict-btn');
+                            if (input && btn) { input.value = sym; btn.click(); }
                         });
                     });
                 }

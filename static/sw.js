@@ -1,4 +1,4 @@
-const CACHE = 'stocker-v3';
+const CACHE = 'stocker-v4';
 const PRECACHE = [
   '/static/manifest.json',
   '/static/icon-192.png',
