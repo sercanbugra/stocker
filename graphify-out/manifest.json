@@ -1,142 +1,352 @@
 {
   "/home/cinar/Scripts/my-code-space/build_industry_db.py": {
     "mtime": 1775568796.7904232,
-    "hash": "9a0f0d2c9d1a0d98f97eaf225d05c76d"
+    "ast_hash": "9a0f0d2c9d1a0d98f97eaf225d05c76d",
+    "semantic_hash": "9a0f0d2c9d1a0d98f97eaf225d05c76d"
   },
   "/home/cinar/Scripts/my-code-space/app.py": {
-    "mtime": 1778749257.8790088,
-    "hash": "8e6dd31727c5e375564945c5313bf8cd"
+    "mtime": 1781098390.8420453,
+    "ast_hash": "7209fa9ee247e103e30d03cfbd413d94",
+    "semantic_hash": "7209fa9ee247e103e30d03cfbd413d94"
   },
   "/home/cinar/Scripts/my-code-space/tests/test_auth.py": {
     "mtime": 1775426539.0772667,
-    "hash": "d6721a57bad418431b79b968d3359e7b"
+    "ast_hash": "d6721a57bad418431b79b968d3359e7b",
+    "semantic_hash": "d6721a57bad418431b79b968d3359e7b"
   },
   "/home/cinar/Scripts/my-code-space/static/sw.js": {
     "mtime": 1778406976.5725508,
-    "hash": "df413e672b007fc88f11f61af32d446f"
+    "ast_hash": "df413e672b007fc88f11f61af32d446f",
+    "semantic_hash": "df413e672b007fc88f11f61af32d446f"
   },
   "/home/cinar/Scripts/my-code-space/CLAUDE.md": {
-    "mtime": 1778664276.877984,
-    "hash": "c4b02955a8caff78c78d51f4c9c68f7d"
+    "mtime": 1781212818.7131813,
+    "ast_hash": "18934d141e9e50928b6b2de57843df07",
+    "semantic_hash": "18934d141e9e50928b6b2de57843df07"
   },
   "/home/cinar/Scripts/my-code-space/requirements.txt": {
     "mtime": 1778658843.630184,
-    "hash": "7e57bfd94b6ce80e25612197e351a707"
+    "ast_hash": "7e57bfd94b6ce80e25612197e351a707",
+    "semantic_hash": "7e57bfd94b6ce80e25612197e351a707"
   },
   "/home/cinar/Scripts/my-code-space/render.yaml": {
     "mtime": 1775343587.153144,
-    "hash": "8f7e40bcf4fcbbc1cfccd754f163981f"
+    "ast_hash": "8f7e40bcf4fcbbc1cfccd754f163981f",
+    "semantic_hash": "8f7e40bcf4fcbbc1cfccd754f163981f"
   },
   "/home/cinar/Scripts/my-code-space/README.md": {
     "mtime": 1775343587.152144,
-    "hash": "c2d115e557035ba4a63979e3f2e63f85"
-  },
-  "/home/cinar/Scripts/my-code-space/cv_antler.md": {
-    "mtime": 1778668270.7536001,
-    "hash": "13cd5e2a26fe1b5a8dcd4efd894036c7"
+    "ast_hash": "c2d115e557035ba4a63979e3f2e63f85",
+    "semantic_hash": "c2d115e557035ba4a63979e3f2e63f85"
   },
   "/home/cinar/Scripts/my-code-space/static/robots.txt": {
-    "mtime": 1775642430.549908,
-    "hash": "11d69f09c03449dd0f7d68f2901f8e53"
+    "mtime": 1780060084.7945018,
+    "ast_hash": "5dddd315cdb4e554e63e75568ffc55b4",
+    "semantic_hash": "5dddd315cdb4e554e63e75568ffc55b4"
   },
   "/home/cinar/Scripts/my-code-space/data/ftse100_symbols.txt": {
     "mtime": 1776761012.8807554,
-    "hash": "67b63137a31027534ab47c61a7c39213"
+    "ast_hash": "67b63137a31027534ab47c61a7c39213",
+    "semantic_hash": "67b63137a31027534ab47c61a7c39213"
   },
   "/home/cinar/Scripts/my-code-space/data/sp500_symbols.txt": {
     "mtime": 1776263003.3106925,
-    "hash": "4a1fc6f740c4df7bd40112bdf67cbeb0"
+    "ast_hash": "4a1fc6f740c4df7bd40112bdf67cbeb0",
+    "semantic_hash": "4a1fc6f740c4df7bd40112bdf67cbeb0"
   },
   "/home/cinar/Scripts/my-code-space/data/bist_symbols.txt": {
-    "mtime": 1776761048.9954076,
-    "hash": "812cfa15395dc983ea4414ee26bdef1c"
+    "mtime": 1780334914.7789185,
+    "ast_hash": "492e189e0512efc1bbdcaef6e988a5f3",
+    "semantic_hash": "492e189e0512efc1bbdcaef6e988a5f3"
   },
   "/home/cinar/Scripts/my-code-space/templates/watchlist_trends.html": {
-    "mtime": 1777654392.609443,
-    "hash": "f6ffa5575f7f93108da05eb85fa60eb5"
+    "mtime": 1780956123.7649784,
+    "ast_hash": "3665f3eb476db72d1ded8b7a048fed2b",
+    "semantic_hash": "3665f3eb476db72d1ded8b7a048fed2b"
   },
   "/home/cinar/Scripts/my-code-space/templates/index.html": {
-    "mtime": 1778749238.4118145,
-    "hash": "6ab8450e1981565f0652cf89b5550966"
+    "mtime": 1781101968.9792016,
+    "ast_hash": "781742b16a0cbe034c5b6bc79b50df3d",
+    "semantic_hash": "781742b16a0cbe034c5b6bc79b50df3d"
   },
   "/home/cinar/Scripts/my-code-space/templates/delete_account.html": {
-    "mtime": 1778486892.238912,
-    "hash": "dd6a3a995d9379538c7461e60ce946b2"
+    "mtime": 1780956126.2299893,
+    "ast_hash": "fcb2bc75c0426416061a0be9fec69d80",
+    "semantic_hash": "fcb2bc75c0426416061a0be9fec69d80"
   },
   "/home/cinar/Scripts/my-code-space/templates/privacy.html": {
-    "mtime": 1778486008.8231173,
-    "hash": "72b6a9ffac388072ef8e1285d9e64776"
+    "mtime": 1780956128.2219982,
+    "ast_hash": "a42de0d34bddf70d122b55aca3a647ee",
+    "semantic_hash": "a42de0d34bddf70d122b55aca3a647ee"
   },
   "/home/cinar/Scripts/my-code-space/static/icon-512.png": {
     "mtime": 1778419200.5709891,
-    "hash": "0f39d248041115227830e4f46efdf7e3"
+    "ast_hash": "0f39d248041115227830e4f46efdf7e3",
+    "semantic_hash": "0f39d248041115227830e4f46efdf7e3"
   },
   "/home/cinar/Scripts/my-code-space/static/badge_shipit.svg": {
     "mtime": 1778749221.0873623,
-    "hash": "13a50566f7d4d4395664f97cace98638"
+    "ast_hash": "13a50566f7d4d4395664f97cace98638",
+    "semantic_hash": "13a50566f7d4d4395664f97cace98638"
   },
   "/home/cinar/Scripts/my-code-space/static/logo.jpg": {
     "mtime": 1775343587.1541438,
-    "hash": "00782168dd4539cea38898db324bc752"
+    "ast_hash": "00782168dd4539cea38898db324bc752",
+    "semantic_hash": "00782168dd4539cea38898db324bc752"
   },
   "/home/cinar/Scripts/my-code-space/static/badge_producthunt.svg": {
     "mtime": 1778749156.2949939,
-    "hash": "ef0359579103a1a2044ebf769cf80cf3"
+    "ast_hash": "ef0359579103a1a2044ebf769cf80cf3",
+    "semantic_hash": "ef0359579103a1a2044ebf769cf80cf3"
   },
   "/home/cinar/Scripts/my-code-space/static/stocker_logo_sm.png": {
     "mtime": 1778681420.9398673,
-    "hash": "658299f32150fd9e308a772a0aa34027"
+    "ast_hash": "658299f32150fd9e308a772a0aa34027",
+    "semantic_hash": "658299f32150fd9e308a772a0aa34027"
   },
   "/home/cinar/Scripts/my-code-space/static/apple-touch-icon.png": {
     "mtime": 1775655172.462354,
-    "hash": "2c8015d3fa7117322074c13597b800df"
+    "ast_hash": "2c8015d3fa7117322074c13597b800df",
+    "semantic_hash": "2c8015d3fa7117322074c13597b800df"
   },
   "/home/cinar/Scripts/my-code-space/static/logo.png": {
     "mtime": 1775649492.0262392,
-    "hash": "cebb6df9eafa19002ad43208a5739e60"
+    "ast_hash": "cebb6df9eafa19002ad43208a5739e60",
+    "semantic_hash": "cebb6df9eafa19002ad43208a5739e60"
   },
   "/home/cinar/Scripts/my-code-space/static/stocker_logo.webp": {
     "mtime": 1778681420.9058669,
-    "hash": "a5b01ea03f92f2a8b09d176cf3a1e7fe"
+    "ast_hash": "a5b01ea03f92f2a8b09d176cf3a1e7fe",
+    "semantic_hash": "a5b01ea03f92f2a8b09d176cf3a1e7fe"
   },
   "/home/cinar/Scripts/my-code-space/static/stocker_logo.png": {
     "mtime": 1775656775.0442796,
-    "hash": "eb9de1afd8105f16d931a47316f92c35"
+    "ast_hash": "eb9de1afd8105f16d931a47316f92c35",
+    "semantic_hash": "eb9de1afd8105f16d931a47316f92c35"
   },
   "/home/cinar/Scripts/my-code-space/static/badge_backlinklog.svg": {
     "mtime": 1778749157.0041254,
-    "hash": "30bc18846b31c12ff5b7a52370e53557"
+    "ast_hash": "30bc18846b31c12ff5b7a52370e53557",
+    "semantic_hash": "30bc18846b31c12ff5b7a52370e53557"
   },
   "/home/cinar/Scripts/my-code-space/static/logo_small.webp": {
     "mtime": 1775811384.537936,
-    "hash": "9eefc4e372055af03bcdcc3d8c747636"
+    "ast_hash": "9eefc4e372055af03bcdcc3d8c747636",
+    "semantic_hash": "9eefc4e372055af03bcdcc3d8c747636"
   },
   "/home/cinar/Scripts/my-code-space/static/icon-192.png": {
     "mtime": 1778419200.4959884,
-    "hash": "d63f32899965b9da1cb4a28dd7a87b6a"
+    "ast_hash": "d63f32899965b9da1cb4a28dd7a87b6a",
+    "semantic_hash": "d63f32899965b9da1cb4a28dd7a87b6a"
   },
   "/home/cinar/Scripts/my-code-space/static/Peer_Comparison.png": {
     "mtime": 1775553005.8788066,
-    "hash": "5b1ff33b9f9d876af196ab590abbeaf7"
+    "ast_hash": "5b1ff33b9f9d876af196ab590abbeaf7",
+    "semantic_hash": "5b1ff33b9f9d876af196ab590abbeaf7"
   },
   "/home/cinar/Scripts/my-code-space/static/AI_Portfolio_Adviser.png": {
     "mtime": 1775553052.1169777,
-    "hash": "8e7a2652dff59f92361905150f474010"
+    "ast_hash": "8e7a2652dff59f92361905150f474010",
+    "semantic_hash": "8e7a2652dff59f92361905150f474010"
   },
   "/home/cinar/Scripts/my-code-space/static/AI_Trade_Thesis.png": {
     "mtime": 1775552953.1862164,
-    "hash": "d2c7f9295e4114b8fb067f3ab5365418"
+    "ast_hash": "d2c7f9295e4114b8fb067f3ab5365418",
+    "semantic_hash": "d2c7f9295e4114b8fb067f3ab5365418"
   },
   "/home/cinar/Scripts/my-code-space/static/stocker_logo_small.webp": {
     "mtime": 1775811384.332934,
-    "hash": "8552e9f6296c3387740a17ea95c7b9fd"
+    "ast_hash": "8552e9f6296c3387740a17ea95c7b9fd",
+    "semantic_hash": "8552e9f6296c3387740a17ea95c7b9fd"
   },
   "/home/cinar/Scripts/my-code-space/static/favicon-192.png": {
     "mtime": 1775655172.462354,
-    "hash": "2c8015d3fa7117322074c13597b800df"
+    "ast_hash": "2c8015d3fa7117322074c13597b800df",
+    "semantic_hash": "2c8015d3fa7117322074c13597b800df"
   },
   "/home/cinar/Scripts/my-code-space/static/Earning_Summarizer.png": {
     "mtime": 1775553106.7259367,
-    "hash": "14b6bddebfcbc4d0ec8c0c0e7fe9bb00"
+    "ast_hash": "14b6bddebfcbc4d0ec8c0c0e7fe9bb00",
+    "semantic_hash": "14b6bddebfcbc4d0ec8c0c0e7fe9bb00"
+  },
+  "/home/cinar/Scripts/my-code-space/build_autocomplete_db.py": {
+    "mtime": 1780335092.8992507,
+    "ast_hash": "7144dd9f86d4f044b8187ccaed6b0422",
+    "semantic_hash": "7144dd9f86d4f044b8187ccaed6b0422"
+  },
+  "/home/cinar/Scripts/my-code-space/cache/BNAI.json": {
+    "mtime": 1775344881.7739174,
+    "ast_hash": "3ff920aa58618a5351c55bf4050db3da",
+    "semantic_hash": "3ff920aa58618a5351c55bf4050db3da"
+  },
+  "/home/cinar/Scripts/my-code-space/cache/ASTI.json": {
+    "mtime": 1775344385.2837596,
+    "ast_hash": "6e4aea8ff19d61311686b755ec6ac947",
+    "semantic_hash": "6e4aea8ff19d61311686b755ec6ac947"
+  },
+  "/home/cinar/Scripts/my-code-space/cache/TERN.json": {
+    "mtime": 1775393149.5663483,
+    "ast_hash": "02b00b8dc445aedc4b84846bbcfee74a",
+    "semantic_hash": "02b00b8dc445aedc4b84846bbcfee74a"
+  },
+  "/home/cinar/Scripts/my-code-space/cache/VSME.json": {
+    "mtime": 1775344832.6199934,
+    "ast_hash": "d6d58f08f2252b35b821a602fbd95fad",
+    "semantic_hash": "d6d58f08f2252b35b821a602fbd95fad"
+  },
+  "/home/cinar/Scripts/my-code-space/static/manifest.json": {
+    "mtime": 1778363428.3158448,
+    "ast_hash": "321a6bfb3081adfdd742f9a9f19af3a2",
+    "semantic_hash": "321a6bfb3081adfdd742f9a9f19af3a2"
+  },
+  "/home/cinar/Scripts/my-code-space/data/users.json": {
+    "mtime": 1775426213.8021169,
+    "ast_hash": "1e9af89b77cebddd23051144e724b749",
+    "semantic_hash": "1e9af89b77cebddd23051144e724b749"
+  },
+  "/home/cinar/Scripts/my-code-space/data/autocomplete_db.json": {
+    "mtime": 1780335032.558627,
+    "ast_hash": "6ceb331d32112579ffae4d27be04fd4d",
+    "semantic_hash": "6ceb331d32112579ffae4d27be04fd4d"
+  },
+  "/home/cinar/Scripts/my-code-space/data/cache/BNAI.json": {
+    "mtime": 1775428681.923743,
+    "ast_hash": "77617be0ba89689777dbbad86aca1328",
+    "semantic_hash": "77617be0ba89689777dbbad86aca1328"
+  },
+  "/home/cinar/Scripts/my-code-space/data/cache/new_listings.json": {
+    "mtime": 1775509939.3080301,
+    "ast_hash": "ceca5b06214715f948338d46b6287997",
+    "semantic_hash": "ceca5b06214715f948338d46b6287997"
+  },
+  "/home/cinar/Scripts/my-code-space/data/cache/HPQ.json": {
+    "mtime": 1775595175.0253294,
+    "ast_hash": "2d9d5a8e701c70707299452510109b27",
+    "semantic_hash": "2d9d5a8e701c70707299452510109b27"
+  },
+  "/home/cinar/Scripts/my-code-space/data/cache/ASTI.json": {
+    "mtime": 1775396971.7416382,
+    "ast_hash": "6e4aea8ff19d61311686b755ec6ac947",
+    "semantic_hash": "6e4aea8ff19d61311686b755ec6ac947"
+  },
+  "/home/cinar/Scripts/my-code-space/data/cache/industry_db.json": {
+    "mtime": 1775568869.4140189,
+    "ast_hash": "f0e53e206f9874a1dc425662a897fe12",
+    "semantic_hash": "f0e53e206f9874a1dc425662a897fe12"
+  },
+  "/home/cinar/Scripts/my-code-space/data/cache/remarkables_lse.json": {
+    "mtime": 1775728797.4402843,
+    "ast_hash": "bc4d0a8bcfc7d000e32727da4168c0b1",
+    "semantic_hash": "bc4d0a8bcfc7d000e32727da4168c0b1"
+  },
+  "/home/cinar/Scripts/my-code-space/data/cache/NVDA.json": {
+    "mtime": 1775399973.3104904,
+    "ast_hash": "ac421485b0a0f5a970656cd4e4dfac67",
+    "semantic_hash": "ac421485b0a0f5a970656cd4e4dfac67"
+  },
+  "/home/cinar/Scripts/my-code-space/data/cache/MO.json": {
+    "mtime": 1775555191.4994268,
+    "ast_hash": "067aef535bab6ec30dba9d80f7ba3807",
+    "semantic_hash": "067aef535bab6ec30dba9d80f7ba3807"
+  },
+  "/home/cinar/Scripts/my-code-space/data/cache/TERN.json": {
+    "mtime": 1775428424.869392,
+    "ast_hash": "6e221602e0e04e363313d3af75dc3f67",
+    "semantic_hash": "6e221602e0e04e363313d3af75dc3f67"
+  },
+  "/home/cinar/Scripts/my-code-space/data/cache/dividend_stocks.json": {
+    "mtime": 1776795207.334702,
+    "ast_hash": "fc0335260c63f12b76a85e052f32a287",
+    "semantic_hash": "fc0335260c63f12b76a85e052f32a287"
+  },
+  "/home/cinar/Scripts/my-code-space/data/cache/AAPL.json": {
+    "mtime": 1775428578.9319918,
+    "ast_hash": "98aeffcd9c2d14ceb00f7f1ddf4551c0",
+    "semantic_hash": "98aeffcd9c2d14ceb00f7f1ddf4551c0"
+  },
+  "/home/cinar/Scripts/my-code-space/data/cache/undervalued_stocks.json": {
+    "mtime": 1776795207.4437027,
+    "ast_hash": "55bf1c538058fd5f7f6179a9d3429596",
+    "semantic_hash": "55bf1c538058fd5f7f6179a9d3429596"
+  },
+  "/home/cinar/Scripts/my-code-space/data/cache/remarkables_nasdaq.json": {
+    "mtime": 1775732009.5713205,
+    "ast_hash": "f10d9a7a240a5a1c203a143275e3355a",
+    "semantic_hash": "f10d9a7a240a5a1c203a143275e3355a"
+  },
+  "/home/cinar/Scripts/my-code-space/data/cache/ERAS.json": {
+    "mtime": 1775426224.2129025,
+    "ast_hash": "9e6e9f7ef5be99ba43c76aabe2870f9a",
+    "semantic_hash": "9e6e9f7ef5be99ba43c76aabe2870f9a"
+  },
+  "/home/cinar/Scripts/my-code-space/data/cache/VSME.json": {
+    "mtime": 1775429232.611442,
+    "ast_hash": "284d1900863a7c7f91590cb9d1ed3c3c",
+    "semantic_hash": "284d1900863a7c7f91590cb9d1ed3c3c"
+  },
+  "/home/cinar/Scripts/my-code-space/data/cache/remarkables_bist.json": {
+    "mtime": 1775728796.788004,
+    "ast_hash": "2e1bf29693e88affe0794d26f5e5efbc",
+    "semantic_hash": "2e1bf29693e88affe0794d26f5e5efbc"
+  },
+  "/home/cinar/Scripts/my-code-space/.claude/settings.local.json": {
+    "mtime": 1780956087.5558171,
+    "ast_hash": "3fcc52b3cb9b250ceb2c9b06acb51b97",
+    "semantic_hash": "3fcc52b3cb9b250ceb2c9b06acb51b97"
+  },
+  "/home/cinar/Scripts/my-code-space/.claude/settings.json": {
+    "mtime": 1780947530.5505977,
+    "ast_hash": "24c15906a3e560a685b558630d26fd81",
+    "semantic_hash": "24c15906a3e560a685b558630d26fd81"
+  },
+  "/home/cinar/Scripts/my-code-space/.vscode/extensions.json": {
+    "mtime": 1775743627.6907997,
+    "ast_hash": "1aa9ce67f4ff4ac0b5b8c8a6414a53d6",
+    "semantic_hash": "1aa9ce67f4ff4ac0b5b8c8a6414a53d6"
+  },
+  "/home/cinar/Scripts/my-code-space/.claude/plugins/stocker-toolkit/README.md": {
+    "mtime": 1777583587.1497345,
+    "ast_hash": "b1de4114134668adab3f9ce74b1b9736",
+    "semantic_hash": "b1de4114134668adab3f9ce74b1b9736"
+  },
+  "/home/cinar/Scripts/my-code-space/.claude/plugins/stocker-toolkit/skills/stocker-deploy/SKILL.md": {
+    "mtime": 1777583473.338755,
+    "ast_hash": "165bc6900759af7022b7be29c18f485a",
+    "semantic_hash": "165bc6900759af7022b7be29c18f485a"
+  },
+  "/home/cinar/Scripts/my-code-space/.claude/plugins/stocker-toolkit/skills/stocker-debug/SKILL.md": {
+    "mtime": 1777583566.2195544,
+    "ast_hash": "ce75aec839c87583cd198863f6d1e839",
+    "semantic_hash": "ce75aec839c87583cd198863f6d1e839"
+  },
+  "/home/cinar/Scripts/my-code-space/.claude/plugins/stocker-toolkit/skills/stocker-cache/SKILL.md": {
+    "mtime": 1777583509.1360629,
+    "ast_hash": "a06369a7e95ab3214ed2fbcd75585252",
+    "semantic_hash": "a06369a7e95ab3214ed2fbcd75585252"
+  },
+  "/home/cinar/Scripts/my-code-space/.claude/skills/pr-description/SKILL.md": {
+    "mtime": 1778190849.1727881,
+    "ast_hash": "4a9e1f99fbaab8ca75542298c14f1a2d",
+    "semantic_hash": "4a9e1f99fbaab8ca75542298c14f1a2d"
+  },
+  "/home/cinar/Scripts/my-code-space/templates/blog_xgboost_vs_lightgbm.html": {
+    "mtime": 1781099480.5795286,
+    "ast_hash": "7f5ccb4ea2acf2b634980fd2c13ebc5d",
+    "semantic_hash": "7f5ccb4ea2acf2b634980fd2c13ebc5d"
+  },
+  "/home/cinar/Scripts/my-code-space/templates/blog_how_ai_predicts_stocks.html": {
+    "mtime": 1781098672.9817798,
+    "ast_hash": "de0eb8535c9ce5577eb6e2b22488c00a",
+    "semantic_hash": "de0eb8535c9ce5577eb6e2b22488c00a"
+  },
+  "/home/cinar/Scripts/my-code-space/templates/blog.html": {
+    "mtime": 1781098635.8280005,
+    "ast_hash": "b98f9085af7fa6afdad63a44f3511fd8",
+    "semantic_hash": "b98f9085af7fa6afdad63a44f3511fd8"
+  },
+  "/home/cinar/Scripts/my-code-space/.github/workflows/fly-deploy.yml": {
+    "mtime": 1780487466.195548,
+    "ast_hash": "8c1005e5e207184f13336b910bcd2a95",
+    "semantic_hash": "8c1005e5e207184f13336b910bcd2a95"
   }
 }

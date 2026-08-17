@@ -25,7 +25,7 @@ import xgboost as xgb
 import lightgbm as lgb
 from sklearn.ensemble import ExtraTreesRegressor
 import requests
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from requests.exceptions import HTTPError
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from plotly.utils import PlotlyJSONEncoder
@@ -110,7 +110,7 @@ _CSP = "; ".join([
     # Font Awesome webfonts
     "font-src 'self' data: https://cdnjs.cloudflare.com",
     # Images: self + data: URIs + Yahoo Finance news thumbnails + GA4 beacon
-    "img-src 'self' data: https://s.yimg.com https://media.zenfs.com https://finance.yahoo.com https://www.google-analytics.com https://www.googletagmanager.com",
+    "img-src 'self' data: https://s.yimg.com https://media.zenfs.com https://finance.yahoo.com https://www.google-analytics.com https://www.googletagmanager.com https://sellwithboost.com https://api.producthunt.com",
     # XHR/fetch: same-origin + GA4 analytics endpoint
     "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com",
     # Same-origin iframes + trading212 bot (admin-only embed)
@@ -4192,6 +4192,104 @@ def remarkables_api():
     payload = get_remarkables(force_refresh=refresh)
     payload["bist_data"] = get_full_market_data("bist", force_refresh=refresh)
     return jsonify(payload)
+
+# ── Market Heatmap ─────────────────────────────────────────────────────────
+_HEATMAP_CACHE: dict = {}
+_HEATMAP_LOCK  = threading.Lock()
+_HM_BIOTECH_INDS = frozenset({
+    "Biotechnology", "Drug Manufacturers - General",
+    "Drug Manufacturers - Specialty & Generic", "Diagnostics & Research",
+})
+_HM_AI_INDS = frozenset({
+    "Semiconductors", "Semiconductor Equipment & Materials",
+})
+
+@app.route("/api/market-heatmap")
+def api_market_heatmap():
+    market = request.args.get("market", "us").lower()
+    if market not in ("us", "tr"):
+        return jsonify({"error": "market must be 'us' or 'tr'"}), 400
+
+    now = time.time()
+    with _HEATMAP_LOCK:
+        hit = _HEATMAP_CACHE.get(market)
+        if hit and now - hit["ts"] < 300:
+            return jsonify(hit["data"])
+
+    db = _load_industry_db()
+    mk = "US" if market == "us" else "TR"
+
+    # Special pinned columns (US only): Biotech + AI & Chips
+    special_syms: set = set()
+    picks: list = []
+    if mk == "US":
+        sq = {"Biotech": 0, "AI & Chips": 0}
+        for sym, meta in db.items():
+            if not isinstance(meta, dict) or meta.get("market") != mk:
+                continue
+            ind = meta.get("industry") or ""
+            if ind in _HM_BIOTECH_INDS and sq["Biotech"] < 18:
+                picks.append((sym, meta, "Biotech"))
+                special_syms.add(sym)
+                sq["Biotech"] += 1
+            elif ind in _HM_AI_INDS and sq["AI & Chips"] < 18:
+                picks.append((sym, meta, "AI & Chips"))
+                special_syms.add(sym)
+                sq["AI & Chips"] += 1
+
+    # Top 5 regular sectors (exclude Bio/AI specials)
+    sec_count: dict = {}
+    for sym, meta in db.items():
+        if not isinstance(meta, dict): continue
+        if meta.get("market") == mk and sym not in special_syms and meta.get("sector"):
+            sec_count[meta["sector"]] = sec_count.get(meta["sector"], 0) + 1
+    top5 = [s for s, _ in sorted(sec_count.items(), key=lambda x: -x[1])[:5]]
+
+    quota: dict = {s: 0 for s in top5}
+    for sym, meta in db.items():
+        if not isinstance(meta, dict): continue
+        sec = meta.get("sector")
+        if meta.get("market") != mk or sym in special_syms or sec not in top5:
+            continue
+        if quota[sec] >= 18:
+            continue
+        picks.append((sym, meta, sec))
+        quota[sec] += 1
+
+    if not picks:
+        return jsonify([])
+
+    syms     = [s for s, _, _ in picks]
+    meta_map = {s: (m, col) for s, m, col in picks}
+
+    try:
+        raw = yf.download(
+            tickers=" ".join(syms),
+            period="5d", interval="1d",
+            auto_adjust=True, progress=False, threads=False,
+        )
+    except Exception as exc:
+        logger.warning("Heatmap download failed: %s", exc)
+        return jsonify([])
+
+    out = []
+    for sym in syms:
+        try:
+            cl = _extract_close_from_batch(raw, sym) if len(syms) > 1 else raw["Close"].dropna()
+            if cl is None or len(cl) < 2:
+                continue
+            chg = round(float((cl.iloc[-1] - cl.iloc[-2]) / cl.iloc[-2] * 100), 2)
+            m, col = meta_map[sym]
+            out.append({"symbol": sym, "name": m.get("name", sym),
+                        "sector": col, "change_pct": chg})
+        except Exception:
+            continue
+
+    with _HEATMAP_LOCK:
+        _HEATMAP_CACHE[market] = {"ts": now, "data": out}
+
+    return jsonify(out)
+
 
 @app.route("/logout")
 def logout():
