@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Stocker** — a Flask web app for stock prediction and analysis. Single-file backend (`app.py`, ~6500 lines) with one main Jinja2 template (`templates/index.html`, ~9400 lines). Additional templates: `blog.html`, `blog_how_ai_predicts_stocks.html`, `blog_xgboost_vs_lightgbm.html`, `delete_account.html`, `privacy.html`, `watchlist_trends.html`.
+**Stocker** — a Flask web app for stock prediction and analysis. Single-file backend (`app.py`, ~6000 lines) with one main Jinja2 template (`templates/index.html`, ~9400 lines). Additional templates: `blog.html`, `blog_how_ai_predicts_stocks.html`, `blog_xgboost_vs_lightgbm.html`, `delete_account.html`, `privacy.html`, `watchlist_trends.html`.
 
 ## Running Locally
 
@@ -262,14 +262,14 @@ Accessible in the Profile modal for admin-tier users. Features:
 - **Admin tier override vs Stripe**: When an admin sets a user's tier via `/api/admin/set-tier`, `admin_granted: true` is written to `users.json`. If that user later subscribes via Stripe, the webhook will overwrite the tier with the Stripe-derived value.
 - **Mobile layout**: Results section uses Bootstrap order classes — predictions panel (`order-1 order-lg-2`) appears above the chart on mobile, below on desktop.
 - **Promo code vs allow_promotion_codes**: Stripe's `discounts` and `allow_promotion_codes` parameters are mutually exclusive in checkout sessions. When a promo code is provided, use `discounts=[{"promotion_code": id}]` and omit `allow_promotion_codes`.
-- **Duplicate /privacy route**: There are two `@app.route('/privacy')` declarations (lines ~3758 and ~3776). Flask uses the first one.
+- **Duplicate /privacy route**: There are two `@app.route('/privacy')` declarations (lines ~4034 and ~4067). Flask uses the first one.
 - **CSP `font-src` must include `data:`**: `html-to-image` inlines external fonts (Font Awesome, etc.) as `data:font/ttf;base64,...` URIs when capturing screenshots. The `_CSP` string in `app.py` must have `data:` in `font-src`; removing it breaks the X Share screenshot capture silently.
 - **X Share screenshot on desktop**: Uses `html-to-image` (not `html2canvas` — CORS/CSS-variable issues). The `filter` callback must guard `el.nodeType !== 1` before calling `getComputedStyle`; html-to-image passes text nodes to the filter. Fixed elements (`position: fixed`) and iframes are excluded from capture to avoid the ticker bar contaminating screenshots.
 - **AI provider default**: `_load_ai_provider()` defaults to `"anthropic"` when `data/cache/ai_config.json` is absent. If the file exists with `"nvidia"`, the provider stays Llama until an admin switches it via the panel or the file is deleted.
 
 ## PWA
 
-`static/sw.js` is a service worker with cache key `stocker-v3`. It precaches the manifest and icons, intercepts same-origin fetches (CDN requests pass through), and serves stale-while-revalidate for static assets. `static/manifest.json` enables "Add to Home Screen". When making changes that may result in stale caches, bump the `CACHE` constant in `sw.js` to `stocker-v4`, etc.
+`static/sw.js` is a service worker with cache key `stocker-v4`. It precaches the manifest and icons, intercepts same-origin fetches (CDN requests pass through), and serves stale-while-revalidate for static assets. `static/manifest.json` enables "Add to Home Screen". When making changes that may result in stale caches, bump the `CACHE` constant in `sw.js` to the next version.
 
 ## graphify
 
